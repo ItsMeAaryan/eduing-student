@@ -4,7 +4,7 @@ import Navbar from '@/components/Navbar'
 
 export const metadata: Metadata = {
   title: 'EDUING.in',
-  description: 'Unified University Platform',
+  description: 'Student',
   icons: {
     icon: '/bandwlogo.PNG',
     apple: '/bandwlogo.PNG',
