@@ -1,0 +1,17 @@
+'use client'
+
+export default function ProgramsPage() {
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: '#0A0A0F',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: 'white',
+      fontSize: '24px'
+    }}>
+      Programs Discovery - Coming Soon
+    </div>
+  )
+}

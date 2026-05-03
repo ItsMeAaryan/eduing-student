@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spline-Inspired Premium UI</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="page-loader"></div>
+<div class="cursor-outer"></div>
+<div class="cursor-inner"></div>
+
+<!-- NAVBAR -->
+<nav id="navbar">
+  <div class="nav-inner">
+    <a href="#" class="logo">◆ spline</a>
+    <div class="nav-links" id="navLinks">
+      <a href="#">Products</a><a href="#">Resources</a><a href="#">Community</a>
+      <a href="#">Customers</a><a href="#">Enterprise</a><a href="#">Pricing</a>
+    </div>
+    <div class="nav-right">
+      <a href="#" class="btn-ghost">Log In</a>
+      <a href="#" class="btn-primary">Get Started</a>
+      <button class="hamburger" id="hamburger"><span></span><span></span></button>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <canvas id="heroCanvas"></canvas>
+  <div class="hero-glow"></div>
+  <div class="hero-content reveal">
+    <h1 class="hero-title">
+      <span class="line">The all-in-one platform</span>
+      <span class="line">for <em>3D</em> and design</span>
+    </h1>
+    <p class="hero-sub">Easily create interactive 3D web experiences. No coding required. Collaborate in real-time.</p>
+    <a href="#" class="btn-hero">Get started — it's free</a>
+    <p class="hero-hint">Drag with two fingers to orbit</p>
+  </div>
+</section>
+
+<!-- MARQUEE CARDS -->
+<section class="section" id="templates">
+  <h2 class="section-title reveal">A complete platform for real-time interactive design</h2>
+  <p class="section-sub reveal">From 3D modeling to animation and code export — all in one tool.</p>
+  <div class="marquee-wrap">
+    <div class="marquee-row left"><div class="marquee-track" id="mq1"></div></div>
+    <div class="marquee-row right"><div class="marquee-track" id="mq2"></div></div>
+  </div>
+</section>
+
+<!-- BENTO GRID -->
+<section class="section" id="features">
+  <h2 class="section-title reveal">Powerful features, beautifully simple</h2>
+  <p class="section-sub reveal">Everything you need to bring 3D to the web.</p>
+  <div class="bento reveal">
+    <div class="bento-card wide"><div class="bento-visual v1"></div><h3>Real-time Collaboration</h3><p>Work together with your team in the same scene simultaneously.</p></div>
+    <div class="bento-card"><div class="bento-visual v2"></div><h3>Animation Timeline</h3><p>Keyframe-based animation with easing curves.</p></div>
+    <div class="bento-card"><div class="bento-visual v3"></div><h3>Physics Engine</h3><p>Add realistic gravity, collisions, and forces.</p></div>
+    <div class="bento-card"><div class="bento-visual v4"></div><h3>Code Export</h3><p>Export to React, Next.js, vanilla JS, and more.</p></div>
+    <div class="bento-card wide"><div class="bento-visual v5"></div><h3>Interactive Events</h3><p>Mouse, scroll, and keyboard-driven 3D interactions with no code.</p></div>
+  </div>
+</section>
+
+<!-- TESTIMONIAL -->
+<section class="section testimonial-section">
+  <div class="divider-line reveal"></div>
+  <blockquote class="testimonial reveal">
+    <p>"Spline has completely transformed how we approach 3D on the web. It's the tool we didn't know we needed."</p>
+    <div class="testimonial-author">
+      <div class="avatar"></div>
+      <div><strong>Sarah Chen</strong><span>Design Lead at Vercel</span></div>
+    </div>
+  </blockquote>
+</section>
+
+<!-- CODE / INTEGRATIONS -->
+<section class="section" id="integrations">
+  <h2 class="section-title reveal">Works with your stack</h2>
+  <p class="section-sub reveal">Embed anywhere with one line of code.</p>
+  <div class="code-section reveal">
+    <div class="tabs" id="codeTabs">
+      <button class="tab active" data-lang="react">React</button>
+      <button class="tab" data-lang="nextjs">Next.js</button>
+      <button class="tab" data-lang="html">HTML/JS</button>
+      <button class="tab" data-lang="swift">Swift</button>
+    </div>
+    <div class="code-block">
+      <button class="copy-btn" onclick="navigator.clipboard.writeText(document.querySelector('.code-content').textContent)">Copy</button>
+      <pre class="code-content" id="codeContent"></pre>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section class="section stats-section">
+  <div class="stats reveal">
+    <div class="stat"><span class="stat-num" data-target="500000">0</span><span class="stat-label">Creators</span></div>
+    <div class="stat"><span class="stat-num" data-target="2000000">0</span><span class="stat-label">Projects</span></div>
+    <div class="stat"><span class="stat-num" data-target="150">0</span><span class="stat-label">Countries</span></div>
+    <div class="stat"><span class="stat-num" data-target="99">0</span><span class="stat-label">% Uptime</span></div>
+  </div>
+</section>
+
+<!-- FOOTER CTA -->
+<section class="section footer-cta">
+  <h2 class="big-cta reveal">Design. Collaborate. Ship.</h2>
+  <p class="section-sub reveal">Join millions of creators building the future of the web.</p>
+  <a href="#" class="btn-hero reveal">Get started for free</a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand"><span class="logo">◆ spline</span><p>The future of 3D design on the web.</p></div>
+    <div><h4>Products</h4><a href="#">3D Editor</a><a href="#">Viewer</a><a href="#">AI Generate</a><a href="#">Teams</a></div>
+    <div><h4>Resources</h4><a href="#">Docs</a><a href="#">Tutorials</a><a href="#">Blog</a><a href="#">Changelog</a></div>
+    <div><h4>Company</h4><a href="#">About</a><a href="#">Careers</a><a href="#">Contact</a><a href="#">Press</a></div>
+  </div>
+  <div class="footer-bottom"><p>&copy; 2026 Spline Inspired. All rights reserved.</p></div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
