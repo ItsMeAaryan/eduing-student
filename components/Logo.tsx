@@ -46,6 +46,9 @@ export default function Logo({ height = 32, href = "/", onClick }: { height?: nu
           color: '#F59E0B',
           letterSpacing: '0',
         }}>.in</span>
+        <span style={{
+          color: '#F59E0B',
+      }}
       </span>
     </Link>
   )
