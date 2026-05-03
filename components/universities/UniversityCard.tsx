@@ -40,9 +40,9 @@ export default function UniversityCard({ university, index }: Props) {
         <div className="flex items-center space-x-4">
           <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden shrink-0 relative">
             {university.logoUrl ? (
-              <Image src={university.logoUrl} alt={university.name} fill sizes="64px" className="object-cover" />
+              <Image src={university.logoUrl} alt={(university as any).name} fill sizes="64px" className="object-cover" />
             ) : (
-              <span className="text-xl font-bold text-textSecondary uppercase">{university.name.substring(0, 2)}</span>
+              <span className="text-xl font-bold text-textSecondary uppercase">{((university as any).name || 'UN').substring(0, 2)}</span>
             )}
           </div>
           <div>
