@@ -1,15 +1,8 @@
 export interface UniversityFilters {
-  search?: string
-
-  city?: string
-
-  state?: string
-
+  searchQuery?: string
   states?: string[]
-
-  program?: string
-
+  state?: string
+  city?: string
   programs?: string[]
-
-  rating?: number
+  program?: string
 }
