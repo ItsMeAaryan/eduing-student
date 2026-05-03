@@ -132,8 +132,8 @@ const StudentLayout = ({ children }: { children: React.ReactNode }) => {
   ]
 
   const handleLogout = async () => {
-    await signOut(auth)
-    router.push('/auth/login')
+  await signOut(auth)
+  window.location.href = 'https://app.eduing.in'
   }
 
 
