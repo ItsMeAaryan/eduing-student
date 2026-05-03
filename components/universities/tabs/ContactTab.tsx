@@ -1,5 +1,97 @@
 "use client";
 
+import { MapPin, Mail, Phone, Globe } from "lucide-react";
+
+interface Props {
+  university: any;
+}
+
+export default function ContactTab({ university }: Props) {
+  const uni = university as any;
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-card/60 border border-white/5 rounded-2xl p-6">
+        <h3 className="text-xl font-bold text-white mb-6">
+          Contact Information
+        </h3>
+
+        <div className="space-y-5">
+          <div className="flex items-start gap-4">
+            <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <MapPin size={20} className="text-primary" />
+            </div>
+
+            <div>
+              <span className="block text-sm text-textSecondary mb-1">
+                Address
+              </span>
+
+              <span className="text-white">
+                {uni.city || "Unknown City"},{" "}
+                {uni.state || "Unknown State"}, India
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-4">
+            <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <Mail size={20} className="text-primary" />
+            </div>
+
+            <div>
+              <span className="block text-sm text-textSecondary mb-1">
+                Email
+              </span>
+
+              <span className="text-white">
+                {uni.email || "Not Available"}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-4">
+            <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <Phone size={20} className="text-primary" />
+            </div>
+
+            <div>
+              <span className="block text-sm text-textSecondary mb-1">
+                Phone
+              </span>
+
+              <span className="text-white">
+                {uni.phone || "Not Available"}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-4">
+            <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <Globe size={20} className="text-primary" />
+            </div>
+
+            <div>
+              <span className="block text-sm text-textSecondary mb-1">
+                Website
+              </span>
+
+              <a
+                href={uni.website || "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline break-all"
+              >
+                {uni.website || "Not Available"}
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}"use client";
+
 import { UniversityDetails } from "@/types/universityDetails";
 import { MapPin, Phone, Mail, Globe, ExternalLink } from "lucide-react";
 
