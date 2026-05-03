@@ -26,8 +26,8 @@ export default function FilterSidebar({ filters, setFilters, onCloseMobile }: Pr
     setFilters(prev => ({
       ...prev,
       states: (prev.states || []).includes(state)
-  ? (prev.states || []).filter(s => s !== state)
-  : [...(prev.states || []), state]
+        ? (prev.states || []).filter(s => s !== state)
+        : [...(prev.states || []), state]
     }));
   };
 
@@ -35,8 +35,8 @@ export default function FilterSidebar({ filters, setFilters, onCloseMobile }: Pr
     setFilters(prev => ({
       ...prev,
       programs: (prev.programs || []).includes(program)
-  ? (prev.programs || []).filter(p => p !== program)
-  : [...(prev.programs || []), program]
+        ? (prev.programs || []).filter(p => p !== program)
+        : [...(prev.programs || []), program]
     }));
   };
 
@@ -85,7 +85,7 @@ export default function FilterSidebar({ filters, setFilters, onCloseMobile }: Pr
               <label key={state} className="flex items-center space-x-2 cursor-pointer group">
                 <input 
                   type="checkbox"
-                  checked={filters.states.includes(state)}
+                  checked={filters.states?.includes(state) ?? false}
                   onChange={() => handleStateToggle(state)}
                   className="rounded border-border bg-background text-primary focus:ring-primary/50 focus:ring-offset-0 transition-all cursor-pointer"
                 />
@@ -115,7 +115,7 @@ export default function FilterSidebar({ filters, setFilters, onCloseMobile }: Pr
               <label key={program} className="flex items-center space-x-2 cursor-pointer group">
                 <input 
                   type="checkbox"
-                  checked={filters.programs.includes(program)}
+                  checked={filters.programs?.includes(program) ?? false}
                   onChange={() => handleProgramToggle(program)}
                   className="rounded border-border bg-background text-primary focus:ring-primary/50 focus:ring-offset-0 transition-all cursor-pointer"
                 />
