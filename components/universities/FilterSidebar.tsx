@@ -34,9 +34,9 @@ export default function FilterSidebar({ filters, setFilters, onCloseMobile }: Pr
   const handleProgramToggle = (program: string) => {
     setFilters(prev => ({
       ...prev,
-      programs: prev.programs.includes(program)
-        ? prev.programs.filter(p => p !== program)
-        : [...prev.programs, program]
+      programs: (prev.programs || []).includes(program)
+  ? (prev.programs || []).filter(p => p !== program)
+  : [...(prev.programs || []), program]
     }));
   };
 
