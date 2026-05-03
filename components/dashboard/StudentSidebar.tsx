@@ -26,7 +26,7 @@ export default function StudentSidebar({ studentName = "Student", studentPhoto }
   const handleLogout = async () => {
     try {
       await logoutUser();
-      router.push("/");
+      window.location.href = "https://app.eduing.in";
     } catch (error) {
       console.error("Logout failed", error);
     }
