@@ -5,4 +5,5 @@ export interface UniversityFilters {
   city?: string
   programs?: string[]
   program?: string
+  requiresEntranceExam?: boolean | null
 }
