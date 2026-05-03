@@ -15,7 +15,7 @@ export default function ReviewsTab({ university }: Props) {
       <div className="text-center py-20 bg-white/5 border border-white/10 rounded-3xl animate-in fade-in slide-in-from-bottom-4">
         <Star size={48} className="mx-auto text-textSecondary mb-4 opacity-50" />
         <h3 className="text-xl font-bold text-white mb-2">No reviews yet</h3>
-        <p className="text-textSecondary">Be the first to review {university.name}.</p>
+        <p className="text-textSecondary">Be the first to review {(university as any).name}.</p>
       </div>
     );
   }
