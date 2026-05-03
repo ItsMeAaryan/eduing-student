@@ -134,7 +134,7 @@ export default function ProgramsTab({ university }: Props) {
       {selectedProgram && (
         <ApplicationModal 
           program={selectedProgram} 
-          universityId={university.uid} 
+          universityId={(university as any).uid}
           onClose={() => setSelectedProgram(null)} 
         />
       )}
