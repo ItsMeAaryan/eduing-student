@@ -33,7 +33,7 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
     )
   }
 
-  if (!isLoggedIn || (allowedRoles && !allowedRoles.includes(role))) {
+if (!isLoggedIn || (allowedRoles && role && !allowedRoles.includes(role))) {
     return null
   }
 
