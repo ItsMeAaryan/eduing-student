@@ -4,12 +4,12 @@ import React, { useState, useEffect } from 'react'
 
 import { motion, AnimatePresence } from 'framer-motion'
 import ProtectedRoute from '@/components/ProtectedRoute'
-import { 
-  FileText, 
-  Upload, 
-  Download, 
-  Trash2, 
-  CheckCircle2, 
+import {
+  FileText,
+  Upload,
+  Download,
+  Trash2,
+  CheckCircle2,
   Clock,
   Eye,
   Plus,
@@ -18,7 +18,12 @@ import {
   X
 } from 'lucide-react'
 
-import { uploadUserDocument, listenUserProfile, deleteUserDocument } from '@/lib/firebase/student'
+import {
+  uploadUserDocument,
+  listenUserProfile,
+  deleteUserDocument
+} from '@/lib/firebase/student'
+
 import { onAuthChange } from '@/lib/firebase/auth'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -32,11 +37,14 @@ const DOC_TYPES = [
 export default function DocumentsPage() {
   const [uploadedDocs, setUploadedDocs] = useState<Record<string, any>>({})
   const [uploadingDocs, setUploadingDocs] = useState<Record<string, boolean>>({})
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null)
-  
+  const [toast, setToast] = useState<{
+    message: string
+    type: 'success' | 'error' | 'info'
+  } | null>(null)
+
   const [viewingDoc, setViewingDoc] = useState<any>(null)
   const [showViewModal, setShowViewModal] = useState(false)
-  
+
   const [docToDelete, setDocToDelete] = useState<string | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
@@ -45,14 +53,21 @@ export default function DocumentsPage() {
   useEffect(() => {
     const unsub = onAuthChange((firebaseUser) => {
       if (firebaseUser) {
-        const unsubProfile = listenUserProfile(firebaseUser.uid, (data) => {
-          if (data?.documents) {
-            setUploadedDocs(data.documents)
+        const unsubProfile = listenUserProfile(
+          firebaseUser.uid,
+          (data) => {
+            const profileData = data as any
+
+            if (profileData?.documents) {
+              setUploadedDocs(profileData.documents)
+            }
           }
-        })
+        )
+
         return () => unsubProfile()
       }
     })
+
     return unsub
   }, [])
 
@@ -61,7 +76,10 @@ export default function DocumentsPage() {
     type: 'success' | 'error' | 'info' = 'success'
   ) => {
     setToast({ message, type })
-    setTimeout(() => setToast(null), 3000)
+
+    setTimeout(() => {
+      setToast(null)
+    }, 3000)
   }
 
   const handleUpload = async (
@@ -71,6 +89,7 @@ export default function DocumentsPage() {
     if (!user) return
 
     const file = e.target.files?.[0]
+
     if (!file) return
 
     const maxSize = 10 * 1024 * 1024
@@ -80,7 +99,7 @@ export default function DocumentsPage() {
       return
     }
 
-    setUploadingDocs(prev => ({
+    setUploadingDocs((prev) => ({
       ...prev,
       [docType]: true
     }))
@@ -90,14 +109,14 @@ export default function DocumentsPage() {
 
       showToast('Document uploaded successfully!', 'success')
 
-      setUploadingDocs(prev => ({
+      setUploadingDocs((prev) => ({
         ...prev,
         [docType]: false
       }))
     } catch (err) {
       showToast('Upload failed', 'error')
 
-      setUploadingDocs(prev => ({
+      setUploadingDocs((prev) => ({
         ...prev,
         [docType]: false
       }))
@@ -288,7 +307,7 @@ export default function DocumentsPage() {
                     }}
                   >
                     {doc
-                      ? `Uploaded Document`
+                      ? 'Uploaded Document'
                       : 'Requirement for admission'}
                   </p>
                 </div>
