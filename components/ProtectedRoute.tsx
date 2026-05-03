@@ -17,7 +17,7 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
     if (!loading) {
       if (!isLoggedIn) {
         router.push('/auth/login')
-      } else if (allowedRoles && !allowedRoles.includes(role)) {
+      } else if (allowedRoles && role && !allowedRoles.includes(role)) {
         // Redirect to appropriate dashboard if role is wrong
         if (role === 'student') router.push('/student/dashboard')
         else if (role === 'super_admin') router.push('/admin/dashboard')
