@@ -96,7 +96,6 @@ export interface UniversityDetails
 
   updatedAt?: any
 
-  [key: string]: any
 }
 
 export interface UniversityDetails
