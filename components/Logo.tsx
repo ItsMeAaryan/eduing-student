@@ -43,12 +43,9 @@ export default function Logo({ height = 32, href = "/", onClick }: { height?: nu
           fontFamily: 'Inter, sans-serif',
           fontSize: `${13 * scale}px`,
           fontWeight: '700',
-          color: '#F59E0B',
+          color: '#6366F1',
           letterSpacing: '0',
         }}>.in</span>
-        <span style={{
-          color: '#F59E0B',
-      }}
       </span>
     </Link>
   )
