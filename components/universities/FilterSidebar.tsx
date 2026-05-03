@@ -25,9 +25,9 @@ export default function FilterSidebar({ filters, setFilters, onCloseMobile }: Pr
   const handleStateToggle = (state: string) => {
     setFilters(prev => ({
       ...prev,
-      states: prev.states.includes(state)
-        ? prev.states.filter(s => s !== state)
-        : [...prev.states, state]
+      states: (prev.states || []).includes(state)
+  ? (prev.states || []).filter(s => s !== state)
+  : [...(prev.states || []), state]
     }));
   };
 
