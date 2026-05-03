@@ -105,7 +105,15 @@ export default function DocumentsPage() {
     }))
 
     try {
-      await uploadUserDocument(user.uid, file, docType)
+      await uploadUserDocument(
+  user.uid,
+  file,
+  docType as
+    | '10th_marksheet'
+    | '12th_marksheet'
+    | 'id_proof'
+    | 'passport_photo'
+)
 
       showToast('Document uploaded successfully!', 'success')
 
