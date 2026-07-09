@@ -100,10 +100,10 @@ export default function OnboardingPage() {
           <div className="w-full mb-12">
             <div className="flex justify-between mb-4">
               {steps.map((step, i) => (
-                <div key={step.id} className={`flex flex-col items-center gap-2 ${i <= currentStep ? 'text-brand-indigo' : 'text-white/20'}`}>
+                <div key={step.id} className={`flex flex-col items-center gap-2 ${i <= currentStep ? 'text-brand-indigo' : 'text-white/40'}`}>
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${
                     i < currentStep ? 'bg-brand-indigo border-brand-indigo text-white' : 
-                    i === currentStep ? 'border-brand-indigo text-brand-indigo' : 'border-white/10 text-white/20'
+                    i === currentStep ? 'border-brand-indigo text-brand-indigo' : 'border-white/10 text-white/40'
                   }`}>
                     {i < currentStep ? <CheckCircle2 size={20} /> : <step.icon size={20} />}
                   </div>
@@ -150,7 +150,7 @@ export default function OnboardingPage() {
                 {currentStep === 0 && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="md:col-span-2 flex justify-center mb-4">
-                       <div className="w-24 h-24 rounded-full border-2 border-dashed border-white/20 flex flex-col items-center justify-center text-white/30 hover:border-brand-indigo hover:text-brand-indigo transition-all cursor-pointer">
+                       <div className="w-24 h-24 rounded-full border-2 border-dashed border-white/20 flex flex-col items-center justify-center text-white/46 hover:border-brand-indigo hover:text-brand-indigo transition-all cursor-pointer">
                          <User size={32} />
                          <span className="text-[10px] font-bold mt-1 uppercase">Photo</span>
                        </div>
@@ -223,11 +223,11 @@ export default function OnboardingPage() {
                 {currentStep === 4 && (
                   <div className="space-y-4 text-sm">
                     <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                      <div className="text-xs font-bold text-white/30 uppercase mb-2">Personal</div>
+                      <div className="text-xs font-bold text-white/46 uppercase mb-2">Personal</div>
                       <div className="text-white font-medium">{formData.personal.fullName} • {formData.personal.gender} • {formData.personal.city}, {formData.personal.state}</div>
                     </div>
                     <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                      <div className="text-xs font-bold text-white/30 uppercase mb-2">Academic</div>
+                      <div className="text-xs font-bold text-white/46 uppercase mb-2">Academic</div>
                       <div className="text-white font-medium">10th: {formData.academic.marks10}% • 12th: {formData.academic.marks12}% ({formData.academic.stream})</div>
                     </div>
                     <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-between">

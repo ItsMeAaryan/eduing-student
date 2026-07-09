@@ -89,7 +89,7 @@ export default function AdminDashboard() {
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
                 className={`w-full flex items-center gap-4 px-5 py-3.5 rounded-2xl transition-all duration-200 ${
-                  activeTab === item.id ? 'bg-brand-indigo/15 text-white font-bold' : 'text-white/30 hover:bg-white/5 hover:text-white'
+                  activeTab === item.id ? 'bg-brand-indigo/15 text-white font-bold' : 'text-white/46 hover:bg-white/5 hover:text-white'
                 }`}
               >
                 <item.icon size={20} />
@@ -112,7 +112,7 @@ export default function AdminDashboard() {
           <header className="mb-12 flex justify-between items-end">
             <div>
               <h1 className="text-4xl font-[900] mb-2 uppercase tracking-tighter">Platform Control</h1>
-              <p className="text-white/30 font-medium">Global infrastructure and user oversight</p>
+              <p className="text-white/46 font-medium">Global infrastructure and user oversight</p>
             </div>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-500/10 text-green-500 text-[10px] font-bold uppercase tracking-widest border border-green-500/20">
@@ -138,7 +138,7 @@ export default function AdminDashboard() {
                 <h2 className="text-xl font-bold flex items-center gap-3">
                   Pending Approvals <span className="w-6 h-6 rounded-full bg-brand-gold/20 text-brand-gold text-[10px] flex items-center justify-center">{pendingUnis.length}</span>
                 </h2>
-                <button className="text-[10px] font-bold text-white/30 uppercase tracking-widest hover:text-white transition-colors">View All Queue</button>
+                <button className="text-[10px] font-bold text-white/46 uppercase tracking-widest hover:text-white transition-colors">View All Queue</button>
               </div>
 
               <div className="space-y-4">
@@ -166,7 +166,7 @@ export default function AdminDashboard() {
                       </div>
                       <div className="flex items-center gap-3 self-end md:self-center">
                         <div className="text-right mr-4 hidden md:block">
-                          <div className="text-[10px] font-bold text-white/20 uppercase mb-1">Registered</div>
+                          <div className="text-[10px] font-bold text-white/40 uppercase mb-1">Registered</div>
                           <div className="text-xs font-bold text-white/60">{uni.registered} days ago</div>
                         </div>
                         <button onClick={() => approveUni(uni.id)} className="p-3 rounded-xl bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white transition-all shadow-lg shadow-green-500/10"><CheckCircle2 size={20} /></button>
@@ -210,7 +210,7 @@ export default function AdminDashboard() {
                         <div>
                           <div className="text-xs font-bold text-white">{activity.user}</div>
                           <div className="text-xs text-white/50">{activity.action}</div>
-                          <div className="text-[10px] text-white/20 font-bold uppercase mt-1">{activity.time}</div>
+                          <div className="text-[10px] text-white/40 font-bold uppercase mt-1">{activity.time}</div>
                         </div>
                       </div>
                     ))}

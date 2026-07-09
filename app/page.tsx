@@ -255,7 +255,7 @@ export default function AuthPage() {
 
                   <form onSubmit={handleLogin} className="space-y-5">
                     <div className="space-y-2">
-                      <label htmlFor="login-email" className="text-[11px] font-bold text-white/30 uppercase tracking-widest ml-1">Email Address</label>
+                      <label htmlFor="login-email" className="text-[11px] font-bold text-white/46 uppercase tracking-widest ml-1">Email Address</label>
                       <motion.div 
                         whileFocus={{ scale: 1.01 }}
                         className="relative group"
@@ -266,7 +266,7 @@ export default function AuthPage() {
                           required
                           value={loginData.email}
                           onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
-                          className="w-full bg-white/[0.03] border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder:text-white/20 outline-none focus:border-[#6366F1]/50 focus:bg-white/[0.06] focus:shadow-[0_0_20px_rgba(99,102,241,0.1)] transition-all"
+                          className="w-full bg-white/[0.03] border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder:text-white/40 outline-none focus:border-[#6366F1]/50 focus:bg-white/[0.06] focus:shadow-[0_0_20px_rgba(99,102,241,0.1)] transition-all"
                           placeholder="your.email@example.com"
                         />
                       </motion.div>
@@ -274,7 +274,7 @@ export default function AuthPage() {
 
                     <div className="space-y-2">
                       <div className="flex justify-between items-center px-1">
-                        <label htmlFor="login-password" className="text-[11px] font-bold text-white/30 uppercase tracking-widest">Password</label>
+                        <label htmlFor="login-password" className="text-[11px] font-bold text-white/46 uppercase tracking-widest">Password</label>
                         <Link href="/auth/forgot-password" title="Forgot Password?" className="text-[11px] font-bold text-[#6366F1] hover:text-[#818cf8] transition-colors">
                           Forgot?
                         </Link>
@@ -289,13 +289,13 @@ export default function AuthPage() {
                           required
                           value={loginData.password}
                           onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                          className="w-full bg-white/[0.03] border border-white/10 rounded-xl py-4 pl-12 pr-14 text-white placeholder:text-white/20 outline-none focus:border-[#6366F1]/50 focus:bg-white/[0.06] focus:shadow-[0_0_20px_rgba(99,102,241,0.1)] transition-all"
+                          className="w-full bg-white/[0.03] border border-white/10 rounded-xl py-4 pl-12 pr-14 text-white placeholder:text-white/40 outline-none focus:border-[#6366F1]/50 focus:bg-white/[0.06] focus:shadow-[0_0_20px_rgba(99,102,241,0.1)] transition-all"
                           placeholder="••••••••••••"
                         />
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white/50 transition-colors p-1"
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/50 transition-colors p-1"
                         >
                           {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                         </button>
@@ -343,7 +343,7 @@ export default function AuthPage() {
                         <Zap size={14} className="text-[#6366F1] group-hover:animate-pulse" />
                         Try Demo Account
                       </button>
-                      <p className="text-[10px] font-black text-white/10 uppercase tracking-[0.2em]">Explore platform instantly</p>
+                      <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Explore platform instantly</p>
                     </div>
                   </form>
                 </motion.div>
@@ -362,7 +362,7 @@ export default function AuthPage() {
 
                   <form onSubmit={handleRegister} className="space-y-4">
                     <div className="space-y-2">
-                      <label htmlFor="register-fullname" className="text-[11px] font-bold text-white/30 uppercase tracking-widest ml-1">Full Name</label>
+                      <label htmlFor="register-fullname" className="text-[11px] font-bold text-white/46 uppercase tracking-widest ml-1">Full Name</label>
                       <motion.div whileFocus={{ scale: 1.01 }} className="relative group">
                         <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-white/20 group-focus-within:text-[#6366F1] transition-colors" />
                         <input
@@ -370,7 +370,7 @@ export default function AuthPage() {
                           required
                           value={registerData.fullName}
                           onChange={(e) => setRegisterData({ ...registerData, fullName: e.target.value })}
-                          className="w-full bg-white/[0.03] border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder:text-white/20 outline-none focus:border-[#6366F1]/50 focus:bg-white/[0.06] focus:shadow-[0_0_20px_rgba(99,102,241,0.1)] transition-all"
+                          className="w-full bg-white/[0.03] border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder:text-white/40 outline-none focus:border-[#6366F1]/50 focus:bg-white/[0.06] focus:shadow-[0_0_20px_rgba(99,102,241,0.1)] transition-all"
                           placeholder="Your Name"
                         />
                       </motion.div>
@@ -378,7 +378,7 @@ export default function AuthPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label htmlFor="register-email" className="text-[11px] font-bold text-white/30 uppercase tracking-widest ml-1">Email</label>
+                        <label htmlFor="register-email" className="text-[11px] font-bold text-white/46 uppercase tracking-widest ml-1">Email</label>
                         <motion.div whileFocus={{ scale: 1.01 }} className="relative group">
                           <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-[#6366F1] transition-colors" />
                           <input
@@ -386,13 +386,13 @@ export default function AuthPage() {
                             required
                             value={registerData.email}
                             onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
-                            className="w-full bg-white/[0.03] border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white text-sm placeholder:text-white/20 outline-none focus:border-[#6366F1]/50 focus:bg-white/[0.06] focus:shadow-[0_0_20px_rgba(99,102,241,0.1)] transition-all"
+                            className="w-full bg-white/[0.03] border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white text-sm placeholder:text-white/40 outline-none focus:border-[#6366F1]/50 focus:bg-white/[0.06] focus:shadow-[0_0_20px_rgba(99,102,241,0.1)] transition-all"
                             placeholder="Email"
                           />
                         </motion.div>
                       </div>
                       <div className="space-y-2">
-                        <label htmlFor="register-phone" className="text-[11px] font-bold text-white/30 uppercase tracking-widest ml-1">Phone</label>
+                        <label htmlFor="register-phone" className="text-[11px] font-bold text-white/46 uppercase tracking-widest ml-1">Phone</label>
                         <motion.div whileFocus={{ scale: 1.01 }} className="relative group">
                           <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-[#6366F1] transition-colors" />
                           <input
@@ -403,7 +403,7 @@ export default function AuthPage() {
                             onInput={(e) => {
                               e.currentTarget.value = e.currentTarget.value.replace(/[^0-9]/g, '');
                             }}
-                            className="w-full bg-white/[0.03] border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white text-sm placeholder:text-white/20 outline-none focus:border-[#6366F1]/50 focus:bg-white/[0.06] focus:shadow-[0_0_20px_rgba(99,102,241,0.1)] transition-all"
+                            className="w-full bg-white/[0.03] border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white text-sm placeholder:text-white/40 outline-none focus:border-[#6366F1]/50 focus:bg-white/[0.06] focus:shadow-[0_0_20px_rgba(99,102,241,0.1)] transition-all"
                             placeholder="Digits only"
                           />
                         </motion.div>
@@ -412,7 +412,7 @@ export default function AuthPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label htmlFor="register-dob" className="text-[11px] font-bold text-white/30 uppercase tracking-widest ml-1">Date of Birth</label>
+                        <label htmlFor="register-dob" className="text-[11px] font-bold text-white/46 uppercase tracking-widest ml-1">Date of Birth</label>
                         <motion.div whileFocus={{ scale: 1.01 }} className="relative group">
                           <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-[#6366F1] transition-colors" />
                           <input
@@ -425,7 +425,7 @@ export default function AuthPage() {
                         </motion.div>
                       </div>
                       <div className="space-y-2">
-                        <label htmlFor="register-password" className="text-[11px] font-bold text-white/30 uppercase tracking-widest ml-1">Password</label>
+                        <label htmlFor="register-password" className="text-[11px] font-bold text-white/46 uppercase tracking-widest ml-1">Password</label>
                         <motion.div whileFocus={{ scale: 1.01 }} className="relative group">
                           <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-[#6366F1] transition-colors" />
                           <input
@@ -434,7 +434,7 @@ export default function AuthPage() {
                             required
                             value={registerData.password}
                             onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
-                            className="w-full bg-white/[0.03] border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white text-sm placeholder:text-white/20 outline-none focus:border-[#6366F1]/50 focus:bg-white/[0.06] focus:shadow-[0_0_20px_rgba(99,102,241,0.1)] transition-all"
+                            className="w-full bg-white/[0.03] border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white text-sm placeholder:text-white/40 outline-none focus:border-[#6366F1]/50 focus:bg-white/[0.06] focus:shadow-[0_0_20px_rgba(99,102,241,0.1)] transition-all"
                             placeholder="••••••••"
                           />
                         </motion.div>
@@ -485,11 +485,11 @@ export default function AuthPage() {
           transition={{ delay: 0.6 }}
           className="mt-8 flex items-center gap-6"
         >
-          <Link href="/about" className="text-white/20 hover:text-white/40 transition-colors text-[11px] font-bold uppercase tracking-wider">Help Center</Link>
+          <Link href="/about" className="text-white/40 hover:text-white/40 transition-colors text-[11px] font-bold uppercase tracking-wider">Help Center</Link>
           <div className="w-1 h-1 bg-white/10 rounded-full" />
-          <Link href="/programs" className="text-white/20 hover:text-white/40 transition-colors text-[11px] font-bold uppercase tracking-wider">Privacy Policy</Link>
+          <Link href="/programs" className="text-white/40 hover:text-white/40 transition-colors text-[11px] font-bold uppercase tracking-wider">Privacy Policy</Link>
           <div className="w-1 h-1 bg-white/10 rounded-full" />
-          <Link href="/universities" className="text-white/20 hover:text-white/40 transition-colors text-[11px] font-bold uppercase tracking-wider">Terms of Service</Link>
+          <Link href="/universities" className="text-white/40 hover:text-white/40 transition-colors text-[11px] font-bold uppercase tracking-wider">Terms of Service</Link>
         </motion.div>
       </div>
 

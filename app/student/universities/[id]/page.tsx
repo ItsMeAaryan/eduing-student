@@ -201,7 +201,7 @@ export default function PremiumUniversityDetailPage() {
             <div className="space-y-20">
               
               <section className="space-y-8">
-                <h2 className="text-xs font-black text-white/30 uppercase tracking-[0.3em]">Institutional Overview</h2>
+                <h2 className="text-xs font-black text-white/46 uppercase tracking-[0.3em]">Institutional Overview</h2>
                 <p className="text-xl leading-relaxed text-white/70 font-medium">
                   {university.name} stands as a beacon of academic excellence in {university.location}, offering a diverse range of programs designed to foster innovation and leadership. As a NAAC {university.naacGrade || 'A++'} certified institution, we maintain the highest standards of education and infrastructure.
                 </p>
@@ -216,7 +216,7 @@ export default function PremiumUniversityDetailPage() {
                     <div key={i} className="bg-white/5 border border-white/5 rounded-3xl p-6 text-center">
                       <stat.icon size={20} className="mx-auto mb-4 text-indigo-400" />
                       <div className="text-lg font-black">{stat.value}</div>
-                      <div className="text-[10px] font-black text-white/30 uppercase tracking-widest mt-1">{stat.label}</div>
+                      <div className="text-[10px] font-black text-white/46 uppercase tracking-widest mt-1">{stat.label}</div>
                     </div>
                   ))}
                 </div>
@@ -224,7 +224,7 @@ export default function PremiumUniversityDetailPage() {
 
               <section className="space-y-12">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xs font-black text-white/30 uppercase tracking-[0.3em]">Available Programs</h2>
+                  <h2 className="text-xs font-black text-white/46 uppercase tracking-[0.3em]">Available Programs</h2>
                   <div className="text-sm font-bold text-white/40">{programs.length} Specializations</div>
                 </div>
 
@@ -255,7 +255,7 @@ export default function PremiumUniversityDetailPage() {
                           </div>
                           <div>
                             <h3 className="text-xl font-black mb-1 group-hover:text-indigo-400 transition-colors">{prog.name}</h3>
-                            <div className="flex flex-wrap gap-4 text-white/30 text-[10px] font-bold uppercase tracking-widest">
+                            <div className="flex flex-wrap gap-4 text-white/46 text-[10px] font-bold uppercase tracking-widest">
                               <span className="flex items-center gap-2"><Clock size={12} /> {prog.duration}</span>
                               <span className="flex items-center gap-2"><Award size={12} /> {prog.level}</span>
                               {prog.totalSeats > 0 && <span className="flex items-center gap-2"><Users size={12} /> {prog.totalSeats} Seats</span>}
@@ -265,7 +265,7 @@ export default function PremiumUniversityDetailPage() {
                         
                         <div className="flex items-center gap-8 w-full md:w-auto">
                           <div className="text-right">
-                            <div className="text-white/30 text-[10px] font-black uppercase tracking-widest mb-1">Annual Fee</div>
+                            <div className="text-white/46 text-[10px] font-black uppercase tracking-widest mb-1">Annual Fee</div>
                             <div className="text-xl font-black text-green-400 flex items-center gap-1">
                               <IndianRupee size={16} />
                               {(prog.annualFee || prog.fee || 0).toLocaleString()}
@@ -314,7 +314,7 @@ export default function PremiumUniversityDetailPage() {
                   </div>
 
                   <div className="p-6 bg-white/5 rounded-3xl border border-white/5 mb-10">
-                    <div className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-4">Application Window</div>
+                    <div className="text-[10px] font-black text-white/46 uppercase tracking-widest mb-4">Application Window</div>
                     <div className="flex items-center justify-between">
                       <div className="text-sm font-bold">Session 2024-25</div>
                       <div className="bg-green-500/10 text-green-500 text-[10px] font-black px-3 py-1 rounded-lg uppercase tracking-widest">Open</div>
@@ -341,7 +341,7 @@ export default function PremiumUniversityDetailPage() {
                 </div>
 
                 <div className="bg-white/5 border border-white/5 rounded-3xl p-8">
-                   <h4 className="text-xs font-black text-white/30 uppercase tracking-widest mb-6 text-center">Assistance</h4>
+                   <h4 className="text-xs font-black text-white/46 uppercase tracking-widest mb-6 text-center">Assistance</h4>
                    <p className="text-center text-sm text-white/50 mb-8 leading-relaxed">Need help with eligibility or documentation?</p>
                    <button className="w-full py-4 border border-white/10 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-white/5 transition-all">
                      Talk to Advisor
@@ -357,7 +357,7 @@ export default function PremiumUniversityDetailPage() {
           {selectedProgram && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-[#0A0A0F]/90 backdrop-blur-2xl flex items-center justify-center p-6">
               <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} className="bg-[#111114] border border-white/10 rounded-[40px] p-10 max-w-2xl w-full relative shadow-[0_0_100px_rgba(99,102,241,0.2)]">
-                <button onClick={() => setSelectedProgram(null)} className="absolute top-8 right-8 text-white/20 hover:text-white transition-all">
+                <button onClick={() => setSelectedProgram(null)} className="absolute top-8 right-8 text-white/40 hover:text-white transition-all">
                   <X size={24} />
                 </button>
 
@@ -369,25 +369,25 @@ export default function PremiumUniversityDetailPage() {
 
                 <div className="grid grid-cols-2 gap-4 mb-8">
                    <div className="p-6 bg-white/5 rounded-3xl border border-white/5">
-                      <div className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Duration</div>
+                      <div className="text-[10px] font-black text-white/46 uppercase tracking-widest mb-2">Duration</div>
                       <div className="text-lg font-black">{selectedProgram.duration}</div>
                    </div>
                    <div className="p-6 bg-white/5 rounded-3xl border border-white/5">
-                      <div className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Annual Fee</div>
+                      <div className="text-[10px] font-black text-white/46 uppercase tracking-widest mb-2">Annual Fee</div>
                       <div className="text-lg font-black text-green-400">₹{(selectedProgram.annualFee || selectedProgram.fee || 0).toLocaleString()}</div>
                    </div>
                    <div className="p-6 bg-white/5 rounded-3xl border border-white/5">
-                      <div className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Total Seats</div>
+                      <div className="text-[10px] font-black text-white/46 uppercase tracking-widest mb-2">Total Seats</div>
                       <div className="text-lg font-black">{selectedProgram.totalSeats || 'TBD'}</div>
                    </div>
                    <div className="p-6 bg-white/5 rounded-3xl border border-white/5">
-                      <div className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Entrance Exam</div>
+                      <div className="text-[10px] font-black text-white/46 uppercase tracking-widest mb-2">Entrance Exam</div>
                       <div className="text-lg font-black">{selectedProgram.entranceExam || (selectedProgram.hasEntranceExam ? 'Required' : 'Direct Admission')}</div>
                    </div>
                 </div>
 
                 <div className="space-y-6 mb-12">
-                  <h4 className="text-xs font-black text-white/30 uppercase tracking-widest">Core Eligibility</h4>
+                  <h4 className="text-xs font-black text-white/46 uppercase tracking-widest">Core Eligibility</h4>
                   <div className="flex items-start gap-4 p-6 bg-amber-500/5 border border-amber-500/20 rounded-3xl">
                      <AlertCircle size={20} className="text-amber-500 flex-shrink-0 mt-1" />
                      <p className="text-sm font-medium text-amber-500/80 leading-relaxed">

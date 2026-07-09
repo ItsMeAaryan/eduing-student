@@ -245,7 +245,7 @@ export default function AccountPage() {
         transition={{ repeat: Infinity, duration: 1, ease: 'linear' }} 
         className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full" 
       />
-      <p className="text-white/20 text-xs font-black uppercase tracking-[0.2em] animate-pulse">Initializing Secure Dossier...</p>
+      <p className="text-white/40 text-xs font-black uppercase tracking-[0.2em] animate-pulse">Initializing Secure Dossier...</p>
     </div>
   )
 
@@ -280,8 +280,8 @@ export default function AccountPage() {
     { label: 'Biometric Photo', completed: !!fullProfile?.profilePhotoURL },
   ]
 
-  const inputStyle = "w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:border-indigo-500/50 focus:bg-indigo-500/5 outline-none transition-all placeholder:text-white/10"
-  const labelStyle = "text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-2 mb-2 block"
+  const inputStyle = "w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:border-indigo-500/50 focus:bg-indigo-500/5 outline-none transition-all placeholder:text-white/40"
+  const labelStyle = "text-[10px] font-black text-white/46 uppercase tracking-[0.2em] ml-2 mb-2 block"
 
   return (
     <ProtectedRoute allowedRoles={['student']}>
@@ -309,7 +309,7 @@ export default function AccountPage() {
                 </div>
                 <div className="p-8 bg-[#111114] space-y-6">
                   <div className="flex items-center gap-4">
-                    <span className="text-[10px] font-black uppercase text-white/30">Zoom</span>
+                    <span className="text-[10px] font-black uppercase text-white/46">Zoom</span>
                     <input type="range" value={zoom} min={1} max={3} step={0.1} onChange={(e) => setZoom(Number(e.target.value))} className="flex-1 accent-indigo-500" />
                   </div>
                   <button onClick={handleUploadCroppedImage} className="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-5 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-indigo-600/20 transition-all">
@@ -338,7 +338,7 @@ export default function AccountPage() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
-                    activeTab === tab.id ? 'bg-white/10 text-white shadow-xl' : 'text-white/30 hover:text-white'
+                    activeTab === tab.id ? 'bg-white/10 text-white shadow-xl' : 'text-white/46 hover:text-white'
                   }`}
                 >
                   <tab.icon size={16} /> {tab.label}
@@ -392,13 +392,13 @@ export default function AccountPage() {
                     return (
                       <>
                         <h2 className="text-2xl font-black mb-1">{resolvedName}</h2>
-                        <p className="text-white/30 text-sm mb-10">{user?.email || fullProfile?.email}</p>
+                        <p className="text-white/46 text-sm mb-10">{user?.email || fullProfile?.email}</p>
                       </>
                     )
                   })()}
 
                     <div className="space-y-4">
-                       <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-white/20">
+                       <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-white/40">
                          <span>Dossier Completion</span>
                          <span className="text-indigo-400">{fullProfile?.profileCompletion || 0}%</span>
                        </div>
@@ -409,25 +409,25 @@ export default function AccountPage() {
 
                     <div className="mt-10 grid grid-cols-2 gap-4">
                       <div className="bg-white/5 border border-white/5 rounded-2xl p-4 text-center">
-                         <div className="text-[9px] font-black uppercase text-white/20 mb-1">Dossiers</div>
+                         <div className="text-[9px] font-black uppercase text-white/40 mb-1">Dossiers</div>
                          <div className="text-xl font-black">{applications.length}</div>
                       </div>
                       <div className="bg-white/5 border border-white/5 rounded-2xl p-4 text-center">
-                         <div className="text-[9px] font-black uppercase text-white/20 mb-1">Status</div>
+                         <div className="text-[9px] font-black uppercase text-white/40 mb-1">Status</div>
                          <div className="text-[10px] font-black text-green-500 uppercase tracking-widest">Active</div>
                       </div>
                     </div>
                   </div>
 
                   <div className="bg-[#111114] border border-white/5 rounded-[40px] p-8">
-                    <h3 className="text-xs font-black text-white/20 uppercase tracking-[0.2em] mb-8 flex items-center gap-2">
+                    <h3 className="text-xs font-black text-white/40 uppercase tracking-[0.2em] mb-8 flex items-center gap-2">
                       <CheckCircle2 size={16} /> Completion Checklist
                     </h3>
                     <div className="space-y-6">
                       {completionChecklist.map((item, i) => (
                         <div key={i} className="flex items-center justify-between group">
                           <span className={`text-sm font-bold ${item.completed ? 'text-white/40' : 'text-white'}`}>{item.label}</span>
-                          <div className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all ${item.completed ? 'bg-green-500/20 text-green-500' : 'bg-white/5 text-white/10 group-hover:text-white/20'}`}>
+                          <div className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all ${item.completed ? 'bg-green-500/20 text-green-500' : 'bg-white/5 text-white/40 group-hover:text-white/40'}`}>
                             {item.completed ? <Check size={14} strokeWidth={3} /> : <AlertCircle size={14} />}
                           </div>
                         </div>
@@ -493,7 +493,7 @@ export default function AccountPage() {
 
                     {isEditing && (
                       <div className="mt-12 pt-12 border-t border-white/5 flex justify-end gap-4">
-                         <button onClick={() => setIsEditing(false)} className="px-8 py-4 rounded-2xl text-xs font-black uppercase tracking-widest text-white/30 hover:text-white transition-all">Discard Changes</button>
+                         <button onClick={() => setIsEditing(false)} className="px-8 py-4 rounded-2xl text-xs font-black uppercase tracking-widest text-white/46 hover:text-white transition-all">Discard Changes</button>
                          <button onClick={handleUpdateProfile} className="px-10 py-4 rounded-2xl bg-indigo-600 text-white font-black text-xs uppercase tracking-widest shadow-xl shadow-indigo-600/20">Finalize Metadata</button>
                       </div>
                     )}
@@ -515,11 +515,11 @@ export default function AccountPage() {
                     const isUploading = uploadingDoc === docType.id
                     return (
                       <div key={docType.id} className="bg-[#111114] border border-white/5 rounded-[32px] p-8 flex flex-col items-center text-center relative group">
-                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 transition-all ${doc?.fileUrl ? 'bg-green-500/10 text-green-500' : 'bg-white/5 text-white/20'}`}>
+                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 transition-all ${doc?.fileUrl ? 'bg-green-500/10 text-green-500' : 'bg-white/5 text-white/40'}`}>
                            <docType.icon size={32} />
                         </div>
                         <h4 className="font-black text-sm mb-1 uppercase tracking-tight">{docType.label}</h4>
-                        <p className={`text-[10px] font-bold uppercase tracking-widest mb-8 ${doc?.status === 'verified' ? 'text-green-500' : 'text-white/20'}`}>
+                        <p className={`text-[10px] font-bold uppercase tracking-widest mb-8 ${doc?.status === 'verified' ? 'text-green-500' : 'text-white/40'}`}>
                            {doc?.fileUrl ? (doc.status === 'verified' ? 'System Verified' : 'Evaluation Pending') : 'Action Required'}
                         </p>
                         
@@ -574,7 +574,7 @@ export default function AccountPage() {
                       { label: 'Identity', status: 'Processing' }
                     ].map((v, i) => (
                       <div key={i} className="bg-[#111114] border border-white/5 rounded-3xl p-6">
-                         <div className="text-[10px] font-black uppercase text-white/20 mb-2">{v.label}</div>
+                         <div className="text-[10px] font-black uppercase text-white/40 mb-2">{v.label}</div>
                          <div className={`text-sm font-black uppercase tracking-widest ${v.status === 'Verified' ? 'text-green-500' : 'text-amber-500'}`}>{v.status}</div>
                       </div>
                     ))}
@@ -586,17 +586,17 @@ export default function AccountPage() {
               <motion.div key="payments" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-6">
                  {payments.length === 0 ? (
                    <div className="py-32 text-center">
-                      <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6 text-white/10 border border-white/5">
+                      <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6 text-white/40 border border-white/5">
                         <CreditCard size={32} />
                       </div>
                       <h3 className="text-2xl font-black text-white/40 mb-2">No Transaction History</h3>
-                      <p className="text-white/20 text-sm">Your financial history for application fees will appear here.</p>
+                      <p className="text-white/40 text-sm">Your financial history for application fees will appear here.</p>
                    </div>
                  ) : (
                    <div className="bg-[#111114] border border-white/5 rounded-[40px] overflow-hidden">
                       <table className="w-full text-left">
                         <thead>
-                          <tr className="border-b border-white/5 text-[10px] font-black uppercase tracking-widest text-white/30">
+                          <tr className="border-b border-white/5 text-[10px] font-black uppercase tracking-widest text-white/46">
                             <th className="px-10 py-8">Transaction ID</th>
                             <th className="px-10 py-8">Purpose</th>
                             <th className="px-10 py-8">Amount</th>
@@ -635,16 +635,16 @@ export default function AccountPage() {
                        <button className="w-full bg-white/5 hover:bg-white/10 border border-white/5 py-5 px-6 rounded-2xl flex items-center justify-between group transition-all">
                           <div className="text-left">
                             <div className="text-sm font-black mb-1">Update Password</div>
-                            <div className="text-[10px] text-white/30 uppercase font-bold">Recommended every 90 days</div>
+                            <div className="text-[10px] text-white/46 uppercase font-bold">Recommended every 90 days</div>
                           </div>
-                          <ChevronRight size={20} className="text-white/20 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                          <ChevronRight size={20} className="text-white/40 group-hover:text-white group-hover:translate-x-1 transition-all" />
                        </button>
                        <button className="w-full bg-white/5 hover:bg-white/10 border border-white/5 py-5 px-6 rounded-2xl flex items-center justify-between group transition-all">
                           <div className="text-left">
                             <div className="text-sm font-black mb-1">Two-Factor Authentication</div>
                             <div className="text-[10px] text-green-500 uppercase font-bold">Enabled via Authenticator</div>
                           </div>
-                          <ChevronRight size={20} className="text-white/20 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                          <ChevronRight size={20} className="text-white/40 group-hover:text-white group-hover:translate-x-1 transition-all" />
                        </button>
                     </div>
 
@@ -659,7 +659,7 @@ export default function AccountPage() {
                            <div key={i} className="flex items-center justify-between">
                               <div>
                                 <div className="text-sm font-black">{n.label}</div>
-                                <div className="text-[10px] text-white/30 font-bold">{n.desc}</div>
+                                <div className="text-[10px] text-white/46 font-bold">{n.desc}</div>
                               </div>
                               <div className="w-12 h-6 bg-indigo-500 rounded-full relative cursor-pointer">
                                  <div className="absolute right-1 top-1 bottom-1 w-4 h-4 bg-white rounded-full" />

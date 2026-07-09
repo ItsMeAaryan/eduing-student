@@ -25,8 +25,8 @@ const config: Config = {
         },
         text: {
           primary: 'var(--text-primary)',
-          secondary: 'rgba(250,250,250,0.5)',
-          muted: 'rgba(250,250,250,0.3)',
+          secondary: 'rgba(250,250,250,0.6)',
+          muted: 'rgba(250,250,250,0.46)',
         },
         border: {
           default: 'rgba(79,70,229,0.15)',
