@@ -131,8 +131,8 @@ export default function MultiStepRegisterPage() {
     }
   }
 
-  const inputClasses = "w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:border-indigo-500/50 focus:bg-indigo-500/5 outline-none transition-all placeholder:text-white/10"
-  const labelClasses = "block text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-2 ml-1"
+  const inputClasses = "w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:border-indigo-500/50 focus:bg-indigo-500/5 outline-none transition-all placeholder:text-white/40"
+  const labelClasses = "block text-[10px] font-black text-white/46 uppercase tracking-[0.2em] mb-2 ml-1"
 
   return (
     <div className="min-h-screen bg-[#0A0A0F] text-white flex flex-col font-sans">
@@ -142,7 +142,7 @@ export default function MultiStepRegisterPage() {
           <div className="flex items-center justify-between mb-8">
              <Logo height={28} />
              <div className="flex items-center gap-3">
-               <span className="text-[10px] font-black uppercase tracking-widest text-white/20">Step {currentStep} of 5</span>
+               <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Step {currentStep} of 5</span>
                <div className="h-1 w-32 bg-white/5 rounded-full overflow-hidden">
                  <motion.div 
                    initial={{ width: 0 }}
@@ -161,10 +161,10 @@ export default function MultiStepRegisterPage() {
               const isCompleted = currentStep > step.id
               return (
                 <div key={step.id} className="relative z-10 flex flex-col items-center">
-                   <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${isActive ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/20 scale-110' : isCompleted ? 'bg-indigo-500/20 text-indigo-400' : 'bg-[#111114] border border-white/5 text-white/20'}`}>
+                   <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${isActive ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/20 scale-110' : isCompleted ? 'bg-indigo-500/20 text-indigo-400' : 'bg-[#111114] border border-white/5 text-white/40'}`}>
                       {isCompleted ? <CheckCircle2 size={20} /> : <Icon size={20} />}
                    </div>
-                   <span className={`mt-3 text-[9px] font-black uppercase tracking-widest ${isActive ? 'text-white' : 'text-white/20'}`}>{step.title}</span>
+                   <span className={`mt-3 text-[9px] font-black uppercase tracking-widest ${isActive ? 'text-white' : 'text-white/40'}`}>{step.title}</span>
                 </div>
               )
             })}
@@ -189,7 +189,7 @@ export default function MultiStepRegisterPage() {
                 <div className="space-y-8">
                   <div>
                     <h2 className="text-3xl font-black mb-2 tracking-tight">Identity Creation</h2>
-                    <p className="text-white/30 text-sm">Establish your unique student profile credentials.</p>
+                    <p className="text-white/46 text-sm">Establish your unique student profile credentials.</p>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="md:col-span-2">
@@ -216,7 +216,7 @@ export default function MultiStepRegisterPage() {
                 <div className="space-y-8">
                   <div>
                     <h2 className="text-3xl font-black mb-2 tracking-tight">Contact Matrix</h2>
-                    <p className="text-white/30 text-sm">Encryption-secured reachability data.</p>
+                    <p className="text-white/46 text-sm">Encryption-secured reachability data.</p>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -231,7 +231,7 @@ export default function MultiStepRegisterPage() {
                       <span className={labelClasses}>Gender Identity</span>
                       <div className="flex gap-4" role="group" aria-label="Gender Identity">
                         {['male', 'female', 'other'].map(g => (
-                          <button key={g} onClick={() => updateFormData({ gender: g as any })} className={`flex-1 py-4 rounded-2xl border text-[10px] font-black uppercase tracking-widest transition-all ${formData.gender === g ? 'bg-indigo-600/10 border-indigo-600/30 text-indigo-400' : 'bg-white/5 border-white/5 text-white/20'}`}>
+                          <button key={g} onClick={() => updateFormData({ gender: g as any })} className={`flex-1 py-4 rounded-2xl border text-[10px] font-black uppercase tracking-widest transition-all ${formData.gender === g ? 'bg-indigo-600/10 border-indigo-600/30 text-indigo-400' : 'bg-white/5 border-white/5 text-white/40'}`}>
                             {g}
                           </button>
                         ))}
@@ -253,7 +253,7 @@ export default function MultiStepRegisterPage() {
                 <div className="space-y-8">
                   <div>
                     <h2 className="text-3xl font-black mb-2 tracking-tight">Academic Metadata</h2>
-                    <p className="text-white/30 text-sm">Verified academic performance metrics.</p>
+                    <p className="text-white/46 text-sm">Verified academic performance metrics.</p>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -280,7 +280,7 @@ export default function MultiStepRegisterPage() {
                 <div className="space-y-8">
                   <div>
                     <h2 className="text-3xl font-black mb-2 tracking-tight">Identity Verification</h2>
-                    <p className="text-white/30 text-sm">Classification and regional metadata.</p>
+                    <p className="text-white/46 text-sm">Classification and regional metadata.</p>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -307,7 +307,7 @@ export default function MultiStepRegisterPage() {
                 <div className="space-y-8">
                   <div>
                     <h2 className="text-3xl font-black mb-2 tracking-tight">Final Dossier Review</h2>
-                    <p className="text-white/30 text-sm">Confirm your metadata before identity finalization.</p>
+                    <p className="text-white/46 text-sm">Confirm your metadata before identity finalization.</p>
                   </div>
                   <div className="bg-white/5 rounded-3xl p-6 space-y-4">
                      {[
@@ -318,7 +318,7 @@ export default function MultiStepRegisterPage() {
                        { l: 'State', v: formData.state }
                      ].map((item, i) => (
                        <div key={i} className="flex justify-between items-center py-2 border-b border-white/5 last:border-0">
-                          <span className="text-[10px] font-black uppercase text-white/20 tracking-widest">{item.l}</span>
+                          <span className="text-[10px] font-black uppercase text-white/40 tracking-widest">{item.l}</span>
                           <span className="text-sm font-bold">{item.v}</span>
                        </div>
                      ))}
@@ -351,7 +351,7 @@ export default function MultiStepRegisterPage() {
           </AnimatePresence>
 
           <div className="mt-8 text-center">
-             <p className="text-white/20 text-xs font-bold uppercase tracking-widest">
+             <p className="text-white/40 text-xs font-bold uppercase tracking-widest">
                Already have an identity? <Link href="/auth/login" className="text-indigo-400 hover:underline">Log in</Link>
              </p>
           </div>

@@ -39,7 +39,7 @@ export const ToastContainer = () => {
             </div>
             <button 
               onClick={() => removeToast(toast.id)}
-              className="text-white/20 hover:text-white transition-colors"
+              className="text-white/40 hover:text-white transition-colors"
             >
               <X size={16} />
             </button>

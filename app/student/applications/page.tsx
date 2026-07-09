@@ -131,7 +131,7 @@ export default function ApplicationsPage() {
                 key={f}
                 onClick={() => setFilter(f)}
                 className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
-                  filter === f ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-white/30 hover:text-white'
+                  filter === f ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-white/46 hover:text-white'
                 }`}
               >
                 {f}
@@ -146,7 +146,7 @@ export default function ApplicationsPage() {
               placeholder="Search by university..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-[#111114] border border-white/5 rounded-2xl pl-12 pr-4 py-4 text-sm placeholder:text-white/10 focus:border-indigo-500/30 outline-none transition-all"
+              className="w-full bg-[#111114] border border-white/5 rounded-2xl pl-12 pr-4 py-4 text-sm placeholder:text-white/40 focus:border-indigo-500/30 outline-none transition-all"
             />
           </div>
         </div>
@@ -156,9 +156,9 @@ export default function ApplicationsPage() {
           <AnimatePresence mode="popLayout">
             {filtered.length === 0 ? (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-20 text-center bg-[#111114] border border-white/5 rounded-[40px]">
-                <ClipboardList className="mx-auto mb-6 text-white/5" size={64} />
+                <ClipboardList className="mx-auto mb-6 text-white/40" size={64} />
                 <h3 className="text-xl font-black text-white/40">No records matching your search</h3>
-                <p className="text-white/20 text-sm mt-2">Try adjusting your filters or search criteria.</p>
+                <p className="text-white/40 text-sm mt-2">Try adjusting your filters or search criteria.</p>
               </motion.div>
             ) : (
               filtered.map((app, idx) => {
@@ -193,7 +193,7 @@ export default function ApplicationsPage() {
 
                     {/* Date */}
                     <div className="text-center md:text-right hidden sm:block">
-                      <div className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-1">Applied On</div>
+                      <div className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">Applied On</div>
                       <div className="text-sm font-bold">{app.createdAt?.toDate?.().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) || 'Recent'}</div>
                     </div>
 
@@ -204,7 +204,7 @@ export default function ApplicationsPage() {
                     </div>
 
                     {/* Action Arrow */}
-                    <div className="p-3 rounded-full bg-white/5 text-white/20 group-hover:bg-indigo-500 group-hover:text-white transition-all">
+                    <div className="p-3 rounded-full bg-white/5 text-white/40 group-hover:bg-indigo-500 group-hover:text-white transition-all">
                       <ChevronRight size={20} />
                     </div>
                   </motion.div>
