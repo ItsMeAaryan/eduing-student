@@ -1,4 +1,13 @@
-'use client'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Universities',
+  description: 'Browse and compare universities across India — admissions, programs, and eligibility, all in one place on EDUING.in.',
+  openGraph: {
+    title: 'Universities | EDUING.in',
+    description: 'Browse and compare universities across India — admissions, programs, and eligibility, all in one place on EDUING.in.',
+  },
+}
 
 export default function UniversitiesPage() {
   return (
@@ -11,7 +20,7 @@ export default function UniversitiesPage() {
       color: 'white',
       fontSize: '24px'
     }}>
-      Universities Listing - Coming Soon
+      <h1 style={{ margin: 0, fontSize: "inherit", fontWeight: 700 }}>Universities Listing - Coming Soon</h1>
     </div>
   )
 }

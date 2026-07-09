@@ -3,11 +3,27 @@ import './globals.css'
 import Navbar from '@/components/Navbar'
 
 export const metadata: Metadata = {
-  title: 'EDUING.in',
-  description: 'Student',
+  // TODO: confirm actual production domain — placeholder used for metadataBase/OG image resolution
+  metadataBase: new URL('https://student.eduing.in'),
+  title: {
+    default: 'EDUING.in — Student Admissions Platform',
+    template: '%s | EDUING.in',
+  },
+  description: 'EDUING.in is the unified admissions platform connecting Indian students with universities — discover programs, track applications, and get admitted, all in one place.',
   icons: {
     icon: '/bandwlogo.PNG',
     apple: '/bandwlogo.PNG',
+  },
+  openGraph: {
+    type: 'website',
+    siteName: 'EDUING.in',
+    title: 'EDUING.in — Student Admissions Platform',
+    description: 'The unified admissions platform connecting Indian students with universities — discover programs, track applications, and get admitted, all in one place.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'EDUING.in — Student Admissions Platform',
+    description: 'The unified admissions platform connecting Indian students with universities — discover programs, track applications, and get admitted, all in one place.',
   },
 }
 
