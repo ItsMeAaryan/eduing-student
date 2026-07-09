@@ -33,3 +33,6 @@ yarn-error.log*
 .env
 serviceAccount.json
 scripts/serviceAccount.json
+
+# vitest
+coverage/
