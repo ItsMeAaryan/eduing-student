@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
 import { onAuthStateChanged } from 'firebase/auth'
 import { auth, db } from '@/lib/firebase/config'
@@ -160,9 +161,12 @@ export default function PremiumUniversityDetailPage() {
         
         {/* HERO BANNER SECTION */}
         <div className="relative h-[60vh] min-h-[500px] overflow-hidden">
-          <img 
+          <Image 
             src={university.imageUrl || `https://images.unsplash.com/photo-1541339907198-e08756ebafe3?q=80&w=2070&auto=format&fit=crop`} 
-            className="w-full h-full object-cover" 
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover" 
             alt={university.name} 
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0F] via-[#0A0A0F]/40 to-transparent" />
