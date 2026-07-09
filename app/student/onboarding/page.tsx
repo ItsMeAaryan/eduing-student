@@ -156,16 +156,16 @@ export default function OnboardingPage() {
                        </div>
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-xs font-bold text-white/40 mb-2 uppercase tracking-widest">Full Name</label>
-                      <input value={formData.personal.fullName} onChange={e => setFormData({...formData, personal: {...formData.personal, fullName: e.target.value}})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-brand-indigo" />
+                      <label htmlFor="onb-fullname" className="block text-xs font-bold text-white/40 mb-2 uppercase tracking-widest">Full Name</label>
+                      <input id="onb-fullname" value={formData.personal.fullName} onChange={e => setFormData({...formData, personal: {...formData.personal, fullName: e.target.value}})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-brand-indigo" />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-white/40 mb-2 uppercase tracking-widest">DOB</label>
-                      <input type="date" value={formData.personal.dob} onChange={e => setFormData({...formData, personal: {...formData.personal, dob: e.target.value}})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-brand-indigo" />
+                      <label htmlFor="onb-dob" className="block text-xs font-bold text-white/40 mb-2 uppercase tracking-widest">DOB</label>
+                      <input id="onb-dob" type="date" value={formData.personal.dob} onChange={e => setFormData({...formData, personal: {...formData.personal, dob: e.target.value}})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-brand-indigo" />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-white/40 mb-2 uppercase tracking-widest">Gender</label>
-                      <select value={formData.personal.gender} onChange={e => setFormData({...formData, personal: {...formData.personal, gender: e.target.value}})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-brand-indigo">
+                      <label htmlFor="onb-gender" className="block text-xs font-bold text-white/40 mb-2 uppercase tracking-widest">Gender</label>
+                      <select id="onb-gender" value={formData.personal.gender} onChange={e => setFormData({...formData, personal: {...formData.personal, gender: e.target.value}})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-brand-indigo">
                         <option value="">Select</option>
                         <option value="Male">Male</option>
                         <option value="Female">Female</option>

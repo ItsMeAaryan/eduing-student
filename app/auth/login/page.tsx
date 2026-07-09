@@ -223,7 +223,7 @@ export default function LoginPage() {
           color: 'rgba(255,255,255,0.4)',
           fontSize: '14px',
         }}>
-          Don't have an account?{' '}
+          Don&apos;t have an account?{' '}
           <Link href="/auth/student/register" style={{ color: '#6c6fff', fontWeight: '600', textDecoration: 'none' }}>
             Sign up
           </Link>

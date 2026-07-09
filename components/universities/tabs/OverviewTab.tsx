@@ -78,7 +78,7 @@ export default function OverviewTab({ university }: Props) {
               <div key={index} className="aspect-square rounded-2xl overflow-hidden group cursor-pointer relative">
                 <img 
                   src={photo} 
-                  alt={`Gallery image ${index + 1}`} 
+                  alt={`University gallery ${index + 1}`} 
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300"></div>

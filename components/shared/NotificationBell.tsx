@@ -136,6 +136,9 @@ export default function NotificationBell() {
                     <div 
                       key={notif.id} 
                       onClick={() => !notif.isRead && handleMarkAsRead(notif.id)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => { if (!notif.isRead && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); handleMarkAsRead(notif.id); } }}
                       className={`mb-2 p-4 rounded-xl border transition-colors cursor-pointer relative overflow-hidden group ${
                         notif.isRead 
                           ? "bg-transparent border-transparent hover:bg-white/5" 

@@ -334,9 +334,9 @@ export default function PremiumUniversityDetailPage() {
                     {user?.isVerified ? 'Start Application' : 'Verify to Apply'} <ArrowRight size={18} />
                   </button>
                   {!user?.isVerified && (
-                    <p className="text-center text-[10px] font-black uppercase tracking-widest text-indigo-400 mt-4 cursor-pointer hover:underline" onClick={() => router.push('/student/profile')}>
+                    <button type="button" className="w-full text-center text-[10px] font-black uppercase tracking-widest text-indigo-400 mt-4 cursor-pointer hover:underline" onClick={() => router.push('/student/profile')}>
                       Verification Required →
-                    </p>
+                    </button>
                   )}
                 </div>
 
@@ -408,9 +408,9 @@ export default function PremiumUniversityDetailPage() {
                   {applying ? 'Processing...' : (user?.isVerified ? 'Confirm & Submit Application' : 'Verify to Apply')}
                 </button>
                 {!user?.isVerified && (
-                  <p className="text-center text-[10px] font-black uppercase tracking-widest text-white/40 mt-6 cursor-pointer hover:text-white transition-colors" onClick={() => router.push('/student/profile')}>
+                  <button type="button" className="w-full text-center text-[10px] font-black uppercase tracking-widest text-white/40 mt-6 cursor-pointer hover:text-white transition-colors" onClick={() => router.push('/student/profile')}>
                     Go to Verification Center →
-                  </p>
+                  </button>
                 )}
               </motion.div>
             </motion.div>

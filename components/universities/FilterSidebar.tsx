@@ -64,9 +64,10 @@ export default function FilterSidebar({ filters, setFilters, onCloseMobile }: Pr
       <div className="space-y-6">
         {/* Search */}
         <div>
-          <label className="block text-sm font-medium text-textSecondary mb-2">Search University</label>
+          <label htmlFor="filter-search" className="block text-sm font-medium text-textSecondary mb-2">Search University</label>
           <div className="relative">
             <input 
+              id="filter-search"
               type="text" 
               value={filters.searchQuery}
               onChange={(e) => setFilters(prev => ({ ...prev, searchQuery: e.target.value }))}
@@ -79,8 +80,8 @@ export default function FilterSidebar({ filters, setFilters, onCloseMobile }: Pr
 
         {/* State */}
         <div>
-          <label className="block text-sm font-medium text-textSecondary mb-2">State</label>
-          <div className="max-h-40 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+          <span className="block text-sm font-medium text-textSecondary mb-2">State</span>
+          <div className="max-h-40 overflow-y-auto space-y-2 pr-2 custom-scrollbar" role="group" aria-label="State">
             {STATES.map(state => (
               <label key={state} className="flex items-center space-x-2 cursor-pointer group">
                 <input 
@@ -97,8 +98,9 @@ export default function FilterSidebar({ filters, setFilters, onCloseMobile }: Pr
 
         {/* City */}
         <div>
-          <label className="block text-sm font-medium text-textSecondary mb-2">City</label>
+          <label htmlFor="filter-city" className="block text-sm font-medium text-textSecondary mb-2">City</label>
           <input 
+            id="filter-city"
             type="text" 
             value={filters.city}
             onChange={(e) => setFilters(prev => ({ ...prev, city: e.target.value }))}
@@ -109,8 +111,8 @@ export default function FilterSidebar({ filters, setFilters, onCloseMobile }: Pr
 
         {/* Program Types */}
         <div>
-          <label className="block text-sm font-medium text-textSecondary mb-2">Program Type</label>
-          <div className="grid grid-cols-2 gap-2">
+          <span className="block text-sm font-medium text-textSecondary mb-2">Program Type</span>
+          <div className="grid grid-cols-2 gap-2" role="group" aria-label="Program Type">
             {PROGRAMS.map(program => (
               <label key={program} className="flex items-center space-x-2 cursor-pointer group">
                 <input 
@@ -127,8 +129,8 @@ export default function FilterSidebar({ filters, setFilters, onCloseMobile }: Pr
 
         {/* Entrance Exam Toggle */}
         <div>
-          <label className="block text-sm font-medium text-textSecondary mb-2">Entrance Exam Required</label>
-          <div className="flex bg-background border border-border rounded-xl p-1">
+          <span className="block text-sm font-medium text-textSecondary mb-2">Entrance Exam Required</span>
+          <div className="flex bg-background border border-border rounded-xl p-1" role="group" aria-label="Entrance Exam Required">
             <button
               onClick={() => setFilters(prev => ({ ...prev, requiresEntranceExam: true }))}
               className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-colors ${filters.requiresEntranceExam === true ? "bg-primary text-white" : "text-textSecondary hover:text-white"}`}

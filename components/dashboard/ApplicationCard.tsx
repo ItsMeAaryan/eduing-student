@@ -61,9 +61,13 @@ export default function ApplicationCard({ application }: Props) {
     <div className="bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden transition-all hover:border-white/10">
       
       {/* Card Header (Always visible) */}
-      <div 
+      <div
         className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer"
         onClick={() => setExpanded(!expanded)}
+        role="button"
+        tabIndex={0}
+        aria-expanded={expanded}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setExpanded(!expanded); } }}
       >
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">

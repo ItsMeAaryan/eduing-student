@@ -193,20 +193,20 @@ export default function MultiStepRegisterPage() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="md:col-span-2">
-                      <label className={labelClasses}>Full Legal Name</label>
-                      <input className={inputClasses} value={formData.fullName} onChange={e => updateFormData({ fullName: e.target.value })} placeholder="Enter your full name" />
+                      <label htmlFor="fullName" className={labelClasses}>Full Legal Name</label>
+                      <input id="fullName" className={inputClasses} value={formData.fullName} onChange={e => updateFormData({ fullName: e.target.value })} placeholder="Enter your full name" />
                     </div>
                     <div className="md:col-span-2">
-                      <label className={labelClasses}>Email Access</label>
-                      <input className={inputClasses} type="email" value={formData.email} onChange={e => updateFormData({ email: e.target.value })} placeholder="name@example.com" />
+                      <label htmlFor="email" className={labelClasses}>Email Access</label>
+                      <input id="email" className={inputClasses} type="email" value={formData.email} onChange={e => updateFormData({ email: e.target.value })} placeholder="name@example.com" />
                     </div>
                     <div>
-                      <label className={labelClasses}>Secure Password</label>
-                      <input className={inputClasses} type="password" value={formData.password} onChange={e => updateFormData({ password: e.target.value })} />
+                      <label htmlFor="password" className={labelClasses}>Secure Password</label>
+                      <input id="password" className={inputClasses} type="password" value={formData.password} onChange={e => updateFormData({ password: e.target.value })} />
                     </div>
                     <div>
-                      <label className={labelClasses}>Confirm Access</label>
-                      <input className={inputClasses} type="password" value={formData.confirmPassword} onChange={e => updateFormData({ confirmPassword: e.target.value })} />
+                      <label htmlFor="confirmPassword" className={labelClasses}>Confirm Access</label>
+                      <input id="confirmPassword" className={inputClasses} type="password" value={formData.confirmPassword} onChange={e => updateFormData({ confirmPassword: e.target.value })} />
                     </div>
                   </div>
                 </div>
@@ -220,16 +220,16 @@ export default function MultiStepRegisterPage() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className={labelClasses}>Phone Number (10 Digits)</label>
-                      <input className={inputClasses} value={formData.phone} onChange={e => updateFormData({ phone: e.target.value.replace(/\D/g, '').slice(0,10) })} placeholder="9876543210" />
+                      <label htmlFor="phone" className={labelClasses}>Phone Number (10 Digits)</label>
+                      <input id="phone" className={inputClasses} value={formData.phone} onChange={e => updateFormData({ phone: e.target.value.replace(/\D/g, '').slice(0,10) })} placeholder="9876543210" />
                     </div>
                     <div>
-                      <label className={labelClasses}>Date of Birth</label>
-                      <input type="date" className={inputClasses + " [color-scheme:dark]"} value={formData.dob} onChange={e => updateFormData({ dob: e.target.value })} />
+                      <label htmlFor="dob" className={labelClasses}>Date of Birth</label>
+                      <input id="dob" type="date" className={inputClasses + " [color-scheme:dark]"} value={formData.dob} onChange={e => updateFormData({ dob: e.target.value })} />
                     </div>
                     <div className="md:col-span-2">
-                      <label className={labelClasses}>Gender Identity</label>
-                      <div className="flex gap-4">
+                      <span className={labelClasses}>Gender Identity</span>
+                      <div className="flex gap-4" role="group" aria-label="Gender Identity">
                         {['male', 'female', 'other'].map(g => (
                           <button key={g} onClick={() => updateFormData({ gender: g as any })} className={`flex-1 py-4 rounded-2xl border text-[10px] font-black uppercase tracking-widest transition-all ${formData.gender === g ? 'bg-indigo-600/10 border-indigo-600/30 text-indigo-400' : 'bg-white/5 border-white/5 text-white/20'}`}>
                             {g}
@@ -238,12 +238,12 @@ export default function MultiStepRegisterPage() {
                       </div>
                     </div>
                     <div>
-                      <label className={labelClasses}>State</label>
-                      <input className={inputClasses} value={formData.state} onChange={e => updateFormData({ state: e.target.value })} placeholder="e.g. Karnataka" />
+                      <label htmlFor="state" className={labelClasses}>State</label>
+                      <input id="state" className={inputClasses} value={formData.state} onChange={e => updateFormData({ state: e.target.value })} placeholder="e.g. Karnataka" />
                     </div>
                     <div>
-                      <label className={labelClasses}>City</label>
-                      <input className={inputClasses} value={formData.city} onChange={e => updateFormData({ city: e.target.value })} placeholder="e.g. Bengaluru" />
+                      <label htmlFor="city" className={labelClasses}>City</label>
+                      <input id="city" className={inputClasses} value={formData.city} onChange={e => updateFormData({ city: e.target.value })} placeholder="e.g. Bengaluru" />
                     </div>
                   </div>
                 </div>
@@ -257,20 +257,20 @@ export default function MultiStepRegisterPage() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className={labelClasses}>10th Percentage (%)</label>
-                      <input type="number" className={inputClasses} value={formData.tenthPercentage} onChange={e => updateFormData({ tenthPercentage: e.target.value })} />
+                      <label htmlFor="tenthPercentage" className={labelClasses}>10th Percentage (%)</label>
+                      <input id="tenthPercentage" type="number" className={inputClasses} value={formData.tenthPercentage} onChange={e => updateFormData({ tenthPercentage: e.target.value })} />
                     </div>
                     <div>
-                      <label className={labelClasses}>12th Percentage (%)</label>
-                      <input type="number" className={inputClasses} value={formData.twelfthPercentage} onChange={e => updateFormData({ twelfthPercentage: e.target.value })} />
+                      <label htmlFor="twelfthPercentage" className={labelClasses}>12th Percentage (%)</label>
+                      <input id="twelfthPercentage" type="number" className={inputClasses} value={formData.twelfthPercentage} onChange={e => updateFormData({ twelfthPercentage: e.target.value })} />
                     </div>
                     <div>
-                      <label className={labelClasses}>Entrance Exam</label>
-                      <input className={inputClasses} value={formData.entranceExam} onChange={e => updateFormData({ entranceExam: e.target.value })} placeholder="e.g. JEE Main" />
+                      <label htmlFor="entranceExam" className={labelClasses}>Entrance Exam</label>
+                      <input id="entranceExam" className={inputClasses} value={formData.entranceExam} onChange={e => updateFormData({ entranceExam: e.target.value })} placeholder="e.g. JEE Main" />
                     </div>
                     <div>
-                      <label className={labelClasses}>Score / Rank</label>
-                      <input type="number" className={inputClasses} value={formData.entranceScore} onChange={e => updateFormData({ entranceScore: e.target.value })} />
+                      <label htmlFor="entranceScore" className={labelClasses}>Score / Rank</label>
+                      <input id="entranceScore" type="number" className={inputClasses} value={formData.entranceScore} onChange={e => updateFormData({ entranceScore: e.target.value })} />
                     </div>
                   </div>
                 </div>
@@ -284,19 +284,19 @@ export default function MultiStepRegisterPage() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className={labelClasses}>Social Category</label>
-                      <select className={inputClasses} value={formData.category} onChange={e => updateFormData({ category: e.target.value as any })}>
+                      <label htmlFor="category" className={labelClasses}>Social Category</label>
+                      <select id="category" className={inputClasses} value={formData.category} onChange={e => updateFormData({ category: e.target.value as any })}>
                         {['General', 'OBC', 'SC', 'ST', 'EWS'].map(c => <option key={c} value={c}>{c}</option>)}
                       </select>
                     </div>
                     <div>
-                      <label className={labelClasses}>Nationality</label>
-                      <input className={inputClasses} value={formData.nationality} onChange={e => updateFormData({ nationality: e.target.value })} />
+                      <label htmlFor="nationality" className={labelClasses}>Nationality</label>
+                      <input id="nationality" className={inputClasses} value={formData.nationality} onChange={e => updateFormData({ nationality: e.target.value })} />
                     </div>
                     <div className="md:col-span-2 bg-indigo-600/10 border border-indigo-600/20 rounded-3xl p-6 flex items-center gap-4">
                        <ShieldCheck className="text-indigo-400 shrink-0" size={24} />
                        <p className="text-[10px] font-black uppercase leading-relaxed text-indigo-400/60 tracking-widest">
-                         "Data is encrypted using NTA-grade standards. Documents will be requested in the next phase for full profile verification."
+                         &quot;Data is encrypted using NTA-grade standards. Documents will be requested in the next phase for full profile verification.&quot;
                        </p>
                     </div>
                   </div>

@@ -163,7 +163,7 @@ export default function PremiumDiscoverPage() {
         color: 'rgba(255,255,255,0.2)',
         fontSize: '13px',
       }}>
-        Check 'universities' collection in Firebase.
+        Check &apos;universities&apos; collection in Firebase.
       </p>
       <button
         onClick={() => window.location.reload()}
@@ -233,8 +233,8 @@ export default function PremiumDiscoverPage() {
                 <div className="space-y-8">
                   {/* Level Toggle */}
                   <div className="space-y-4">
-                    <label className="text-[10px] font-black text-white/30 uppercase tracking-widest">Academic Level</label>
-                    <div className="grid grid-cols-3 gap-2 bg-white/5 p-1 rounded-xl border border-white/5">
+                    <span className="text-[10px] font-black text-white/30 uppercase tracking-widest">Academic Level</span>
+                    <div className="grid grid-cols-3 gap-2 bg-white/5 p-1 rounded-xl border border-white/5" role="group" aria-label="Academic Level">
                       {['All', 'UG', 'PG'].map(l => (
                         <button key={l} onClick={() => setActiveLevel(l as any)} className={`py-2 rounded-lg text-xs font-bold transition-all ${activeLevel === l ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-white/40 hover:text-white'}`}>
                           {l}
@@ -245,8 +245,8 @@ export default function PremiumDiscoverPage() {
 
                   {/* Location Dropdown */}
                   <div className="space-y-4">
-                    <label className="text-[10px] font-black text-white/30 uppercase tracking-widest">State / Region</label>
-                    <select value={selectedState} onChange={e => setSelectedState(e.target.value)} className="w-full bg-[#111114] border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-500/50 transition-all appearance-none cursor-pointer">
+                    <label htmlFor="state-region" className="text-[10px] font-black text-white/30 uppercase tracking-widest">State / Region</label>
+                    <select id="state-region" value={selectedState} onChange={e => setSelectedState(e.target.value)} className="w-full bg-[#111114] border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-500/50 transition-all appearance-none cursor-pointer">
                       <option value="">All Regions</option>
                       {STATES.map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
@@ -254,8 +254,8 @@ export default function PremiumDiscoverPage() {
 
                   {/* Rating Filter */}
                   <div className="space-y-4">
-                    <label className="text-[10px] font-black text-white/30 uppercase tracking-widest">Minimum Rating</label>
-                    <div className="space-y-2">
+                    <span className="text-[10px] font-black text-white/30 uppercase tracking-widest">Minimum Rating</span>
+                    <div className="space-y-2" role="group" aria-label="Minimum Rating">
                       {RATINGS.map(r => (
                         <button key={r} onClick={() => setMinRating(minRating === r ? 0 : r)} className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${minRating === r ? 'bg-indigo-500/10 border-indigo-500/50 text-white' : 'bg-transparent border-white/5 text-white/40 hover:border-white/20'}`}>
                           <div className="flex items-center gap-2">
@@ -270,8 +270,8 @@ export default function PremiumDiscoverPage() {
 
                   {/* NAAC Grade */}
                   <div className="space-y-4">
-                    <label className="text-[10px] font-black text-white/30 uppercase tracking-widest">NAAC Accreditation</label>
-                    <div className="flex flex-wrap gap-2">
+                    <span className="text-[10px] font-black text-white/30 uppercase tracking-widest">NAAC Accreditation</span>
+                    <div className="flex flex-wrap gap-2" role="group" aria-label="NAAC Accreditation">
                       {NAAC_GRADES.map(g => (
                         <button key={g} onClick={() => setSelectedNAAC(selectedNAAC === g ? '' : g)} className={`px-4 py-2 rounded-lg text-xs font-bold border transition-all ${selectedNAAC === g ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-600/20' : 'bg-white/5 border-white/5 text-white/40 hover:border-white/20'}`}>
                           {g}
@@ -422,8 +422,8 @@ export default function PremiumDiscoverPage() {
                <div className="flex-1 overflow-y-auto space-y-12">
                   {/* MOBILE FILTER REPLICATION */}
                   <div className="space-y-4">
-                    <label className="text-xs font-black text-white/30 uppercase tracking-widest">Academic Level</label>
-                    <div className="grid grid-cols-3 gap-2">
+                    <span className="text-xs font-black text-white/30 uppercase tracking-widest">Academic Level</span>
+                    <div className="grid grid-cols-3 gap-2" role="group" aria-label="Academic Level">
                        {['All', 'UG', 'PG'].map(l => (
                          <button key={l} onClick={() => { setActiveLevel(l as any); setShowFilters(false); }} className={`py-4 rounded-2xl text-sm font-black transition-all ${activeLevel === l ? 'bg-indigo-600 text-white' : 'bg-white/5 text-white/30'}`}>
                            {l}
@@ -433,8 +433,8 @@ export default function PremiumDiscoverPage() {
                   </div>
 
                   <div className="space-y-4">
-                    <label className="text-xs font-black text-white/30 uppercase tracking-widest">Select Region</label>
-                    <div className="grid grid-cols-2 gap-2">
+                    <span className="text-xs font-black text-white/30 uppercase tracking-widest">Select Region</span>
+                    <div className="grid grid-cols-2 gap-2" role="group" aria-label="Select Region">
                        {STATES.map(s => (
                          <button key={s} onClick={() => { setSelectedState(s); setShowFilters(false); }} className={`py-4 rounded-2xl text-xs font-black transition-all ${selectedState === s ? 'bg-indigo-600 text-white' : 'bg-white/5 text-white/30'}`}>
                            {s}

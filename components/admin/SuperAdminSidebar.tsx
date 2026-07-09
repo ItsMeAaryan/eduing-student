@@ -97,7 +97,14 @@ export default function SuperAdminSidebar({ activeTab, setActiveTab }: Props) {
 
       {isOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setIsOpen(false)}></div>
+          <div
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            onClick={() => setIsOpen(false)}
+            role="button"
+            tabIndex={0}
+            aria-label="Close menu"
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === 'Escape') setIsOpen(false); }}
+          ></div>
           <div className="absolute top-0 left-0 bottom-0 w-64 z-50">
             <SidebarContent />
           </div>
