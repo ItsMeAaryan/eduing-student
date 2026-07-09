@@ -1,36 +1,58 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
+
+    function isAdmin() {
+      return request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'super_admin';
+    }
+
     // USERS: Only owners can read/write their own document
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
-      
+
       // Documents subcollection
       match /documents/{docId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
     }
-    
+
+    // STUDENT_PROFILES: Only owners can read/write their own profile (doc id == uid)
+    match /student_profiles/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
     // UNIVERSITIES: Publicly readable, admin only write
     match /universities/{universityId} {
       allow read: if true;
-      allow write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      allow write: if isAdmin();
     }
-    
-    // APPLICATIONS: Publicly readable for debug, only owner can write
+
+    // PROGRAMS: Publicly readable, admin only write
+    match /programs/{programId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // APPLICATIONS: Owner-only read. Create requires status=='submitted' and
+    // studentId==auth.uid (matches the live deployed rule this app relies on).
+    // Status transitions (approve/reject) are an admin-only operation, performed
+    // from the university portal — students cannot update their own application.
     match /applications/{applicationId} {
-      allow read: if true; 
-      allow write: if request.auth != null && (
-        request.resource.data.userId == request.auth.uid ||
-        request.resource.data.studentId == request.auth.uid
+      allow read: if request.auth != null && (
+        resource.data.studentId == request.auth.uid || isAdmin()
       );
+      allow create: if request.auth != null &&
+        request.resource.data.studentId == request.auth.uid &&
+        request.resource.data.status == 'submitted';
+      allow update: if isAdmin();
+      allow delete: if false;
     }
-    
-    // NOTIFICATIONS: Only owner can read
+
+    // NOTIFICATIONS: Only owner can read/update; create must target the creator's own uid
     match /notifications/{notificationId} {
       allow read, update: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow create: if request.auth != null; 
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
     }
   }
 }

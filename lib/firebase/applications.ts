@@ -1,6 +1,6 @@
 import {
   collection, addDoc, query, where,
-  onSnapshot, updateDoc, doc,
+  onSnapshot, doc,
   serverTimestamp, orderBy
 } from 'firebase/firestore'
 import { db } from './config'
@@ -101,26 +101,14 @@ export function listenStudentApplications(
 }
 
 
-// University updates application status
-export async function updateApplicationStatus(
-  applicationId: string,
-  newStatus: Application['status'],
-  documentsVerified?: boolean
-) {
-  const updateData: any = {
-    status: newStatus,
-    updatedAt: serverTimestamp(),
-  }
-  
-  if (documentsVerified !== undefined) {
-    updateData.documentsVerified = documentsVerified
-  }
-
-  await updateDoc(
-    doc(db, 'applications', applicationId),
-    updateData
-  )
-}
+// NOTE: application status changes (approve/reject) are a university-admin
+// operation performed from the eduing-university portal, not this student app.
+// A student-app updateApplicationStatus() helper existed here (unused, dead
+// code) which — if ever called — could let a student set their own
+// application's status via the client SDK. Removed as part of the Phase 3
+// security audit. If this app legitimately needs to trigger status changes,
+// it must go through a privileged path (Cloud Function / admin-only rule),
+// not a plain client-side updateDoc.
 
 // Listen to a single application (real-time)
 export function listenApplication(
