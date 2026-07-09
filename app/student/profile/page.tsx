@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useEffect, useCallback } from 'react'
+import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import { useAuth } from '@/hooks/useAuth'
@@ -359,7 +360,7 @@ export default function AccountPage() {
                       <div className="w-full h-full rounded-full bg-gradient-to-br from-indigo-600 to-violet-600 p-1">
                         <div className="w-full h-full rounded-full bg-[#111114] flex items-center justify-center overflow-hidden relative">
                           {fullProfile?.profilePhotoURL ? (
-                            <img src={fullProfile.profilePhotoURL} alt="Profile" className="w-full h-full object-cover" />
+                            <Image src={fullProfile.profilePhotoURL} alt="Profile" fill sizes="160px" className="object-cover" />
                           ) : (
                             <User size={64} className="text-white/10" />
                           )}

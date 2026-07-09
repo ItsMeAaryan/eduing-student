@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useState, useMemo } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import ProtectedRoute from '@/components/ProtectedRoute'
@@ -334,10 +335,12 @@ export default function PremiumDiscoverPage() {
                       >
                         {/* Card Image Wrapper */}
                         <div className="relative h-60 overflow-hidden">
-                          <img 
+                          <Image 
                             src={uni.imageUrl || `https://images.unsplash.com/photo-1562774053-701939374585?q=80&w=2066&auto=format&fit=crop`} 
                             alt={uni.name}
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                            fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            className="object-cover transition-transform duration-700 group-hover:scale-110"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-[#111114] via-transparent to-transparent" />
                           

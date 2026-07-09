@@ -2,6 +2,7 @@
 
 import { OnboardingData } from "@/types/onboarding";
 import { Camera } from "lucide-react";
+import Image from "next/image";
 import { useState, useRef } from "react";
 import { storage } from "@/lib/firebase";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
@@ -43,7 +44,7 @@ export default function Step1PersonalInfo({ data, updateData }: Props) {
           onKeyDown={(e) => { if (e.key === 'Enter') fileInputRef.current?.click(); }}
         >
           {data.profilePhotoUrl ? (
-            <img src={data.profilePhotoUrl} alt="Profile" className="w-full h-full object-cover" />
+            <Image src={data.profilePhotoUrl} alt="Profile" fill sizes="128px" className="object-cover" />
           ) : (
             <div className="text-center text-textSecondary group-hover:text-primary transition-colors">
               <Camera size={32} className="mx-auto mb-2" />

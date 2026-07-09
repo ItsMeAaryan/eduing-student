@@ -2,6 +2,7 @@
 
 import { Sparkles, MapPin } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 // Mock data for UI demonstration
 const MOCK_RECOMMENDATIONS = [
@@ -45,7 +46,7 @@ export default function RecommendedUniversities() {
         {MOCK_RECOMMENDATIONS.map((uni) => (
           <Link key={uni.id} href={`/student/universities/${uni.id}`} className="block">
             <div className="flex items-center p-3 rounded-2xl hover:bg-white/5 border border-transparent hover:border-white/10 transition-all group">
-              <img src={uni.logo} alt={uni.name} className="w-12 h-12 rounded-xl object-cover mr-4 border border-white/10" />
+              <Image src={uni.logo} alt={uni.name} width={48} height={48} className="w-12 h-12 rounded-xl object-cover mr-4 border border-white/10" />
               
               <div className="flex-grow">
                 <h4 className="font-bold text-white text-sm group-hover:text-primary transition-colors line-clamp-1">{uni.name}</h4>

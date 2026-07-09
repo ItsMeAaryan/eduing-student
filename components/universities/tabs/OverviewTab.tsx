@@ -76,6 +76,13 @@ export default function OverviewTab({ university }: Props) {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {university.gallery.map((photo, index) => (
               <div key={index} className="aspect-square rounded-2xl overflow-hidden group cursor-pointer relative">
+                {/* university.gallery URLs are admin-entered and can point to
+                    any domain, unlike the fixed set of domains allowlisted in
+                    next.config.mjs — using next/image here would throw at
+                    runtime for any photo hosted outside that allowlist.
+                    Left as a plain <img> until gallery uploads are routed
+                    through a known host (e.g. Firebase Storage) that can be
+                    safely allowlisted. */}
                 <img 
                   src={photo} 
                   alt={`University gallery ${index + 1}`} 

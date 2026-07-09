@@ -12,7 +12,8 @@ vi.mock('@/lib/auth', () => ({
 }))
 
 vi.mock('next/image', () => ({
-  default: (props: any) => <img {...props} />,
+  // eslint-disable-next-line @next/next/no-img-element
+  default: (props: any) => <img alt={props.alt ?? ''} {...props} />,
 }))
 
 describe('StudentLayout', () => {
