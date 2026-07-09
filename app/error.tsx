@@ -28,7 +28,7 @@ export default function Error({
         </div>
         <h2 className="text-2xl font-bold text-white mb-2">Something went wrong!</h2>
         <p className="text-textSecondary mb-8 text-sm leading-relaxed">
-          We encountered an unexpected error. Don't worry, our team has been notified. 
+          We encountered an unexpected error. Don&apos;t worry, our team has been notified. 
           Please try refreshing the page.
         </p>
         

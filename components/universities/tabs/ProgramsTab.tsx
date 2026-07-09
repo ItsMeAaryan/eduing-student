@@ -126,7 +126,7 @@ export default function ProgramsTab({ university }: Props) {
 
         {filteredPrograms.length === 0 && (
           <div className="text-center py-12 text-textSecondary bg-white/5 rounded-2xl border border-white/5">
-            No programs found for "{activeFilter}".
+            No programs found for &quot;{activeFilter}&quot;.
           </div>
         )}
       </div>

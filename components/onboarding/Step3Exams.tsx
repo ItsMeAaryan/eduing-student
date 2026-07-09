@@ -52,6 +52,10 @@ export default function Step3Exams({ data, updateData }: Props) {
               <div 
                 className="flex items-center cursor-pointer"
                 onClick={() => handleToggleExam(exam)}
+                role="checkbox"
+                aria-checked={isSelected}
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleToggleExam(exam); } }}
               >
                 <div className={`w-6 h-6 rounded border flex items-center justify-center mr-3 transition-colors ${
                   isSelected ? "bg-primary border-primary text-white" : "border-textSecondary"

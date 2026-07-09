@@ -246,7 +246,7 @@ export default function ApplicationDetailsPage() {
 
                <div className="pt-8 border-t border-white/5">
                  <p className="text-[10px] font-bold text-white/20 leading-relaxed italic">
-                   "This dossier represents a legally binding admission request submitted to {application.universityId} via the EDUING Gateway."
+                   &quot;This dossier represents a legally binding admission request submitted to {application.universityId} via the EDUING Gateway.&quot;
                  </p>
                </div>
             </div>

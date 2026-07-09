@@ -47,6 +47,9 @@ export default function StudentSidebar({ studentName = "Student", studentPhoto }
         <div 
           onClick={() => router.push('/student/profile')}
           className="flex items-center bg-[#141414] border border-[#242424] rounded-xl p-3 mb-8 cursor-pointer hover:bg-white/5 transition-colors"
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === 'Enter') router.push('/student/profile'); }}
         >
           <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden mr-3 shrink-0 relative">
             {studentPhoto ? (

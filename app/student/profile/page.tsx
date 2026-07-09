@@ -448,24 +448,24 @@ export default function AccountPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                        <div className="space-y-2">
-                         <label className={labelStyle}>Full Legal Name</label>
-                         {isEditing ? <input className={inputStyle} value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} /> : <div className="text-white/60 font-bold p-1 ml-1">{formData.fullName}</div>}
+                         <label htmlFor="profile-fullname" className={labelStyle}>Full Legal Name</label>
+                         {isEditing ? <input id="profile-fullname" className={inputStyle} value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} /> : <div className="text-white/60 font-bold p-1 ml-1">{formData.fullName}</div>}
                        </div>
                        <div className="space-y-2">
-                         <label className={labelStyle}>Global Phone</label>
-                         {isEditing ? <input className={inputStyle} value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} /> : <div className="text-white/60 font-bold p-1 ml-1">{formData.phone}</div>}
+                         <label htmlFor="profile-phone" className={labelStyle}>Global Phone</label>
+                         {isEditing ? <input id="profile-phone" className={inputStyle} value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} /> : <div className="text-white/60 font-bold p-1 ml-1">{formData.phone}</div>}
                        </div>
                        <div className="space-y-2">
-                         <label className={labelStyle}>Date of Birth</label>
-                         {isEditing ? <input type="date" className={inputStyle + " [color-scheme:dark]"} value={formData.dob} onChange={e => setFormData({...formData, dob: e.target.value})} /> : <div className="text-white/60 font-bold p-1 ml-1">{formData.dob}</div>}
+                         <label htmlFor="profile-dob" className={labelStyle}>Date of Birth</label>
+                         {isEditing ? <input id="profile-dob" type="date" className={inputStyle + " [color-scheme:dark]"} value={formData.dob} onChange={e => setFormData({...formData, dob: e.target.value})} /> : <div className="text-white/60 font-bold p-1 ml-1">{formData.dob}</div>}
                        </div>
                        <div className="space-y-2">
-                         <label className={labelStyle}>State of Residence</label>
-                         {isEditing ? <input className={inputStyle} value={formData.state} onChange={e => setFormData({...formData, state: e.target.value})} /> : <div className="text-white/60 font-bold p-1 ml-1">{formData.state}</div>}
+                         <label htmlFor="profile-state" className={labelStyle}>State of Residence</label>
+                         {isEditing ? <input id="profile-state" className={inputStyle} value={formData.state} onChange={e => setFormData({...formData, state: e.target.value})} /> : <div className="text-white/60 font-bold p-1 ml-1">{formData.state}</div>}
                        </div>
                        <div className="md:col-span-2 space-y-2">
-                         <label className={labelStyle}>Detailed Address</label>
-                         {isEditing ? <textarea className={inputStyle + " h-32 resize-none"} value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} /> : <div className="text-white/60 font-bold p-1 ml-1 leading-relaxed">{formData.address}</div>}
+                         <label htmlFor="profile-address" className={labelStyle}>Detailed Address</label>
+                         {isEditing ? <textarea id="profile-address" className={inputStyle + " h-32 resize-none"} value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} /> : <div className="text-white/60 font-bold p-1 ml-1 leading-relaxed">{formData.address}</div>}
                        </div>
                     </div>
                   </div>
@@ -474,20 +474,20 @@ export default function AccountPage() {
                     <h3 className="text-2xl font-black tracking-tight mb-10">Academic Credentials</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                        <div className="space-y-2">
-                         <label className={labelStyle}>10th Percentage (%)</label>
-                         {isEditing ? <input type="number" className={inputStyle} value={formData.tenthPercentage} onChange={e => setFormData({...formData, tenthPercentage: e.target.value})} /> : <div className="text-white/60 font-bold p-1 ml-1">{formData.tenthPercentage}%</div>}
+                         <label htmlFor="profile-tenth" className={labelStyle}>10th Percentage (%)</label>
+                         {isEditing ? <input id="profile-tenth" type="number" className={inputStyle} value={formData.tenthPercentage} onChange={e => setFormData({...formData, tenthPercentage: e.target.value})} /> : <div className="text-white/60 font-bold p-1 ml-1">{formData.tenthPercentage}%</div>}
                        </div>
                        <div className="space-y-2">
-                         <label className={labelStyle}>12th Percentage (%)</label>
-                         {isEditing ? <input type="number" className={inputStyle} value={formData.twelfthPercentage} onChange={e => setFormData({...formData, twelfthPercentage: e.target.value})} /> : <div className="text-white/60 font-bold p-1 ml-1">{formData.twelfthPercentage}%</div>}
+                         <label htmlFor="profile-twelfth" className={labelStyle}>12th Percentage (%)</label>
+                         {isEditing ? <input id="profile-twelfth" type="number" className={inputStyle} value={formData.twelfthPercentage} onChange={e => setFormData({...formData, twelfthPercentage: e.target.value})} /> : <div className="text-white/60 font-bold p-1 ml-1">{formData.twelfthPercentage}%</div>}
                        </div>
                        <div className="space-y-2">
-                         <label className={labelStyle}>Entrance Exam</label>
-                         {isEditing ? <input className={inputStyle} value={formData.entranceExam} onChange={e => setFormData({...formData, entranceExam: e.target.value})} placeholder="e.g. JEE Main" /> : <div className="text-white/60 font-bold p-1 ml-1">{formData.entranceExam}</div>}
+                         <label htmlFor="profile-exam" className={labelStyle}>Entrance Exam</label>
+                         {isEditing ? <input id="profile-exam" className={inputStyle} value={formData.entranceExam} onChange={e => setFormData({...formData, entranceExam: e.target.value})} placeholder="e.g. JEE Main" /> : <div className="text-white/60 font-bold p-1 ml-1">{formData.entranceExam}</div>}
                        </div>
                        <div className="space-y-2">
-                         <label className={labelStyle}>Score / Rank</label>
-                         {isEditing ? <input type="number" className={inputStyle} value={formData.entranceScore} onChange={e => setFormData({...formData, entranceScore: e.target.value})} /> : <div className="text-white/60 font-bold p-1 ml-1">{formData.entranceScore}</div>}
+                         <label htmlFor="profile-score" className={labelStyle}>Score / Rank</label>
+                         {isEditing ? <input id="profile-score" type="number" className={inputStyle} value={formData.entranceScore} onChange={e => setFormData({...formData, entranceScore: e.target.value})} /> : <div className="text-white/60 font-bold p-1 ml-1">{formData.entranceScore}</div>}
                        </div>
                     </div>
 
