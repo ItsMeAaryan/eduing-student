@@ -22,6 +22,7 @@ import {
   listenUniversitiesFiltered 
 } from '@/lib/firebase/universities'
 import { useAuth } from '@/hooks/useAuth'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { University } from '@/types/firebase'
 
 const NAAC_GRADES = ['A++', 'A+', 'A', 'B++', 'B+', 'B']
@@ -42,6 +43,7 @@ export default function PremiumDiscoverPage() {
   const [minRating, setMinRating] = useState(0)
   const [selectedNAAC, setSelectedNAAC] = useState('')
   const [showFilters, setShowFilters] = useState(false)
+  const filterDrawerRef = useFocusTrap<HTMLDivElement>(showFilters, () => setShowFilters(false))
 
   useEffect(() => {
     setLoading(true)
@@ -414,7 +416,13 @@ export default function PremiumDiscoverPage() {
         {/* MOBILE FILTERS MODAL */}
         <AnimatePresence>
           {showFilters && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 lg:hidden bg-black/90 backdrop-blur-2xl flex flex-col p-8">
+            <motion.div 
+              ref={filterDrawerRef}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Filters"
+              tabIndex={-1}
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 lg:hidden bg-black/90 backdrop-blur-2xl flex flex-col p-8">
                <div className="flex items-center justify-between mb-12">
                  <h2 className="text-3xl font-black">Filters</h2>
                  <button onClick={() => setShowFilters(false)} className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center border border-white/10">
