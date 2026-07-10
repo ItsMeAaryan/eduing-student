@@ -5,6 +5,7 @@ import { Application, TimelineEvent } from "@/types/application";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Send, Clock, Search, CheckCircle2, XCircle, FileText } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 interface Props {
   application: Application;
@@ -61,14 +62,18 @@ export default function ApplicationCard({ application }: Props) {
     <div className="bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden transition-all hover:border-white/10">
       
       {/* Card Header (Always visible) */}
-      <div 
+      <div
         className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer"
         onClick={() => setExpanded(!expanded)}
+        role="button"
+        tabIndex={0}
+        aria-expanded={expanded}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setExpanded(!expanded); } }}
       >
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
             {application.universityLogo ? (
-              <img src={application.universityLogo} alt="Logo" className="w-full h-full object-cover rounded-xl" />
+              <Image src={application.universityLogo} alt="Logo" width={48} height={48} className="w-full h-full object-cover rounded-xl" />
             ) : (
               <BuildingIcon name={application.universityName || "U"} />
             )}

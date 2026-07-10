@@ -55,10 +55,11 @@ export default function StudentLogin() {
         )}
 
         <div>
-          <label className="block text-sm font-medium text-textSecondary mb-1.5">
+          <label htmlFor="email" className="block text-sm font-medium text-textSecondary mb-1.5">
             Email Address
           </label>
           <input
+            id="email"
             type="email"
             name="email"
             required
@@ -70,11 +71,12 @@ export default function StudentLogin() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-textSecondary mb-1.5">
+          <label htmlFor="password" className="block text-sm font-medium text-textSecondary mb-1.5">
             Password
           </label>
           <div className="relative">
             <input
+              id="password"
               type={showPassword ? "text" : "password"}
               name="password"
               required
@@ -124,6 +126,8 @@ export default function StudentLogin() {
             }}
             onMouseOver={(e) => e.currentTarget.style.background = 'rgba(108,111,255,0.22)'}
             onMouseOut={(e) => e.currentTarget.style.background = 'rgba(108,111,255,0.12)'}
+            onFocus={(e) => e.currentTarget.style.background = 'rgba(108,111,255,0.22)'}
+            onBlur={(e) => e.currentTarget.style.background = 'rgba(108,111,255,0.12)'}
           >
             ✦ Autofill
           </button>
@@ -140,7 +144,7 @@ export default function StudentLogin() {
         </button>
 
         <p className="text-center text-textSecondary text-sm mt-6">
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <Link href="/auth/student/register" className="text-primary hover:text-blue-400 font-medium transition-colors">
             Register
           </Link>

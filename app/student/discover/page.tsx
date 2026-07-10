@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useState, useMemo } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import ProtectedRoute from '@/components/ProtectedRoute'
@@ -21,6 +22,7 @@ import {
   listenUniversitiesFiltered 
 } from '@/lib/firebase/universities'
 import { useAuth } from '@/hooks/useAuth'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { University } from '@/types/firebase'
 
 const NAAC_GRADES = ['A++', 'A+', 'A', 'B++', 'B+', 'B']
@@ -41,6 +43,7 @@ export default function PremiumDiscoverPage() {
   const [minRating, setMinRating] = useState(0)
   const [selectedNAAC, setSelectedNAAC] = useState('')
   const [showFilters, setShowFilters] = useState(false)
+  const filterDrawerRef = useFocusTrap<HTMLDivElement>(showFilters, () => setShowFilters(false))
 
   useEffect(() => {
     setLoading(true)
@@ -163,7 +166,7 @@ export default function PremiumDiscoverPage() {
         color: 'rgba(255,255,255,0.2)',
         fontSize: '13px',
       }}>
-        Check 'universities' collection in Firebase.
+        Check &apos;universities&apos; collection in Firebase.
       </p>
       <button
         onClick={() => window.location.reload()}
@@ -207,7 +210,7 @@ export default function PremiumDiscoverPage() {
                   placeholder="Search institutions..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-white/[0.03] border border-white/5 rounded-2xl pl-12 pr-4 py-3 text-sm placeholder:text-white/10 focus:border-indigo-500/30 focus:bg-white/[0.05] outline-none transition-all"
+                  className="w-full bg-white/[0.03] border border-white/5 rounded-2xl pl-12 pr-4 py-3 text-sm placeholder:text-white/40 focus:border-indigo-500/30 focus:bg-white/[0.05] outline-none transition-all"
                 />
               </div>
               <button onClick={() => setShowFilters(!showFilters)} className="lg:hidden flex items-center justify-center w-12 h-12 bg-white/[0.03] border border-white/5 rounded-2xl text-white/40 hover:text-white transition-all">
@@ -227,14 +230,14 @@ export default function PremiumDiscoverPage() {
                   <h3 className="text-xl font-black">Refine Results</h3>
                   <button onClick={() => {
                     setActiveLevel('All'); setSelectedState(''); setMinRating(0); setSelectedNAAC('');
-                  }} className="text-[10px] font-black uppercase text-white/30 hover:text-white transition-all">Reset All</button>
+                  }} className="text-[10px] font-black uppercase text-white/46 hover:text-white transition-all">Reset All</button>
                 </div>
 
                 <div className="space-y-8">
                   {/* Level Toggle */}
                   <div className="space-y-4">
-                    <label className="text-[10px] font-black text-white/30 uppercase tracking-widest">Academic Level</label>
-                    <div className="grid grid-cols-3 gap-2 bg-white/5 p-1 rounded-xl border border-white/5">
+                    <span className="text-[10px] font-black text-white/46 uppercase tracking-widest">Academic Level</span>
+                    <div className="grid grid-cols-3 gap-2 bg-white/5 p-1 rounded-xl border border-white/5" role="group" aria-label="Academic Level">
                       {['All', 'UG', 'PG'].map(l => (
                         <button key={l} onClick={() => setActiveLevel(l as any)} className={`py-2 rounded-lg text-xs font-bold transition-all ${activeLevel === l ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-white/40 hover:text-white'}`}>
                           {l}
@@ -245,8 +248,8 @@ export default function PremiumDiscoverPage() {
 
                   {/* Location Dropdown */}
                   <div className="space-y-4">
-                    <label className="text-[10px] font-black text-white/30 uppercase tracking-widest">State / Region</label>
-                    <select value={selectedState} onChange={e => setSelectedState(e.target.value)} className="w-full bg-[#111114] border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-500/50 transition-all appearance-none cursor-pointer">
+                    <label htmlFor="state-region" className="text-[10px] font-black text-white/46 uppercase tracking-widest">State / Region</label>
+                    <select id="state-region" value={selectedState} onChange={e => setSelectedState(e.target.value)} className="w-full bg-[#111114] border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-500/50 transition-all appearance-none cursor-pointer">
                       <option value="">All Regions</option>
                       {STATES.map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
@@ -254,8 +257,8 @@ export default function PremiumDiscoverPage() {
 
                   {/* Rating Filter */}
                   <div className="space-y-4">
-                    <label className="text-[10px] font-black text-white/30 uppercase tracking-widest">Minimum Rating</label>
-                    <div className="space-y-2">
+                    <span className="text-[10px] font-black text-white/46 uppercase tracking-widest">Minimum Rating</span>
+                    <div className="space-y-2" role="group" aria-label="Minimum Rating">
                       {RATINGS.map(r => (
                         <button key={r} onClick={() => setMinRating(minRating === r ? 0 : r)} className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${minRating === r ? 'bg-indigo-500/10 border-indigo-500/50 text-white' : 'bg-transparent border-white/5 text-white/40 hover:border-white/20'}`}>
                           <div className="flex items-center gap-2">
@@ -270,8 +273,8 @@ export default function PremiumDiscoverPage() {
 
                   {/* NAAC Grade */}
                   <div className="space-y-4">
-                    <label className="text-[10px] font-black text-white/30 uppercase tracking-widest">NAAC Accreditation</label>
-                    <div className="flex flex-wrap gap-2">
+                    <span className="text-[10px] font-black text-white/46 uppercase tracking-widest">NAAC Accreditation</span>
+                    <div className="flex flex-wrap gap-2" role="group" aria-label="NAAC Accreditation">
                       {NAAC_GRADES.map(g => (
                         <button key={g} onClick={() => setSelectedNAAC(selectedNAAC === g ? '' : g)} className={`px-4 py-2 rounded-lg text-xs font-bold border transition-all ${selectedNAAC === g ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-600/20' : 'bg-white/5 border-white/5 text-white/40 hover:border-white/20'}`}>
                           {g}
@@ -286,7 +289,7 @@ export default function PremiumDiscoverPage() {
             {/* MAIN CONTENT GRID */}
             <main className="space-y-8">
               <div className="flex items-center justify-between">
-                <h2 className="text-sm font-black text-white/30 uppercase tracking-[0.2em]">
+                <h2 className="text-sm font-black text-white/46 uppercase tracking-[0.2em]">
                   {loading ? 'Searching Database...' : `${filteredUniversities.length} Institutions Found`}
                 </h2>
               </div>
@@ -317,7 +320,7 @@ export default function PremiumDiscoverPage() {
                     <Search size={40} className="text-white/10" />
                   </div>
                   <h3 className="text-2xl font-black mb-2">No institutions found</h3>
-                  <p className="text-white/30">Try adjusting your filters or search query.</p>
+                  <p className="text-white/46">Try adjusting your filters or search query.</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-8">
@@ -334,10 +337,12 @@ export default function PremiumDiscoverPage() {
                       >
                         {/* Card Image Wrapper */}
                         <div className="relative h-60 overflow-hidden">
-                          <img 
+                          <Image 
                             src={uni.imageUrl || `https://images.unsplash.com/photo-1562774053-701939374585?q=80&w=2066&auto=format&fit=crop`} 
                             alt={uni.name}
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                            fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            className="object-cover transition-transform duration-700 group-hover:scale-110"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-[#111114] via-transparent to-transparent" />
                           
@@ -376,11 +381,11 @@ export default function PremiumDiscoverPage() {
 
                           <div className="flex gap-2 mb-8 overflow-hidden">
                              {uni.programs?.slice(0, 3).map((p, i) => (
-                               <span key={i} className="whitespace-nowrap bg-white/5 border border-white/5 px-3 py-1 rounded-lg text-[10px] font-bold text-white/30 uppercase tracking-wider">
+                               <span key={i} className="whitespace-nowrap bg-white/5 border border-white/5 px-3 py-1 rounded-lg text-[10px] font-bold text-white/46 uppercase tracking-wider">
                                  {p.name.split(' ')[0]}
                                </span>
                              ))}
-                             {uni.programs?.length > 3 && <span className="text-[10px] font-bold text-white/20">+{uni.programs.length - 3}</span>}
+                             {uni.programs?.length > 3 && <span className="text-[10px] font-bold text-white/40">+{uni.programs.length - 3}</span>}
                           </div>
 
                           <div className="flex items-center gap-4">
@@ -392,6 +397,7 @@ export default function PremiumDiscoverPage() {
                             </button>
                             <button 
                                onClick={() => router.push(`/student/universities/${uni.id}`)}
+                               aria-label={`View ${uni.name} details`}
                                className="w-14 h-14 bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl flex items-center justify-center transition-all"
                             >
                               <Building2 size={20} className="text-white/40" />
@@ -411,7 +417,13 @@ export default function PremiumDiscoverPage() {
         {/* MOBILE FILTERS MODAL */}
         <AnimatePresence>
           {showFilters && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 lg:hidden bg-black/90 backdrop-blur-2xl flex flex-col p-8">
+            <motion.div 
+              ref={filterDrawerRef}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Filters"
+              tabIndex={-1}
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 lg:hidden bg-black/90 backdrop-blur-2xl flex flex-col p-8">
                <div className="flex items-center justify-between mb-12">
                  <h2 className="text-3xl font-black">Filters</h2>
                  <button onClick={() => setShowFilters(false)} className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center border border-white/10">
@@ -422,10 +434,10 @@ export default function PremiumDiscoverPage() {
                <div className="flex-1 overflow-y-auto space-y-12">
                   {/* MOBILE FILTER REPLICATION */}
                   <div className="space-y-4">
-                    <label className="text-xs font-black text-white/30 uppercase tracking-widest">Academic Level</label>
-                    <div className="grid grid-cols-3 gap-2">
+                    <span className="text-xs font-black text-white/46 uppercase tracking-widest">Academic Level</span>
+                    <div className="grid grid-cols-3 gap-2" role="group" aria-label="Academic Level">
                        {['All', 'UG', 'PG'].map(l => (
-                         <button key={l} onClick={() => { setActiveLevel(l as any); setShowFilters(false); }} className={`py-4 rounded-2xl text-sm font-black transition-all ${activeLevel === l ? 'bg-indigo-600 text-white' : 'bg-white/5 text-white/30'}`}>
+                         <button key={l} onClick={() => { setActiveLevel(l as any); setShowFilters(false); }} className={`py-4 rounded-2xl text-sm font-black transition-all ${activeLevel === l ? 'bg-indigo-600 text-white' : 'bg-white/5 text-white/46'}`}>
                            {l}
                          </button>
                        ))}
@@ -433,10 +445,10 @@ export default function PremiumDiscoverPage() {
                   </div>
 
                   <div className="space-y-4">
-                    <label className="text-xs font-black text-white/30 uppercase tracking-widest">Select Region</label>
-                    <div className="grid grid-cols-2 gap-2">
+                    <span className="text-xs font-black text-white/46 uppercase tracking-widest">Select Region</span>
+                    <div className="grid grid-cols-2 gap-2" role="group" aria-label="Select Region">
                        {STATES.map(s => (
-                         <button key={s} onClick={() => { setSelectedState(s); setShowFilters(false); }} className={`py-4 rounded-2xl text-xs font-black transition-all ${selectedState === s ? 'bg-indigo-600 text-white' : 'bg-white/5 text-white/30'}`}>
+                         <button key={s} onClick={() => { setSelectedState(s); setShowFilters(false); }} className={`py-4 rounded-2xl text-xs font-black transition-all ${selectedState === s ? 'bg-indigo-600 text-white' : 'bg-white/5 text-white/46'}`}>
                            {s}
                          </button>
                        ))}

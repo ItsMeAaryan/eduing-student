@@ -137,6 +137,10 @@ export default function Step4Documents({ data, updateData }: Props) {
                   onDrop={(e) => handleDrop(e, doc.id)}
                   onDragOver={handleDragOver}
                   onClick={() => !isUploading && document.getElementById(`file-${doc.id}`)?.click()}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Upload ${doc.id}`}
+                  onKeyDown={(e) => { if (!isUploading && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); document.getElementById(`file-${doc.id}`)?.click(); } }}
                 >
                   <input 
                     type="file" 

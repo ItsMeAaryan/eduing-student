@@ -131,8 +131,8 @@ export default function MultiStepRegisterPage() {
     }
   }
 
-  const inputClasses = "w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:border-indigo-500/50 focus:bg-indigo-500/5 outline-none transition-all placeholder:text-white/10"
-  const labelClasses = "block text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-2 ml-1"
+  const inputClasses = "w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:border-indigo-500/50 focus:bg-indigo-500/5 outline-none transition-all placeholder:text-white/40"
+  const labelClasses = "block text-[10px] font-black text-white/46 uppercase tracking-[0.2em] mb-2 ml-1"
 
   return (
     <div className="min-h-screen bg-[#0A0A0F] text-white flex flex-col font-sans">
@@ -142,7 +142,7 @@ export default function MultiStepRegisterPage() {
           <div className="flex items-center justify-between mb-8">
              <Logo height={28} />
              <div className="flex items-center gap-3">
-               <span className="text-[10px] font-black uppercase tracking-widest text-white/20">Step {currentStep} of 5</span>
+               <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Step {currentStep} of 5</span>
                <div className="h-1 w-32 bg-white/5 rounded-full overflow-hidden">
                  <motion.div 
                    initial={{ width: 0 }}
@@ -161,10 +161,10 @@ export default function MultiStepRegisterPage() {
               const isCompleted = currentStep > step.id
               return (
                 <div key={step.id} className="relative z-10 flex flex-col items-center">
-                   <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${isActive ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/20 scale-110' : isCompleted ? 'bg-indigo-500/20 text-indigo-400' : 'bg-[#111114] border border-white/5 text-white/20'}`}>
+                   <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${isActive ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/20 scale-110' : isCompleted ? 'bg-indigo-500/20 text-indigo-400' : 'bg-[#111114] border border-white/5 text-white/40'}`}>
                       {isCompleted ? <CheckCircle2 size={20} /> : <Icon size={20} />}
                    </div>
-                   <span className={`mt-3 text-[9px] font-black uppercase tracking-widest ${isActive ? 'text-white' : 'text-white/20'}`}>{step.title}</span>
+                   <span className={`mt-3 text-[9px] font-black uppercase tracking-widest ${isActive ? 'text-white' : 'text-white/40'}`}>{step.title}</span>
                 </div>
               )
             })}
@@ -189,24 +189,24 @@ export default function MultiStepRegisterPage() {
                 <div className="space-y-8">
                   <div>
                     <h2 className="text-3xl font-black mb-2 tracking-tight">Identity Creation</h2>
-                    <p className="text-white/30 text-sm">Establish your unique student profile credentials.</p>
+                    <p className="text-white/46 text-sm">Establish your unique student profile credentials.</p>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="md:col-span-2">
-                      <label className={labelClasses}>Full Legal Name</label>
-                      <input className={inputClasses} value={formData.fullName} onChange={e => updateFormData({ fullName: e.target.value })} placeholder="Enter your full name" />
+                      <label htmlFor="fullName" className={labelClasses}>Full Legal Name</label>
+                      <input id="fullName" className={inputClasses} value={formData.fullName} onChange={e => updateFormData({ fullName: e.target.value })} placeholder="Enter your full name" />
                     </div>
                     <div className="md:col-span-2">
-                      <label className={labelClasses}>Email Access</label>
-                      <input className={inputClasses} type="email" value={formData.email} onChange={e => updateFormData({ email: e.target.value })} placeholder="name@example.com" />
+                      <label htmlFor="email" className={labelClasses}>Email Access</label>
+                      <input id="email" className={inputClasses} type="email" value={formData.email} onChange={e => updateFormData({ email: e.target.value })} placeholder="name@example.com" />
                     </div>
                     <div>
-                      <label className={labelClasses}>Secure Password</label>
-                      <input className={inputClasses} type="password" value={formData.password} onChange={e => updateFormData({ password: e.target.value })} />
+                      <label htmlFor="password" className={labelClasses}>Secure Password</label>
+                      <input id="password" className={inputClasses} type="password" value={formData.password} onChange={e => updateFormData({ password: e.target.value })} />
                     </div>
                     <div>
-                      <label className={labelClasses}>Confirm Access</label>
-                      <input className={inputClasses} type="password" value={formData.confirmPassword} onChange={e => updateFormData({ confirmPassword: e.target.value })} />
+                      <label htmlFor="confirmPassword" className={labelClasses}>Confirm Access</label>
+                      <input id="confirmPassword" className={inputClasses} type="password" value={formData.confirmPassword} onChange={e => updateFormData({ confirmPassword: e.target.value })} />
                     </div>
                   </div>
                 </div>
@@ -216,34 +216,34 @@ export default function MultiStepRegisterPage() {
                 <div className="space-y-8">
                   <div>
                     <h2 className="text-3xl font-black mb-2 tracking-tight">Contact Matrix</h2>
-                    <p className="text-white/30 text-sm">Encryption-secured reachability data.</p>
+                    <p className="text-white/46 text-sm">Encryption-secured reachability data.</p>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className={labelClasses}>Phone Number (10 Digits)</label>
-                      <input className={inputClasses} value={formData.phone} onChange={e => updateFormData({ phone: e.target.value.replace(/\D/g, '').slice(0,10) })} placeholder="9876543210" />
+                      <label htmlFor="phone" className={labelClasses}>Phone Number (10 Digits)</label>
+                      <input id="phone" className={inputClasses} value={formData.phone} onChange={e => updateFormData({ phone: e.target.value.replace(/\D/g, '').slice(0,10) })} placeholder="9876543210" />
                     </div>
                     <div>
-                      <label className={labelClasses}>Date of Birth</label>
-                      <input type="date" className={inputClasses + " [color-scheme:dark]"} value={formData.dob} onChange={e => updateFormData({ dob: e.target.value })} />
+                      <label htmlFor="dob" className={labelClasses}>Date of Birth</label>
+                      <input id="dob" type="date" className={inputClasses + " [color-scheme:dark]"} value={formData.dob} onChange={e => updateFormData({ dob: e.target.value })} />
                     </div>
                     <div className="md:col-span-2">
-                      <label className={labelClasses}>Gender Identity</label>
-                      <div className="flex gap-4">
+                      <span className={labelClasses}>Gender Identity</span>
+                      <div className="flex gap-4" role="group" aria-label="Gender Identity">
                         {['male', 'female', 'other'].map(g => (
-                          <button key={g} onClick={() => updateFormData({ gender: g as any })} className={`flex-1 py-4 rounded-2xl border text-[10px] font-black uppercase tracking-widest transition-all ${formData.gender === g ? 'bg-indigo-600/10 border-indigo-600/30 text-indigo-400' : 'bg-white/5 border-white/5 text-white/20'}`}>
+                          <button key={g} onClick={() => updateFormData({ gender: g as any })} className={`flex-1 py-4 rounded-2xl border text-[10px] font-black uppercase tracking-widest transition-all ${formData.gender === g ? 'bg-indigo-600/10 border-indigo-600/30 text-indigo-400' : 'bg-white/5 border-white/5 text-white/40'}`}>
                             {g}
                           </button>
                         ))}
                       </div>
                     </div>
                     <div>
-                      <label className={labelClasses}>State</label>
-                      <input className={inputClasses} value={formData.state} onChange={e => updateFormData({ state: e.target.value })} placeholder="e.g. Karnataka" />
+                      <label htmlFor="state" className={labelClasses}>State</label>
+                      <input id="state" className={inputClasses} value={formData.state} onChange={e => updateFormData({ state: e.target.value })} placeholder="e.g. Karnataka" />
                     </div>
                     <div>
-                      <label className={labelClasses}>City</label>
-                      <input className={inputClasses} value={formData.city} onChange={e => updateFormData({ city: e.target.value })} placeholder="e.g. Bengaluru" />
+                      <label htmlFor="city" className={labelClasses}>City</label>
+                      <input id="city" className={inputClasses} value={formData.city} onChange={e => updateFormData({ city: e.target.value })} placeholder="e.g. Bengaluru" />
                     </div>
                   </div>
                 </div>
@@ -253,24 +253,24 @@ export default function MultiStepRegisterPage() {
                 <div className="space-y-8">
                   <div>
                     <h2 className="text-3xl font-black mb-2 tracking-tight">Academic Metadata</h2>
-                    <p className="text-white/30 text-sm">Verified academic performance metrics.</p>
+                    <p className="text-white/46 text-sm">Verified academic performance metrics.</p>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className={labelClasses}>10th Percentage (%)</label>
-                      <input type="number" className={inputClasses} value={formData.tenthPercentage} onChange={e => updateFormData({ tenthPercentage: e.target.value })} />
+                      <label htmlFor="tenthPercentage" className={labelClasses}>10th Percentage (%)</label>
+                      <input id="tenthPercentage" type="number" className={inputClasses} value={formData.tenthPercentage} onChange={e => updateFormData({ tenthPercentage: e.target.value })} />
                     </div>
                     <div>
-                      <label className={labelClasses}>12th Percentage (%)</label>
-                      <input type="number" className={inputClasses} value={formData.twelfthPercentage} onChange={e => updateFormData({ twelfthPercentage: e.target.value })} />
+                      <label htmlFor="twelfthPercentage" className={labelClasses}>12th Percentage (%)</label>
+                      <input id="twelfthPercentage" type="number" className={inputClasses} value={formData.twelfthPercentage} onChange={e => updateFormData({ twelfthPercentage: e.target.value })} />
                     </div>
                     <div>
-                      <label className={labelClasses}>Entrance Exam</label>
-                      <input className={inputClasses} value={formData.entranceExam} onChange={e => updateFormData({ entranceExam: e.target.value })} placeholder="e.g. JEE Main" />
+                      <label htmlFor="entranceExam" className={labelClasses}>Entrance Exam</label>
+                      <input id="entranceExam" className={inputClasses} value={formData.entranceExam} onChange={e => updateFormData({ entranceExam: e.target.value })} placeholder="e.g. JEE Main" />
                     </div>
                     <div>
-                      <label className={labelClasses}>Score / Rank</label>
-                      <input type="number" className={inputClasses} value={formData.entranceScore} onChange={e => updateFormData({ entranceScore: e.target.value })} />
+                      <label htmlFor="entranceScore" className={labelClasses}>Score / Rank</label>
+                      <input id="entranceScore" type="number" className={inputClasses} value={formData.entranceScore} onChange={e => updateFormData({ entranceScore: e.target.value })} />
                     </div>
                   </div>
                 </div>
@@ -280,23 +280,23 @@ export default function MultiStepRegisterPage() {
                 <div className="space-y-8">
                   <div>
                     <h2 className="text-3xl font-black mb-2 tracking-tight">Identity Verification</h2>
-                    <p className="text-white/30 text-sm">Classification and regional metadata.</p>
+                    <p className="text-white/46 text-sm">Classification and regional metadata.</p>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className={labelClasses}>Social Category</label>
-                      <select className={inputClasses} value={formData.category} onChange={e => updateFormData({ category: e.target.value as any })}>
+                      <label htmlFor="category" className={labelClasses}>Social Category</label>
+                      <select id="category" className={inputClasses} value={formData.category} onChange={e => updateFormData({ category: e.target.value as any })}>
                         {['General', 'OBC', 'SC', 'ST', 'EWS'].map(c => <option key={c} value={c}>{c}</option>)}
                       </select>
                     </div>
                     <div>
-                      <label className={labelClasses}>Nationality</label>
-                      <input className={inputClasses} value={formData.nationality} onChange={e => updateFormData({ nationality: e.target.value })} />
+                      <label htmlFor="nationality" className={labelClasses}>Nationality</label>
+                      <input id="nationality" className={inputClasses} value={formData.nationality} onChange={e => updateFormData({ nationality: e.target.value })} />
                     </div>
                     <div className="md:col-span-2 bg-indigo-600/10 border border-indigo-600/20 rounded-3xl p-6 flex items-center gap-4">
                        <ShieldCheck className="text-indigo-400 shrink-0" size={24} />
                        <p className="text-[10px] font-black uppercase leading-relaxed text-indigo-400/60 tracking-widest">
-                         "Data is encrypted using NTA-grade standards. Documents will be requested in the next phase for full profile verification."
+                         &quot;Data is encrypted using NTA-grade standards. Documents will be requested in the next phase for full profile verification.&quot;
                        </p>
                     </div>
                   </div>
@@ -307,7 +307,7 @@ export default function MultiStepRegisterPage() {
                 <div className="space-y-8">
                   <div>
                     <h2 className="text-3xl font-black mb-2 tracking-tight">Final Dossier Review</h2>
-                    <p className="text-white/30 text-sm">Confirm your metadata before identity finalization.</p>
+                    <p className="text-white/46 text-sm">Confirm your metadata before identity finalization.</p>
                   </div>
                   <div className="bg-white/5 rounded-3xl p-6 space-y-4">
                      {[
@@ -318,7 +318,7 @@ export default function MultiStepRegisterPage() {
                        { l: 'State', v: formData.state }
                      ].map((item, i) => (
                        <div key={i} className="flex justify-between items-center py-2 border-b border-white/5 last:border-0">
-                          <span className="text-[10px] font-black uppercase text-white/20 tracking-widest">{item.l}</span>
+                          <span className="text-[10px] font-black uppercase text-white/40 tracking-widest">{item.l}</span>
                           <span className="text-sm font-bold">{item.v}</span>
                        </div>
                      ))}
@@ -351,7 +351,7 @@ export default function MultiStepRegisterPage() {
           </AnimatePresence>
 
           <div className="mt-8 text-center">
-             <p className="text-white/20 text-xs font-bold uppercase tracking-widest">
+             <p className="text-white/40 text-xs font-bold uppercase tracking-widest">
                Already have an identity? <Link href="/auth/login" className="text-indigo-400 hover:underline">Log in</Link>
              </p>
           </div>

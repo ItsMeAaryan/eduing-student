@@ -114,7 +114,7 @@ export default function ContactTab({ university }: Props) {
 
             <MapPin
               size={48}
-              className="text-white/20 mb-4"
+              className="text-white/40 mb-4"
             />
 
             <h3 className="text-lg font-bold text-white mb-2">

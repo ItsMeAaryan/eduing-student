@@ -109,7 +109,7 @@ export default function ApplicationDetailsPage() {
             <div>
               <div className="text-indigo-400 text-[10px] font-black uppercase tracking-[0.3em] mb-4">Application Reference: #{application.id.slice(0, 8)}</div>
               <h1 className="text-4xl md:text-5xl font-black mb-2 tracking-tight">University Admission Dossier</h1>
-              <div className="flex items-center gap-3 text-white/30 text-sm font-bold">
+              <div className="flex items-center gap-3 text-white/46 text-sm font-bold">
                  <Building2 size={16} /> {application.universityId}
                  <span>•</span>
                  <span className="text-indigo-400">{application.programId}</span>
@@ -129,7 +129,7 @@ export default function ApplicationDetailsPage() {
             {/* PROGRESS TIMELINE */}
             <section className="bg-[#111114] border border-white/5 rounded-[40px] p-10 shadow-2xl relative overflow-hidden">
                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/5 blur-[100px]" />
-               <h3 className="text-xs font-black text-white/20 uppercase tracking-[0.3em] mb-12 flex items-center gap-3">
+               <h3 className="text-xs font-black text-white/40 uppercase tracking-[0.3em] mb-12 flex items-center gap-3">
                  <History size={16} /> Journey Progression
                </h3>
 
@@ -145,12 +145,12 @@ export default function ApplicationDetailsPage() {
                        transition={{ delay: i * 0.1 }}
                        className="relative"
                      >
-                       <div className={`absolute -left-12 w-12 h-12 rounded-full border-4 border-[#111114] flex items-center justify-center z-10 ${isCompleted ? 'bg-indigo-500 text-white shadow-[0_0_20px_rgba(99,102,241,0.4)]' : 'bg-[#111114] border-white/10 text-white/20'}`}>
+                       <div className={`absolute -left-12 w-12 h-12 rounded-full border-4 border-[#111114] flex items-center justify-center z-10 ${isCompleted ? 'bg-indigo-500 text-white shadow-[0_0_20px_rgba(99,102,241,0.4)]' : 'bg-[#111114] border-white/10 text-white/40'}`}>
                           {isCompleted ? <CheckCircle2 size={24} /> : <div className="w-3 h-3 rounded-full bg-current" />}
                        </div>
                        <div>
-                         <div className={`text-xl font-black ${isCompleted ? 'text-white' : 'text-white/20'}`}>{step.label}</div>
-                         <div className="text-[10px] font-black uppercase tracking-widest text-white/30 mt-1">{step.date || 'Pending Evaluation'}</div>
+                         <div className={`text-xl font-black ${isCompleted ? 'text-white' : 'text-white/40'}`}>{step.label}</div>
+                         <div className="text-[10px] font-black uppercase tracking-widest text-white/46 mt-1">{step.date || 'Pending Evaluation'}</div>
                        </div>
                      </motion.div>
                    )
@@ -160,7 +160,7 @@ export default function ApplicationDetailsPage() {
 
             {/* DIGITAL VAULT PREVIEW */}
             <section className="space-y-6">
-              <h3 className="text-xs font-black text-white/20 uppercase tracking-[0.3em] flex items-center gap-3">
+              <h3 className="text-xs font-black text-white/40 uppercase tracking-[0.3em] flex items-center gap-3">
                 <ShieldCheck size={16} className="text-indigo-400" /> Linked Digital Vault
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -169,12 +169,12 @@ export default function ApplicationDetailsPage() {
                   return (
                     <div key={docType.id} className="bg-white/5 border border-white/5 rounded-2xl p-5 flex items-center justify-between">
                        <div className="flex items-center gap-4">
-                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${doc ? 'bg-green-500/10 text-green-500' : 'bg-white/5 text-white/10'}`}>
+                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${doc ? 'bg-green-500/10 text-green-500' : 'bg-white/5 text-white/40'}`}>
                            <FileText size={20} />
                          </div>
                          <div>
                            <div className="text-xs font-black uppercase tracking-widest">{docType.label}</div>
-                           <div className={`text-[9px] font-bold uppercase mt-1 ${doc?.status === 'verified' ? 'text-green-500' : 'text-white/20'}`}>
+                           <div className={`text-[9px] font-bold uppercase mt-1 ${doc?.status === 'verified' ? 'text-green-500' : 'text-white/40'}`}>
                              {doc ? (doc.status === 'verified' ? 'Verified ✅' : 'Uploaded') : 'Not Uploaded'}
                            </div>
                          </div>
@@ -190,25 +190,25 @@ export default function ApplicationDetailsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                <div className="bg-[#111114] border border-white/5 rounded-3xl p-8 flex flex-col justify-between">
                   <div>
-                    <h4 className="text-xs font-black text-white/20 uppercase trackingwidest mb-6 flex items-center gap-2">
+                    <h4 className="text-xs font-black text-white/40 uppercase trackingwidest mb-6 flex items-center gap-2">
                       <ShieldCheck size={16} className="text-indigo-400" /> Security Clearance
                     </h4>
                     <div className="text-2xl font-black mb-2">{application.documentsVerified ? 'Verified' : 'Pending'}</div>
-                    <p className="text-white/30 text-xs leading-relaxed">System-wide verification of all academic credentials submitted for this application.</p>
+                    <p className="text-white/46 text-xs leading-relaxed">System-wide verification of all academic credentials submitted for this application.</p>
                   </div>
                   <div className="mt-8 pt-8 border-t border-white/5 flex items-center justify-between">
-                     <span className="text-[10px] font-black uppercase tracking-widest text-white/20">Sync Status</span>
+                     <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Sync Status</span>
                      <span className="text-[10px] font-black uppercase tracking-widest text-green-500">Live</span>
                   </div>
                </div>
 
                <div className="bg-[#111114] border border-white/5 rounded-3xl p-8 flex flex-col justify-between">
                   <div>
-                    <h4 className="text-xs font-black text-white/20 uppercase tracking-widest mb-6 flex items-center gap-2">
+                    <h4 className="text-xs font-black text-white/40 uppercase tracking-widest mb-6 flex items-center gap-2">
                       <CreditCard size={16} className="text-indigo-400" /> Financial Settlement
                     </h4>
                     <div className={`text-2xl font-black mb-2 uppercase ${application.paymentStatus === 'paid' ? 'text-green-500' : 'text-amber-500'}`}>{application.paymentStatus}</div>
-                    <p className="text-white/30 text-xs leading-relaxed">Processing of application and registration fees via encrypted gateway.</p>
+                    <p className="text-white/46 text-xs leading-relaxed">Processing of application and registration fees via encrypted gateway.</p>
                   </div>
                   <div className="mt-8 pt-8 border-t border-white/5">
                      <button className="text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:text-white transition-all flex items-center gap-2">
@@ -233,20 +233,20 @@ export default function ApplicationDetailsPage() {
 
             <div className="bg-white/5 border border-white/5 rounded-3xl p-8 space-y-8">
                <div>
-                 <div className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-4 flex items-center gap-2">
+                 <div className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-4 flex items-center gap-2">
                    <Calendar size={14} /> Dossier Creation
                  </div>
                  <div className="text-sm font-bold">{application.appliedAt?.toDate?.().toLocaleString('en-IN', { dateStyle: 'long', timeStyle: 'short' }) || 'Recent'}</div>
                </div>
                
                <div>
-                 <div className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-4">Metadata ID</div>
+                 <div className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-4">Metadata ID</div>
                  <div className="text-[10px] font-mono text-white/40 break-all">{application.id}</div>
                </div>
 
                <div className="pt-8 border-t border-white/5">
-                 <p className="text-[10px] font-bold text-white/20 leading-relaxed italic">
-                   "This dossier represents a legally binding admission request submitted to {application.universityId} via the EDUING Gateway."
+                 <p className="text-[10px] font-bold text-white/40 leading-relaxed italic">
+                   &quot;This dossier represents a legally binding admission request submitted to {application.universityId} via the EDUING Gateway.&quot;
                  </p>
                </div>
             </div>

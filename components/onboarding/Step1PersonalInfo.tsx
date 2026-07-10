@@ -2,6 +2,7 @@
 
 import { OnboardingData } from "@/types/onboarding";
 import { Camera } from "lucide-react";
+import Image from "next/image";
 import { useState, useRef } from "react";
 import { storage } from "@/lib/firebase";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
@@ -37,9 +38,13 @@ export default function Step1PersonalInfo({ data, updateData }: Props) {
         <div 
           className="relative w-32 h-32 rounded-full border-2 border-dashed border-border bg-white/5 flex items-center justify-center overflow-hidden cursor-pointer hover:border-primary transition-colors group"
           onClick={() => fileInputRef.current?.click()}
+          role="button"
+          tabIndex={0}
+          aria-label="Upload profile photo"
+          onKeyDown={(e) => { if (e.key === 'Enter') fileInputRef.current?.click(); }}
         >
           {data.profilePhotoUrl ? (
-            <img src={data.profilePhotoUrl} alt="Profile" className="w-full h-full object-cover" />
+            <Image src={data.profilePhotoUrl} alt="Profile" fill sizes="128px" className="object-cover" />
           ) : (
             <div className="text-center text-textSecondary group-hover:text-primary transition-colors">
               <Camera size={32} className="mx-auto mb-2" />
@@ -67,8 +72,9 @@ export default function Step1PersonalInfo({ data, updateData }: Props) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-textSecondary mb-1.5">Date of Birth</label>
+          <label htmlFor="step1-dob" className="block text-sm font-medium text-textSecondary mb-1.5">Date of Birth</label>
           <input 
+            id="step1-dob"
             type="date" 
             value={data.dob} 
             onChange={(e) => updateData({ dob: e.target.value })}
@@ -76,8 +82,9 @@ export default function Step1PersonalInfo({ data, updateData }: Props) {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-textSecondary mb-1.5">Phone Number</label>
+          <label htmlFor="step1-phone" className="block text-sm font-medium text-textSecondary mb-1.5">Phone Number</label>
           <input 
+            id="step1-phone"
             type="tel" 
             value={data.phone} 
             onChange={(e) => updateData({ phone: e.target.value })}
@@ -88,8 +95,8 @@ export default function Step1PersonalInfo({ data, updateData }: Props) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-textSecondary mb-3">Gender</label>
-        <div className="flex flex-wrap gap-4">
+        <span className="block text-sm font-medium text-textSecondary mb-3">Gender</span>
+        <div className="flex flex-wrap gap-4" role="group" aria-label="Gender">
           {["Male", "Female", "Other"].map(gender => (
             <button
               key={gender}
@@ -109,8 +116,9 @@ export default function Step1PersonalInfo({ data, updateData }: Props) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-textSecondary mb-1.5">State</label>
+          <label htmlFor="step1-state" className="block text-sm font-medium text-textSecondary mb-1.5">State</label>
           <select 
+            id="step1-state"
             value={data.state} 
             onChange={(e) => updateData({ state: e.target.value })}
             className="w-full bg-background border border-border rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all appearance-none"
@@ -120,8 +128,9 @@ export default function Step1PersonalInfo({ data, updateData }: Props) {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-textSecondary mb-1.5">City</label>
+          <label htmlFor="step1-city" className="block text-sm font-medium text-textSecondary mb-1.5">City</label>
           <input 
+            id="step1-city"
             type="text" 
             value={data.city} 
             onChange={(e) => updateData({ city: e.target.value })}
@@ -131,8 +140,9 @@ export default function Step1PersonalInfo({ data, updateData }: Props) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-textSecondary mb-1.5">Full Address</label>
+        <label htmlFor="step1-address" className="block text-sm font-medium text-textSecondary mb-1.5">Full Address</label>
         <textarea 
+          id="step1-address"
           value={data.address} 
           onChange={(e) => updateData({ address: e.target.value })}
           rows={3}

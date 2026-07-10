@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, CheckCircle, Loader2 } from "lucide-react";
 import { auth, db } from "@/lib/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 interface Props {
   program: Program;
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export default function ApplicationModal({ program, universityId, onClose }: Props) {
+  const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   const [message, setMessage] = useState("");
   const [documentsConfirmed, setDocumentsConfirmed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -73,6 +75,11 @@ export default function ApplicationModal({ program, universityId, onClose }: Pro
 
         {/* Modal Content */}
         <motion.div 
+          ref={modalRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Apply to ${program.name}`}
+          tabIndex={-1}
           initial={{ opacity: 0, y: "100%" }} 
           animate={{ opacity: 1, y: 0 }} 
           exit={{ opacity: 0, y: "100%" }}
@@ -121,9 +128,10 @@ export default function ApplicationModal({ program, universityId, onClose }: Pro
 
                   {/* Document Checklist */}
                   <div>
-                    <label className="flex items-start space-x-3 cursor-pointer group bg-white/[0.02] border border-white/10 p-4 rounded-xl hover:bg-white/5 transition-colors">
+                    <label htmlFor="documents-confirmed" aria-label="I confirm that my profile documents are up to date." className="flex items-start space-x-3 cursor-pointer group bg-white/[0.02] border border-white/10 p-4 rounded-xl hover:bg-white/5 transition-colors">
                       <div className="pt-0.5">
                         <input 
+                          id="documents-confirmed"
                           type="checkbox" 
                           checked={documentsConfirmed}
                           onChange={(e) => setDocumentsConfirmed(e.target.checked)}
@@ -143,8 +151,9 @@ export default function ApplicationModal({ program, universityId, onClose }: Pro
 
                   {/* Message */}
                   <div>
-                    <label className="block text-sm font-medium text-textSecondary mb-2">Message to University (Optional)</label>
+                    <label htmlFor="app-message" className="block text-sm font-medium text-textSecondary mb-2">Message to University (Optional)</label>
                     <textarea 
+                      id="app-message"
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       rows={3}

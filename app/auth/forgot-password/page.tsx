@@ -56,10 +56,11 @@ export default function ForgotPassword() {
         )}
 
         <div>
-          <label className="block text-sm font-medium text-textSecondary mb-1.5">
+          <label htmlFor="email" className="block text-sm font-medium text-textSecondary mb-1.5">
             Email Address
           </label>
           <input
+            id="email"
             type="email"
             name="email"
             required
