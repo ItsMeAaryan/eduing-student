@@ -2,9 +2,11 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
 
-    function isAdmin() {
+    function isApprovedUniAdmin() {
       return request.auth != null &&
-        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'super_admin';
+        firestore.exists(/databases/(default)/documents/users/$(request.auth.uid)) &&
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'uni_admin' &&
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.approvalStatus == 'approved';
     }
 
     // Profile photos: student_profiles/{uid}/profile_photo
@@ -25,7 +27,11 @@ service firebase.storage {
     // documents/{uid}/{docType}.{ext}
     // Written by components/onboarding/Step4Documents.tsx
     match /documents/{uid}/{fileName} {
-      allow read: if request.auth != null && (request.auth.uid == uid || isAdmin());
+      // NOTE: any approved uni_admin can read any student's documents here,
+      // not just universities the student actually applied to — Storage
+      // rules can't cheaply cross-reference the applications collection.
+      // Tighten if document confidentiality across universities matters.
+      allow read: if request.auth != null && (request.auth.uid == uid || isApprovedUniAdmin());
       allow write: if request.auth != null
         && request.auth.uid == uid
         && request.resource.size < 10 * 1024 * 1024;
