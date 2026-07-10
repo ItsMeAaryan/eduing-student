@@ -442,7 +442,32 @@ export default function AccountPage() {
                   <div className="bg-[#111114] border border-white/5 rounded-[40px] p-10">
                     <div className="flex justify-between items-center mb-10">
                        <h3 className="text-2xl font-black tracking-tight">Personal Metadata</h3>
-                       <button onClick={() => setIsEditing(!isEditing)} className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isEditing ? 'bg-white/10 text-white' : 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/20'}`}>
+                       <button
+                         onClick={() => {
+                           if (isEditing && fullProfile) {
+                             // Discard unsaved edits: formData is otherwise
+                             // only resynced by the Firestore listener, so
+                             // toggling isEditing alone left stale edits
+                             // visible in read-only mode.
+                             setFormData({
+                               fullName: fullProfile.fullName || '',
+                               phone: fullProfile.phone || '',
+                               dob: fullProfile.dob || '',
+                               gender: fullProfile.gender || 'male',
+                               category: fullProfile.category || 'General',
+                               nationality: fullProfile.nationality || 'Indian',
+                               address: fullProfile.address || '',
+                               state: fullProfile.state || 'Karnataka',
+                               tenthPercentage: fullProfile.tenthPercentage?.toString() || '',
+                               twelfthPercentage: fullProfile.twelfthPercentage?.toString() || '',
+                               entranceExam: fullProfile.entranceExam || '',
+                               entranceScore: fullProfile.entranceScore?.toString() || '',
+                             })
+                           }
+                           setIsEditing(!isEditing)
+                         }}
+                         className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isEditing ? 'bg-white/10 text-white' : 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/20'}`}
+                       >
                          {isEditing ? 'Cancel Edit' : 'Edit Identity'}
                        </button>
                     </div>

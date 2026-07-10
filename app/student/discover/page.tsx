@@ -397,6 +397,7 @@ export default function PremiumDiscoverPage() {
                             </button>
                             <button 
                                onClick={() => router.push(`/student/universities/${uni.id}`)}
+                               aria-label={`View ${uni.name} details`}
                                className="w-14 h-14 bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl flex items-center justify-center transition-all"
                             >
                               <Building2 size={20} className="text-white/40" />
