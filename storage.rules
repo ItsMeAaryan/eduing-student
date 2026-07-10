@@ -1,0 +1,40 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAdmin() {
+      return request.auth != null &&
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'super_admin';
+    }
+
+    // Profile photos: student_profiles/{uid}/profile_photo
+    // Written by lib/firebase/student.ts:uploadProfilePhoto()
+    // Read is owner-only: this codebase only ever renders profilePhotoURL
+    // back to the student on their own dashboard/profile/onboarding — no
+    // university-facing or public view was found. Loosen to `allow read: if
+    // true` only if/when a university-facing view needs it.
+    match /student_profiles/{uid}/{fileName} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    // Onboarding documents (marksheets, ID proof, etc.):
+    // documents/{uid}/{docType}.{ext}
+    // Written by components/onboarding/Step4Documents.tsx
+    match /documents/{uid}/{fileName} {
+      allow read: if request.auth != null && (request.auth.uid == uid || isAdmin());
+      allow write: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.size < 10 * 1024 * 1024;
+      // NOTE: no contentType restriction here since documents may legitimately
+      // be PDF or image — narrow this if the app enforces a fixed set of
+      // accepted types on the client (docType/ext) that should be mirrored here.
+    }
+
+    // Deny everything else by default (implicit — Firebase Storage rules are
+    // deny-by-default outside matched paths).
+  }
+}
