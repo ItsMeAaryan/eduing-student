@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, CheckCircle, Loader2 } from "lucide-react";
 import { auth, db } from "@/lib/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 interface Props {
   program: Program;
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export default function ApplicationModal({ program, universityId, onClose }: Props) {
+  const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   const [message, setMessage] = useState("");
   const [documentsConfirmed, setDocumentsConfirmed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -73,6 +75,11 @@ export default function ApplicationModal({ program, universityId, onClose }: Pro
 
         {/* Modal Content */}
         <motion.div 
+          ref={modalRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Apply to ${program.name}`}
+          tabIndex={-1}
           initial={{ opacity: 0, y: "100%" }} 
           animate={{ opacity: 1, y: 0 }} 
           exit={{ opacity: 0, y: "100%" }}
