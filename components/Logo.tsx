@@ -21,7 +21,7 @@ export default function Logo({ height = 32, href = "/", onClick }: { height?: nu
         alt="EDUING Logo"
         width={height}
         height={height}
-        style={{ objectFit: 'contain', filter: 'invert(1)' }}
+        style={{ width: 'auto', height: 'auto', objectFit: 'contain', filter: 'invert(1)' }}
       />
       {/* Text */}
       <span style={{ lineHeight: 1 }}>

@@ -81,7 +81,7 @@ export default function AuthContainer({ children }: { children: React.ReactNode 
         </div>
         
         <div className="relative z-10 text-white/30 text-sm font-medium">
-          © {new Date().getFullYear()} EDUING. All rights reserved.
+          &copy; {new Date().getFullYear()} EDUING. All rights reserved.
         </div>
       </div>
 
