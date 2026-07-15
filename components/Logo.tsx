@@ -26,21 +26,21 @@ export default function Logo({ height = 32, href = "/", onClick }: { height?: nu
       {/* Text */}
       <span style={{ lineHeight: 1 }}>
         <span style={{
-          fontFamily: 'Inter, sans-serif',
+          fontFamily: 'var(--font-inter), sans-serif',
           fontSize: `${19 * scale}px`,
           fontWeight: '900',
           letterSpacing: '-0.03em',
           color: '#FAFAFA',
         }}>EDU</span>
         <span style={{
-          fontFamily: 'Inter, sans-serif',
+          fontFamily: 'var(--font-inter), sans-serif',
           fontSize: `${19 * scale}px`,
           fontWeight: '900',
           letterSpacing: '-0.03em',
           color: '#6366F1',
         }}>ING</span>
         <span style={{
-          fontFamily: 'Inter, sans-serif',
+          fontFamily: 'var(--font-inter), sans-serif',
           fontSize: `${13 * scale}px`,
           fontWeight: '700',
           color: '#6366F1',

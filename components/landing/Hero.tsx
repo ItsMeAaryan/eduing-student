@@ -67,7 +67,7 @@ export default function Hero() {
             className="flex flex-wrap items-center gap-4"
           >
             <Link href="/auth/student/register" className="btn-pill btn-primary group">
-              Get started — it&apos;s free
+              Get started - it&apos;s free
               <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
             </Link>
           </motion.div>

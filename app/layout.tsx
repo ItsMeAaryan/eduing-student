@@ -1,15 +1,19 @@
 import type { Metadata } from 'next'
+import { Inter, Outfit } from 'next/font/google'
 import './globals.css'
 import Navbar from '@/components/Navbar'
 
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
+const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit' })
+
 export const metadata: Metadata = {
-  // TODO: confirm actual production domain — placeholder used for metadataBase/OG image resolution
+  // TODO: confirm actual production domain - placeholder used for metadataBase/OG image resolution
   metadataBase: new URL('https://student.eduing.in'),
   title: {
-    default: 'EDUING.in — Student Admissions Platform',
+    default: 'EDUING.in - Student Admissions Platform',
     template: '%s | EDUING.in',
   },
-  description: 'EDUING.in is the unified admissions platform connecting Indian students with universities — discover programs, track applications, and get admitted, all in one place.',
+  description: 'EDUING.in is the unified admissions platform connecting Indian students with universities - discover programs, track applications, and get admitted, all in one place.',
   icons: {
     icon: '/bandwlogo.PNG',
     apple: '/bandwlogo.PNG',
@@ -17,13 +21,13 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     siteName: 'EDUING.in',
-    title: 'EDUING.in — Student Admissions Platform',
-    description: 'The unified admissions platform connecting Indian students with universities — discover programs, track applications, and get admitted, all in one place.',
+    title: 'EDUING.in - Student Admissions Platform',
+    description: 'The unified admissions platform connecting Indian students with universities - discover programs, track applications, and get admitted, all in one place.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'EDUING.in — Student Admissions Platform',
-    description: 'The unified admissions platform connecting Indian students with universities — discover programs, track applications, and get admitted, all in one place.',
+    title: 'EDUING.in - Student Admissions Platform',
+    description: 'The unified admissions platform connecting Indian students with universities - discover programs, track applications, and get admitted, all in one place.',
   },
 }
 
@@ -33,8 +37,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className="bg-[#0A0A0F] min-h-screen text-white antialiased">
+    <html lang="en" className={`dark ${inter.variable} ${outfit.variable}`}>
+      <body className="bg-[#0A0A0F] min-h-screen text-white antialiased font-sans">
         {/* Global Fixed Background System */}
         <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
           <div className="absolute inset-0 bg-[#0A0A0F]" />

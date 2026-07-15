@@ -1,142 +1,211 @@
-'use client'
+"use client";
 
-import React from 'react'
-import { motion } from 'framer-motion'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import Logo from '@/components/Logo'
-import { CheckCircle2 } from 'lucide-react'
+import React, { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
+import { CheckCircle2, ShieldCheck, GraduationCap, ArrowRight, FileText } from 'lucide-react';
+import Logo from '@/components/Logo';
 
-export default function AuthContainer({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname()
-  
-  const isLogin = pathname === '/auth/login'
-  const isRegister = pathname === '/auth/student/register'
+import LoginForm from '@/components/auth/LoginForm';
+import RegisterForm from '@/components/auth/RegisterForm';
 
-  const features = [
-    'AI Discovery',
-    'One Profile',
-    'Secure Documents',
-    'Track Applications'
-  ]
+interface AuthContainerProps {
+  children: React.ReactNode;
+}
+
+export default function AuthContainer({ children }: AuthContainerProps) {
+  const [mounted, setMounted] = useState(false);
+  const pathname = usePathname();
+  const isLogin = pathname === '/auth/login';
+  const isRegister = pathname?.includes('/register');
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
 
   return (
-    <div className="min-h-screen bg-[#0A0A0F] text-white flex font-sans overflow-hidden">
+    <div className="flex min-h-screen w-full overflow-hidden bg-[#050508] text-white font-sans selection:bg-brand-indigo/30 selection:text-brand-indigoLight">
       
-      {/* LEFT SIDE - Branding & Features */}
-      <div className="hidden lg:flex flex-col justify-between w-[45%] max-w-[600px] p-12 relative border-r border-white/5 bg-[#0A0A0F] z-10">
+      {/* 
+        ==================================================
+        LEFT PANEL - 58% (Premium Admissions Illustration)
+        ==================================================
+      */}
+      <div className="hidden lg:flex flex-col w-[58%] relative overflow-hidden bg-[#0A0A0E] border-r border-white/[0.04]">
         
-        {/* Background Effects */}
-        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-          {/* Radial Glow */}
-          <div className="absolute top-[-20%] left-[-20%] w-[140%] h-[140%] bg-brand-indigo/5 blur-[120px] rounded-full" />
-          
-          {/* Subtle Grid */}
-          <div 
-            className="absolute inset-0 opacity-[0.03]" 
-            style={{ backgroundImage: 'linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)', backgroundSize: '40px 40px' }}
-          />
-        </div>
-
-        <div className="relative z-10">
+        {/* Ambient Lighting */}
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-brand-indigo/10 blur-[120px] rounded-full mix-blend-screen opacity-50" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#7C3AED]/10 blur-[120px] rounded-full mix-blend-screen opacity-50" />
+        <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.02] mix-blend-overlay" />
+        
+        {/* Top Content */}
+        <div className="absolute top-12 left-12 z-40">
           <Logo height={32} />
         </div>
 
-        <div className="relative z-10 space-y-8 mt-12 mb-auto">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <h1 className="text-5xl font-black text-white leading-[1.1] tracking-tight mb-6">
-              Welcome to EDUING
-            </h1>
-            <h2 className="text-2xl font-semibold text-white/80 mb-4">
-              One Profile. Unlimited Opportunities.
-            </h2>
-            <p className="text-white/50 text-lg leading-relaxed max-w-md">
-              Apply, discover, track, and manage your university journey from one intelligent workspace.
-            </p>
-          </motion.div>
+        {/* Center Illustration Area */}
+        <div className="flex-1 w-full h-full flex items-center justify-center relative p-12">
+          
+          <div className="relative w-full max-w-[640px] h-[600px]">
+            
+            {/* Core Graphic 1: Admissions Timeline */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+              className="absolute top-[80px] left-[20px] w-[380px] bg-white/[0.02] border border-white/[0.06] rounded-[24px] p-8 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)] backdrop-blur-xl z-20"
+            >
+              <div className="flex justify-between items-center mb-8">
+                <h3 className="font-display font-[700] text-white/90 text-[18px]">Application Progress</h3>
+                <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-[10px] font-bold uppercase tracking-widest">
+                  On Track
+                </span>
+              </div>
+              
+              <div className="space-y-6 relative before:absolute before:inset-y-2 before:left-[11px] before:w-[2px] before:bg-white/5">
+                {[
+                  { title: "Profile Completion", date: "Verified", active: true },
+                  { title: "Academic Records", date: "Verified", active: true },
+                  { title: "University Selection", date: "In Progress", active: false }
+                ].map((item, i) => (
+                  <div key={i} className="flex gap-5 relative z-10">
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5 border-2 ${item.active ? 'bg-[#0A0A0E] border-brand-indigo' : 'bg-[#0A0A0E] border-white/10'}`}>
+                      {item.active && <div className="w-2 h-2 rounded-full bg-brand-indigoLight" />}
+                    </div>
+                    <div>
+                      <h4 className={`font-display text-[14px] font-bold ${item.active ? 'text-white' : 'text-white/40'}`}>{item.title}</h4>
+                      <p className="font-sans text-[12px] text-white/30 mt-0.5 font-medium">{item.date}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
 
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.8 }}
-            className="flex flex-wrap gap-3 mt-10"
-          >
-            {features.map((feature, i) => (
-              <motion.div
-                key={feature}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 + (i * 0.1) }}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-brand-indigo/10 border border-brand-indigo/20 text-brand-indigoLight text-sm font-semibold backdrop-blur-md"
-              >
-                <CheckCircle2 size={16} className="text-brand-indigoLight" />
-                {feature}
-              </motion.div>
-            ))}
-          </motion.div>
+            {/* Core Graphic 2: Offer Letter Card */}
+            <motion.div 
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="absolute top-[280px] right-[20px] w-[340px] bg-gradient-to-br from-[#111116] to-[#0A0A0E] border border-white/[0.08] rounded-[24px] p-6 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] z-30"
+            >
+              <div className="w-12 h-12 rounded-[16px] bg-white/5 flex items-center justify-center mb-5 border border-white/10">
+                <FileText className="text-white/70" size={20} />
+              </div>
+              <h4 className="font-display font-[700] text-[16px] text-white/90 mb-1">Offer Letter Received</h4>
+              <p className="font-sans text-[13px] text-white/50 mb-6 leading-relaxed">
+                Congratulations! You have received a conditional offer from VIT Chennai.
+              </p>
+              <div className="flex gap-3">
+                <div className="flex-1 h-10 rounded-[12px] bg-brand-indigo/10 border border-brand-indigo/20 flex items-center justify-center text-[12px] font-bold text-brand-indigoLight">
+                  Review Offer
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Core Graphic 3: Secure Identity */}
+            <motion.div 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              className="absolute bottom-[60px] left-[100px] bg-white/[0.03] border border-white/[0.06] rounded-[20px] py-4 px-6 shadow-xl backdrop-blur-md z-40 flex items-center gap-4"
+            >
+              <ShieldCheck className="text-emerald-400" size={24} />
+              <div>
+                <h4 className="font-display font-[700] text-[13px] text-white/90">Identity Verified</h4>
+                <p className="font-sans text-[11px] text-white/40">End-to-end encryption</p>
+              </div>
+            </motion.div>
+
+          </div>
         </div>
-        
-        <div className="relative z-10 text-white/30 text-sm font-medium">
-          &copy; {new Date().getFullYear()} EDUING. All rights reserved.
+
+        {/* Bottom Left Copy */}
+        <div className="absolute bottom-12 left-12 z-40">
+          <p className="font-display text-[24px] font-[800] tracking-tight leading-[1.1] text-white/90">
+            One Profile.<br />
+            <span className="text-white/40">Every University.</span>
+          </p>
         </div>
       </div>
 
-      {/* RIGHT SIDE - Auth Form */}
-      <div className="flex-1 flex flex-col justify-center relative bg-[#0A0A0F]">
+      {/* 
+        ==================================================
+        RIGHT PANEL - 42% (Authentication Container)
+        ==================================================
+      */}
+      <div className="w-full lg:w-[42%] flex flex-col justify-center relative z-10 bg-[#050508]">
         
         {/* Mobile Logo */}
         <div className="lg:hidden absolute top-8 left-8 z-20">
           <Logo height={28} />
         </div>
 
-        {/* Right side background glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-indigo/10 rounded-full blur-[100px] pointer-events-none z-0" />
-
-        <div className="w-full max-w-[480px] mx-auto px-6 py-20 z-10 relative">
+        <div className="w-full max-w-[460px] px-8 sm:px-12 py-8 mx-auto flex flex-col justify-center relative">
           
           {/* Segmented Control */}
           {(isLogin || isRegister) && (
-            <div className="mb-10 w-full bg-white/5 p-1.5 rounded-2xl flex relative backdrop-blur-xl border border-white/10">
+            <div className="mb-8 w-full max-w-[220px] bg-white/[0.02] p-1 rounded-full flex relative border border-white/[0.05] shadow-inner">
               <Link 
                 href="/auth/login" 
-                className={`flex-1 text-center py-3 rounded-xl text-sm font-bold uppercase tracking-wider transition-colors z-10 ${isLogin ? 'text-white' : 'text-white/40 hover:text-white/70'}`}
+                className={`flex-1 text-center py-2 rounded-full text-[12px] font-display font-medium transition-colors z-10 ${isLogin ? 'text-white' : 'text-white/40 hover:text-white/70'}`}
               >
-                Log In
+                Sign In
               </Link>
               <Link 
                 href="/auth/student/register" 
-                className={`flex-1 text-center py-3 rounded-xl text-sm font-bold uppercase tracking-wider transition-colors z-10 ${isRegister ? 'text-white' : 'text-white/40 hover:text-white/70'}`}
+                className={`flex-1 text-center py-2 rounded-full text-[12px] font-display font-medium transition-colors z-10 ${isRegister ? 'text-white' : 'text-white/40 hover:text-white/70'}`}
               >
                 Register
               </Link>
               
               {/* Animated Pill */}
               <motion.div 
-                layoutId="auth-tab-pill"
-                className="absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-brand-indigo/20 border border-brand-indigo/30 rounded-xl shadow-[0_0_20px_rgba(79,70,229,0.2)] z-0"
+                layoutId="auth-tab-pill-minimal"
+                className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-[#111116] rounded-full z-0 shadow-md border border-white/[0.08]"
                 initial={false}
-                animate={{
-                  left: isLogin ? '6px' : 'calc(50% + 0px)',
-                }}
-                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                animate={{ left: isLogin ? '4px' : 'calc(50% + 0px)' }}
+                transition={{ type: 'spring', stiffness: 500, damping: 35, mass: 1 }}
               />
             </div>
           )}
 
-          <motion.div
-            key={pathname}
-            initial={{ opacity: 0, y: 20, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          >
-            {children}
-          </motion.div>
+          {/* Form Area */}
+          <div className="relative w-full min-h-[580px]">
+            <AnimatePresence mode="popLayout">
+              {isLogin || isRegister ? (
+                <motion.div
+                  key={isLogin ? 'login' : 'register'}
+                  layout
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.22, ease: "easeOut" }}
+                  className="w-full"
+                >
+                  {isLogin ? <LoginForm /> : <RegisterForm />}
+                </motion.div>
+              ) : (
+                <motion.div
+                  key={pathname}
+                  layout
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.22, ease: "easeOut" }}
+                  className="w-full"
+                >
+                  {children}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+          
         </div>
       </div>
+
     </div>
-  )
+  );
 }

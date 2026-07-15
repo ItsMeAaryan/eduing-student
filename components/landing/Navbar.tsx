@@ -62,7 +62,7 @@ export default function Navbar() {
 
           <div className="hidden md:flex items-center gap-4">
             <Link
-              href="/auth/student/login"
+              href="/auth/login"
               className="text-[14px] font-medium text-white px-5 py-2.5 rounded-[10px] border border-[rgba(255,255,255,0.15)] hover:bg-[rgba(255,255,255,0.06)] transition-all duration-[250ms] ease-[var(--ease)]"
             >
               Log In
@@ -106,7 +106,7 @@ export default function Navbar() {
               ))}
               <div className="flex flex-col gap-4 mt-4">
                 <Link
-                  href="/auth/student/login"
+                  href="/auth/login"
                   onClick={() => setIsOpen(false)}
                   className="text-[18px] font-medium text-white border border-white/20 px-8 py-4 rounded-xl"
                 >

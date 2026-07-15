@@ -67,12 +67,12 @@ export default function FloatingCards() {
     <>
       <FloatingCard 
         position={[-3, 2, 0.5]} 
-        text="IIT Delhi — Applications Open" 
+        text="IIT Delhi - Applications Open" 
         delay={0} 
       />
       <FloatingCard 
         position={[3.2, 1.2, 1]} 
-        text="MBA Programs — 47 seats left" 
+        text="MBA Programs - 47 seats left" 
         delay={1.5} 
       />
       <FloatingCard 

@@ -2,10 +2,10 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Universities',
-  description: 'Browse and compare universities across India — admissions, programs, and eligibility, all in one place on EDUING.in.',
+  description: 'Browse and compare universities across India - admissions, programs, and eligibility, all in one place on EDUING.in.',
   openGraph: {
     title: 'Universities | EDUING.in',
-    description: 'Browse and compare universities across India — admissions, programs, and eligibility, all in one place on EDUING.in.',
+    description: 'Browse and compare universities across India - admissions, programs, and eligibility, all in one place on EDUING.in.',
   },
 }
 

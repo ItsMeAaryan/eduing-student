@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, Send, Building2, FileText, User, LogOut, Search } from "lucide-react";
-import { logoutUser } from "@/lib/auth";
+import { logoutUser } from "@/lib/firebase/auth";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Image from "next/image";
@@ -26,7 +26,7 @@ export default function StudentSidebar({ studentName = "Student", studentPhoto }
   const handleLogout = async () => {
     try {
       await logoutUser();
-      window.location.href = "https://app.eduing.in";
+      router.push("/auth/login");
     } catch (error) {
       console.error("Logout failed", error);
     }

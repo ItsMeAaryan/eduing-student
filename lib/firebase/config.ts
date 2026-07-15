@@ -4,7 +4,7 @@ import { getFirestore } from 'firebase/firestore'
 import { getStorage } from 'firebase/storage'
 
 // Firebase web config (eduing-platform project). This is a client-side
-// identifier, not a traditional secret — Firebase's own docs confirm these
+// identifier, not a traditional secret - Firebase's own docs confirm these
 // values are meant to be public in the bundle; the real security boundary
 // is firestore.rules / storage.rules (see Phase 3 audit), not hiding this
 // object. Kept as a fallback so the build never breaks if env vars are

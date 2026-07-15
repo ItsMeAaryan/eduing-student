@@ -1,15 +1,26 @@
-import type { Metadata } from 'next'
-import HomeContent from './HomeContent'
-
-export const metadata: Metadata = {
-  title: 'Login & Register',
-  description: 'Sign in or create your student account on EDUING.in — the unified admissions platform for Indian universities.',
-  openGraph: {
-    title: 'EDUING.in — Student Login & Registration',
-    description: 'Sign in or create your student account on EDUING.in — the unified admissions platform for Indian universities.',
-  },
-}
+'use client'
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/hooks/useAuth'
+import { Loader2 } from 'lucide-react'
 
 export default function Page() {
-  return <HomeContent />
+  const router = useRouter()
+  const { isLoggedIn, loading: authLoading } = useAuth()
+
+  useEffect(() => {
+    if (!authLoading) {
+      if (isLoggedIn) {
+        router.replace('/student/dashboard')
+      } else {
+        router.replace('/auth/login')
+      }
+    }
+  }, [isLoggedIn, authLoading, router])
+
+  return (
+    <div className="min-h-screen bg-[#0A0A0F] flex items-center justify-center">
+      <Loader2 className="w-8 h-8 text-white/50 animate-spin" />
+    </div>
+  )
 }

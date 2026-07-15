@@ -9,6 +9,10 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['var(--font-inter)', 'sans-serif'],
+        display: ['var(--font-outfit)', 'sans-serif'],
+      },
       colors: {
         brand: {
           indigo: '#4F46E5',

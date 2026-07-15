@@ -214,7 +214,7 @@ export default function HeroScene3D() {
         <FloatingInfoCard 
           position={[3.8, 0, 1]} 
           title="🎓 Programs" 
-          subtitle="MBA Programs — 47 seats left" 
+          subtitle="MBA Programs - 47 seats left" 
           color="#8B5CF6" 
           delay={2}
         />

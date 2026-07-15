@@ -117,7 +117,7 @@ export default function Navbar() {
               </Link>
 
               {/* Get Started button */}
-              <Link href="/auth/register">
+              <Link href="/auth/student/register">
                 <button className="bg-gradient-to-br from-[#4F46E5] to-[#6366F1] border-none rounded-full px-[20px] py-[8px] text-white text-[14px] font-semibold cursor-pointer whitespace-nowrap shadow-[0_0_20px_rgba(79,70,229,0.3)] transition-all duration-200 hover:-translate-y-[1px] hover:shadow-[0_8px_25px_rgba(79,70,229,0.45)]">
                   Get Started
                 </button>
@@ -178,7 +178,7 @@ export default function Navbar() {
                     </button>
                   </Link>
                   
-                  <Link href="/auth/register" className="w-full" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Link href="/auth/student/register" className="w-full" onClick={() => setIsMobileMenuOpen(false)}>
                     <button className="w-full bg-gradient-to-br from-[#4F46E5] to-[#6366F1] border-none rounded-full px-[20px] py-[12px] text-white text-[16px] font-semibold cursor-pointer shadow-[0_0_20px_rgba(79,70,229,0.3)] transition-all hover:-translate-y-[1px] hover:shadow-[0_8px_25px_rgba(79,70,229,0.45)]">
                       Get Started
                     </button>

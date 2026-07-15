@@ -62,7 +62,7 @@ export default function Features() {
             transition={{ duration: 0.65, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
             className="max-w-[560px] mx-auto text-[17px] text-white/50"
           >
-            Everything you need to navigate admissions — from discovery to acceptance.
+            Everything you need to navigate admissions - from discovery to acceptance.
           </motion.p>
         </div>
 

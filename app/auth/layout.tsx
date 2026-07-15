@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import AuthContainer from '@/components/AuthContainer';
 
 export const metadata: Metadata = {
   title: 'Authentication | EDUING.in',
@@ -6,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  return <AuthContainer>{children}</AuthContainer>;
 }

@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test'
 // NOTE: this suite exercises the real Firebase project (eduing-platform)
 // configured in lib/firebase/config.ts unless NEXT_PUBLIC_FIREBASE_* env
 // vars point it at a dedicated test project / emulator. Run against a test
-// project — this creates real users/documents otherwise. Emails are
+// project - this creates real users/documents otherwise. Emails are
 // timestamped to avoid colliding with previous runs.
 
 test.describe('Student registration', () => {

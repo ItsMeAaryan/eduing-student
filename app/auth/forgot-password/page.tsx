@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Loader2, KeyRound } from "lucide-react";
-import AuthLayout from "@/components/auth/AuthLayout";
 import { auth } from "@/lib/firebase";
 import { sendPasswordResetEmail } from "firebase/auth";
 
@@ -32,15 +31,21 @@ export default function ForgotPassword() {
   };
 
   return (
-    <AuthLayout 
-      title="Reset Password" 
-      subtitle="Enter your email to receive a password reset link."
-    >
-      <div className="mb-6 flex justify-center">
-        <div className="w-16 h-16 bg-purple-500/20 text-purple-400 rounded-full flex items-center justify-center">
-          <KeyRound size={32} />
+    <div className="w-full">
+        <div className="mb-10 text-left">
+          <h1 className="text-[42px] sm:text-[48px] font-display font-[800] tracking-tighter leading-[1.05] text-white mb-3 uppercase">
+            Reset<br />Password.
+          </h1>
+          <p className="text-[15px] font-sans font-medium text-white/50 leading-relaxed">
+            Enter your email to receive a secure reset link.
+          </p>
         </div>
-      </div>
+
+        <div className="mb-6 flex justify-center">
+          <div className="w-16 h-16 bg-[#4F46E5]/20 text-[#6366F1] rounded-full flex items-center justify-center">
+            <KeyRound size={32} />
+          </div>
+        </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
         {message && (
@@ -56,7 +61,7 @@ export default function ForgotPassword() {
         )}
 
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-textSecondary mb-1.5">
+          <label htmlFor="email" className="block font-sans text-[13px] font-medium text-white/70 mb-2">
             Email Address
           </label>
           <input
@@ -66,7 +71,7 @@ export default function ForgotPassword() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full bg-background border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+            className="w-full bg-white/[0.02] border border-white/10 rounded-[12px] px-4 h-[56px] text-[14px] text-white focus:border-brand-indigo focus:bg-brand-indigo/5 focus:ring-4 focus:ring-brand-indigo/10 outline-none transition-all duration-200 placeholder:text-white/30"
             placeholder="john@example.com"
           />
         </div>
@@ -74,19 +79,18 @@ export default function ForgotPassword() {
         <button
           type="submit"
           disabled={loading || !!message}
-          className="w-full bg-gradient-to-r from-primary to-secondary text-white font-semibold py-3 rounded-xl hover:opacity-90 active:scale-[0.98] transition-all flex justify-center items-center disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full font-display font-bold text-[15px] bg-gradient-to-b from-[#4F46E5] to-[#4338CA] text-white h-[56px] rounded-[14px] shadow-[0_4px_12px_rgba(79,70,229,0.3),inset_0_1px_1px_rgba(255,255,255,0.2)] hover:shadow-[0_6px_16px_rgba(79,70,229,0.4),inset_0_1px_1px_rgba(255,255,255,0.25)] hover:-translate-y-0.5 active:scale-[0.99] transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-3"
         >
-          {loading ? <Loader2 className="animate-spin mr-2" size={20} /> : null}
-          {loading ? "Sending..." : "Send Reset Link"}
+          {loading ? <Loader2 className="animate-spin text-white" size={18} /> : <span>Send Reset Link</span>}
         </button>
 
-        <p className="text-center text-textSecondary text-sm mt-6">
+        <p className="text-center text-white/50 text-[13px] mt-6">
           Remember your password?{" "}
-          <Link href="/auth/student/login" className="text-primary hover:text-blue-400 font-medium transition-colors">
+          <Link href="/auth/login" className="text-white hover:text-white/80 font-medium transition-colors">
             Back to Login
           </Link>
         </p>
       </form>
-    </AuthLayout>
+      </div>
   );
 }

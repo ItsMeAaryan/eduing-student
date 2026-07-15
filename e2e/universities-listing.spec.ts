@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test'
 
 test.describe('Public universities/programs pages', () => {
   // These routes are currently "Coming Soon" placeholders (see Phase 2 SEO
-  // notes) — the real, functional listing lives at /student/discover
+  // notes) - the real, functional listing lives at /student/discover
   // (auth-gated). These are smoke tests for the public stubs; update once
   // real content ships.
   test('public /universities page loads with correct heading', async ({ page }) => {
@@ -17,13 +17,13 @@ test.describe('Public universities/programs pages', () => {
 })
 
 test.describe('Student university discovery (authenticated)', () => {
-  // Precondition: requires a logged-in test student session — see
+  // Precondition: requires a logged-in test student session - see
   // profile.spec.ts for auth setup notes.
   test('lists universities and supports search', async ({ page }) => {
     await page.goto('/student/discover')
 
     // At least one university card renders (or a legitimate "no results"
-    // empty state — this depends on the universities collection having
+    // empty state - this depends on the universities collection having
     // seed data in the test project).
     const applyButtons = page.getByRole('button', { name: /apply now/i })
     const emptyState = page.getByText(/no universities found/i)

@@ -22,7 +22,7 @@ const program = {
   duration: '4 years',
 } as any
 
-describe('ApplicationModal — application submission critical path', () => {
+describe('ApplicationModal - application submission critical path', () => {
   beforeEach(() => {
     addDocMock.mockClear()
   })

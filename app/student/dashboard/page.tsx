@@ -53,7 +53,7 @@ export default function StudentDashboard() {
 
   if (error) return (
     <div style={{ padding: '32px', color: '#FCA5A5', fontSize: '14px' }}>
-      ⚠️ {error} — <button onClick={() => window.location.reload()} style={{ color: '#818CF8', background: 'none', border: 'none', cursor: 'pointer' }}>Retry</button>
+      ⚠️ {error} - <button onClick={() => window.location.reload()} style={{ color: '#818CF8', background: 'none', border: 'none', cursor: 'pointer' }}>Retry</button>
     </div>
   )
 
@@ -124,7 +124,7 @@ export default function StudentDashboard() {
                   <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{app.studentEmail || ''}</div>
                 </div>
               </div>
-              <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{app.programName || '—'}</div>
+              <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{app.programName || '-'}</div>
               <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', whiteSpace: 'nowrap' }}>{date}</div>
               <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
                 <span style={{ display: 'inline-flex', padding: '3px 10px', borderRadius: '100px', background: s.bg, color: s.color, fontSize: '11px', fontWeight: '600', whiteSpace: 'nowrap' }}>{s.label}</span>
