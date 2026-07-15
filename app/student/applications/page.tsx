@@ -80,7 +80,7 @@ export default function ApplicationsPage() {
       fetchApps()
     })
     return unsub
-  }, [])
+  }, [router])
 
   const filtered = applications.filter(app => {
     const status = normalizeStatus(app.status)

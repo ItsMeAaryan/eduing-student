@@ -74,10 +74,13 @@ export default function AccountPage() {
     
     // Failsafe: stop loading after 10 seconds no matter what
     const failsafeTimeout = setTimeout(() => {
-      if (loading) {
-        console.warn("[PROFILE] Loading timed out. Forcing UI render.");
-        setLoading(false);
-      }
+      setLoading((prevLoading) => {
+        if (prevLoading) {
+          console.warn("[PROFILE] Loading timed out. Forcing UI render.");
+          return false;
+        }
+        return prevLoading;
+      });
     }, 10000);
 
     const handleError = (err: any) => {
