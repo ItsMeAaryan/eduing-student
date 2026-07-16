@@ -1,51 +1,13 @@
 'use client'
 
-import React, { useState } from 'react'
-import { motion } from 'framer-motion'
+import React from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import { Bell, Info, CheckCircle2, AlertCircle, Clock } from 'lucide-react'
-
-const MOCK_NOTIFICATIONS = [
-  {
-    id: 1,
-    title: 'Application Update',
-    message: 'Your application to Indian Institute of Technology has been moved to "Under Review".',
-    time: '2 hours ago',
-    type: 'info',
-    icon: Clock,
-    color: '#fbbf24'
-  },
-  {
-    id: 2,
-    title: 'Selection Confirmed',
-    message: 'Congratulations! You have been selected for the Mechanical Engineering program at Dayananda Sagar University.',
-    time: '1 day ago',
-    type: 'success',
-    icon: CheckCircle2,
-    color: '#10b981'
-  },
-  {
-    id: 3,
-    title: 'Profile Incomplete',
-    message: 'Please complete your profile to improve your admission chances.',
-    time: '3 days ago',
-    type: 'warning',
-    icon: AlertCircle,
-    color: '#f87171'
-  },
-  {
-    id: 4,
-    title: 'New Program Available',
-    message: 'VIT Vellore just added a new program: B.Tech in Artificial Intelligence.',
-    time: '5 days ago',
-    type: 'info',
-    icon: Info,
-    color: '#6c6fff'
-  },
-]
+import { useStudentData } from '@/components/providers/StudentDataProvider'
 
 export default function NotificationsPage() {
-  const [notifications] = useState(MOCK_NOTIFICATIONS)
+  const { notifications } = useStudentData()
 
   return (
     <ProtectedRoute allowedRoles={['student']}>
@@ -64,9 +26,17 @@ export default function NotificationsPage() {
             gap: '16px',
             maxWidth: '1000px'
           }}>
-            {notifications.map((notif, i) => (
+            {notifications.map((notif: any, i: number) => {
+              let Icon = Clock;
+              let color = '#6c6fff';
+              
+              if (notif.type === 'offer') { Icon = CheckCircle2; color = '#10b981' }
+              else if (notif.type === 'warning') { Icon = AlertCircle; color = '#f87171' }
+              else if (notif.type === 'status') { Icon = Info; color = '#fbbf24' }
+
+              return (
               <motion.div
-                key={notif.id}
+                key={notif.id || i}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.1 }}
@@ -88,26 +58,26 @@ export default function NotificationsPage() {
                   width: '44px', 
                   height: '44px', 
                   borderRadius: '12px', 
-                  background: `${notif.color}15`, 
-                  color: notif.color,
+                  background: `${color}15`, 
+                  color: color,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0
                 }}>
-                  <notif.icon size={24} />
+                  <Icon size={24} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                    <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#ffffff' }}>{notif.title}</h3>
-                    <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.3)' }}>{notif.time}</span>
+                    <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#ffffff' }}>{notif.title || 'Notification'}</h3>
+                    <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.3)' }}>{notif.createdAt?.toDate?.().toLocaleDateString() || notif.time || 'Recent'}</span>
                   </div>
                   <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)', lineHeight: '1.5' }}>
-                    {notif.message}
+                    {notif.message || notif.description}
                   </p>
                 </div>
               </motion.div>
-            ))}
+            )})}
           </div>
 
           {notifications.length === 0 && (

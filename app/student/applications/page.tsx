@@ -1,10 +1,8 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { onAuthStateChanged } from 'firebase/auth'
-import { collection, query, where, getDocs } from 'firebase/firestore'
-import { auth, db } from '@/lib/firebase/config'
 import ProtectedRoute from '@/components/ProtectedRoute'
+import { useStudentData } from '@/components/providers/StudentDataProvider'
 import { 
   ClipboardList, 
   Search, 
@@ -20,10 +18,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 
 export default function ApplicationsPage() {
   const router = useRouter()
-  const [applications, setApplications] = useState<any[]>([])
+  const { uniqueApps, loading } = useStudentData()
   const [filter, setFilter] = useState('ALL')
   const [search, setSearch] = useState('')
-  const [loading, setLoading] = useState(true)
 
   function normalizeStatus(status: string) {
     if (!status) return 'submitted'
@@ -33,56 +30,9 @@ export default function ApplicationsPage() {
     return status
   }
 
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (user) => {
-      if (!user) { router.push('/auth/login'); return }
-      
-      const fetchApps = async () => {
-        const appsQ = query(
-          collection(db, 'applications'),
-          where('studentId', '==', user.uid)
-        )
-        const appsQ2 = query(
-          collection(db, 'applications'),
-          where('userId', '==', user.uid)
-        )
+  const applications = uniqueApps || []
 
-        try {
-          const [snap1, snap2] = await Promise.all([
-            getDocs(appsQ),
-            getDocs(appsQ2),
-          ])
-
-          const seen = new Set()
-          const apps: any[] = []
-
-          for (const doc of [...snap1.docs, ...snap2.docs]) {
-            if (!seen.has(doc.id)) {
-              seen.add(doc.id)
-              apps.push({ id: doc.id, ...doc.data() })
-            }
-          }
-
-          apps.sort((a: any, b: any) => {
-            const da = a.createdAt?.toDate?.() || new Date(0)
-            const db2 = b.createdAt?.toDate?.() || new Date(0)
-            return db2 - da
-          })
-
-          setApplications(apps)
-          setLoading(false)
-        } catch (err) {
-          console.error("FIRESTORE ERROR:", err)
-          setLoading(false)
-        }
-      }
-
-      fetchApps()
-    })
-    return unsub
-  }, [router])
-
-  const filtered = applications.filter(app => {
+  const filtered = applications.filter((app: any) => {
     const status = normalizeStatus(app.status)
     const matchFilter = filter === 'ALL' ||
       (filter === 'SUBMITTED' && status === 'submitted') ||
@@ -161,7 +111,7 @@ export default function ApplicationsPage() {
                 <p className="text-white/40 text-sm mt-2">Try adjusting your filters or search criteria.</p>
               </motion.div>
             ) : (
-              filtered.map((app, idx) => {
+              filtered.map((app: any, idx: number) => {
                 const status = normalizeStatus(app.status)
                 const config = statusConfig[status] || statusConfig.submitted
                 const Icon = config.icon

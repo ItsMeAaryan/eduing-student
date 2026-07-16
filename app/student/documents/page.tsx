@@ -20,7 +20,6 @@ import {
 
 import {
   uploadUserDocument,
-  listenUserProfile,
   deleteUserDocument
 } from '@/lib/firebase/student'
 
@@ -34,8 +33,12 @@ const DOC_TYPES = [
   'Passport Photo'
 ]
 
+import { useStudentData } from '@/components/providers/StudentDataProvider'
+
 export default function DocumentsPage() {
-  const [uploadedDocs, setUploadedDocs] = useState<Record<string, any>>({})
+  const { profile } = useStudentData()
+  const uploadedDocs = profile?.documents || {}
+  
   const [uploadingDocs, setUploadingDocs] = useState<Record<string, boolean>>({})
   const [toast, setToast] = useState<{
     message: string
@@ -49,27 +52,6 @@ export default function DocumentsPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   const { user } = useAuth()
-
-  useEffect(() => {
-    const unsub = onAuthChange((firebaseUser) => {
-      if (firebaseUser) {
-        const unsubProfile = listenUserProfile(
-          firebaseUser.uid,
-          (data) => {
-            const profileData = data as any
-
-            if (profileData?.documents) {
-              setUploadedDocs(profileData.documents)
-            }
-          }
-        )
-
-        return () => unsubProfile()
-      }
-    })
-
-    return unsub
-  }, [])
 
   const showToast = (
     message: string,

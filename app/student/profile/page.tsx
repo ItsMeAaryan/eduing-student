@@ -31,22 +31,21 @@ import { UserProfile, UserDocument } from '@/types/firebase'
 import { useSearchParams } from 'next/navigation'
 import Cropper from 'react-easy-crop'
 
+import { useStudentData } from '@/components/providers/StudentDataProvider'
+
 export default function AccountPage() {
   const { user } = useAuth()
   const searchParams = useSearchParams()
   const isIncomplete = searchParams.get('incomplete') === 'true'
   
+  const { profile: fullProfile, applications, payments, loading, error } = useStudentData()
+  const documents = React.useMemo(() => fullProfile?.documents || {}, [fullProfile?.documents])
+  
   const [activeTab, setActiveTab] = useState('profile')
-  const [fullProfile, setFullProfile] = useState<UserProfile | null>(null)
-  const [documents, setDocuments] = useState<Record<string, UserDocument>>({})
-  const [payments, setPayments] = useState<any[]>([])
-  const [applications, setApplications] = useState<any[]>([])
   const [uploadingDoc, setUploadingDoc] = useState<string | null>(null)
   const [isEditing, setIsEditing] = useState(isIncomplete)
   const [showToast, setShowToast] = useState(false)
   const [showIncompleteWarning, setShowIncompleteWarning] = useState(isIncomplete)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   
   // Crop states
   const [imageToCrop, setImageToCrop] = useState<string | null>(null)
@@ -69,99 +68,30 @@ export default function AccountPage() {
     entranceScore: ''
   })
 
+  // Sync formData with fullProfile when not editing
   useEffect(() => {
-    console.log("[PROFILE] Initializing data streams...");
-    
-    // Failsafe: stop loading after 10 seconds no matter what
-    const failsafeTimeout = setTimeout(() => {
-      setLoading((prevLoading) => {
-        if (prevLoading) {
-          console.warn("[PROFILE] Loading timed out. Forcing UI render.");
-          return false;
-        }
-        return prevLoading;
-      });
-    }, 10000);
-
-    const handleError = (err: any) => {
-      console.error("[PROFILE] Data fetch error:", err);
-      setError("Failed to load profile data. Please refresh or check your connection.");
-      setLoading(false);
-    };
-
-    const unsub = onAuthChange((firebaseUser) => {
-      if (firebaseUser) {
-        console.log("[PROFILE] Auth state: User detected", firebaseUser.uid);
-        
-        try {
-          const unsubProfile = listenUserProfile(firebaseUser.uid, (data) => {
-            console.log("[PROFILE] Received profile data update");
-            if (data) {
-              setFullProfile(data);
-              setFormData({
-                fullName: data.fullName || '',
-                phone: data.phone || '',
-                dob: data.dob || '',
-                gender: data.gender || 'male',
-                category: data.category || 'General',
-                nationality: data.nationality || 'Indian',
-                address: data.address || '',
-                state: data.state || 'Karnataka',
-                tenthPercentage: data.tenthPercentage?.toString() || '',
-                twelfthPercentage: data.twelfthPercentage?.toString() || '',
-                entranceExam: data.entranceExam || '',
-                entranceScore: data.entranceScore?.toString() || ''
-              });
-            } else {
-              console.warn("[PROFILE] No profile document found for user.");
-            }
-            setLoading(false);
-            clearTimeout(failsafeTimeout);
-          }, handleError);
-
-          const unsubDocs = listenUserDocuments(firebaseUser.uid, (docs) => {
-            console.log("[PROFILE] Received documents update");
-            setDocuments(docs || {});
-          }, (err) => console.warn("[PROFILE] Docs fetch error:", err));
-
-          const unsubPayments = listenUserPayments(firebaseUser.uid, (pay) => {
-            console.log("[PROFILE] Received payments update");
-            setPayments(pay || []);
-          }, (err) => console.warn("[PROFILE] Payments fetch error:", err));
-
-          const unsubApps = listenStudentApplications(firebaseUser.uid, (apps) => {
-            console.log("[PROFILE] Received applications update");
-            setApplications(apps || []);
-          }, (err) => console.warn("[PROFILE] Apps fetch error:", err));
-
-          return () => {
-            console.log("[PROFILE] Cleaning up listeners...");
-            unsubProfile();
-            unsubDocs();
-            unsubPayments();
-            unsubApps();
-            clearTimeout(failsafeTimeout);
-          };
-        } catch (err) {
-          handleError(err);
-        }
-      } else {
-        console.log("[PROFILE] Auth state: No user detected");
-        setLoading(false);
-        clearTimeout(failsafeTimeout);
-      }
-    });
-
-    return () => {
-      unsub();
-      clearTimeout(failsafeTimeout);
-    };
-  }, []);
+    if (fullProfile && !isEditing) {
+      setFormData({
+        fullName: fullProfile.fullName || '',
+        phone: fullProfile.phone || '',
+        dob: fullProfile.dob || '',
+        gender: fullProfile.gender || 'male',
+        category: fullProfile.category || 'General',
+        nationality: fullProfile.nationality || 'Indian',
+        address: fullProfile.address || '',
+        state: fullProfile.state || 'Karnataka',
+        tenthPercentage: fullProfile.tenthPercentage?.toString() || '',
+        twelfthPercentage: fullProfile.twelfthPercentage?.toString() || '',
+        entranceExam: fullProfile.entranceExam || '',
+        entranceScore: fullProfile.entranceScore?.toString() || ''
+      })
+    }
+  }, [fullProfile, isEditing])
 
   useEffect(() => {
     if (fullProfile && !isEditing) {
       try {
-        const docsCount = Object.values(documents || {}).filter(d => !!d.fileUrl).length
+        const docsCount = Object.values(documents || {}).filter((d: any) => !!d.fileUrl).length
         const completion = calculateProfileCompletion(fullProfile, docsCount)
         
         // Only update if there is a real change to avoid infinite loops
@@ -280,7 +210,7 @@ export default function AccountPage() {
   const completionChecklist = [
     { label: 'Personal Information', completed: !!fullProfile?.fullName && !!fullProfile?.phone },
     { label: 'Academic Metadata', completed: !!fullProfile?.tenthPercentage && !!fullProfile?.twelfthPercentage },
-    { label: 'Digital Vault (Docs)', completed: Object.values(documents).filter(d => !!d.fileUrl).length >= 4 },
+    { label: 'Digital Vault (Docs)', completed: Object.values(documents).filter((d: any) => !!d.fileUrl).length >= 4 },
     { label: 'Biometric Photo', completed: !!fullProfile?.profilePhotoURL },
   ]
 
@@ -635,7 +565,7 @@ export default function AccountPage() {
                           </tr>
                         </thead>
                         <tbody>
-                          {payments.map(pay => (
+                          {payments.map((pay: any) => (
                             <tr key={pay.id} className="border-b border-white/[0.02] hover:bg-white/[0.01] transition-all">
                               <td className="px-10 py-8 font-mono text-xs text-white/40">#{pay.id.slice(0, 10)}</td>
                               <td className="px-10 py-8 font-black text-sm">{pay.purpose}</td>
