@@ -75,10 +75,53 @@ Return ONLY a JSON object matching this schema:
 Ensure no markdown formatting or backticks around the JSON.`;
   }
 
-  static buildInterviewPrompt(context: any): string {
-    return `You are an Interview Coach.
-Generate 5 personalized interview questions for this student's target program.
-Context: ${JSON.stringify(context)}`;
+  static buildInterviewPrompt(context: any, interviewType: string, previousQuestions: string[]): string {
+    return `You are an expert Interview Coach.
+Generate a personalized, challenging interview question for the student based on their profile and the specified interview type.
+Do NOT repeat the following previous questions: ${JSON.stringify(previousQuestions)}
+Use the context to make the question highly specific to their achievements or goals if applicable.
+
+Interview Type: ${interviewType}
+
+Context Provided:
+${JSON.stringify(context, null, 2)}
+
+Return ONLY a JSON object matching this schema:
+{
+  "question": "The interview question",
+  "category": "Behavioral / Technical / Academic / Scenario / etc.",
+  "expectedFocus": "What you are looking for in the answer"
+}
+Ensure no markdown formatting or backticks around the JSON.`;
+  }
+
+  static buildInterviewEvaluationPrompt(question: string, answer: string, context: any): string {
+    return `You are an expert Interview Evaluator.
+Evaluate the student's answer to the provided interview question.
+
+Question:
+${question}
+
+Student Answer:
+${answer}
+
+Context Provided:
+${JSON.stringify(context, null, 2)}
+
+Return ONLY a JSON object matching this schema:
+{
+  "overallScore": number (1-100),
+  "confidenceScore": number (1-100),
+  "communicationScore": number (1-100),
+  "technicalAccuracy": number (1-100, if applicable, else 100),
+  "grammar": "Brief grammar feedback",
+  "strengths": ["Strength 1"],
+  "weaknesses": ["Weakness 1"],
+  "missingPoints": ["What they missed"],
+  "suggestedBetterAnswer": "An example of a much stronger, structured response",
+  "followUpQuestion": "A natural follow-up question based on their answer"
+}
+Ensure no markdown formatting or backticks around the JSON.`;
   }
 
   static buildEmailPrompt(context: any, intent: string): string {

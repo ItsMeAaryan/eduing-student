@@ -216,3 +216,37 @@ export class EmailService {
     return response;
   }
 }
+
+export class InterviewService {
+  static async generateQuestion(context: any, interviewType: string, previousQuestions: string[]): Promise<GeminiResponse> {
+    const prompt = PromptBuilder.buildInterviewPrompt(context, interviewType, previousQuestions);
+    const response = await generateAIResponse(prompt, { model: getOptimalModelForTask('high') });
+    if (response.success && response.text) {
+      try {
+        const cleanedText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(cleanedText);
+        return { success: true, data: parsed, text: response.text };
+      } catch (e) {
+        console.error('Failed to parse Gemini Interview generation JSON', e);
+        return { success: true, data: null, text: response.text };
+      }
+    }
+    return response;
+  }
+
+  static async evaluateAnswer(question: string, answer: string, context: any): Promise<GeminiResponse> {
+    const prompt = PromptBuilder.buildInterviewEvaluationPrompt(question, answer, context);
+    const response = await generateAIResponse(prompt, { model: getOptimalModelForTask('high') });
+    if (response.success && response.text) {
+      try {
+        const cleanedText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(cleanedText);
+        return { success: true, data: parsed, text: response.text };
+      } catch (e) {
+        console.error('Failed to parse Gemini Interview evaluate JSON', e);
+        return { success: true, data: null, text: response.text };
+      }
+    }
+    return response;
+  }
+}
