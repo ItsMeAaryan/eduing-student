@@ -70,9 +70,22 @@ export class ScholarshipService {
 }
 
 export class UniversityComparisonService {
-  static async compare(universityA: string, universityB: string, context: any): Promise<GeminiResponse> {
-    const prompt = `Compare ${universityA} and ${universityB} for this student context: ${JSON.stringify(context)}`;
-    return generateAIResponse(prompt, { model: getOptimalModelForTask('high') });
+  static async compare(universities: any[], context: any): Promise<GeminiResponse> {
+    const prompt = PromptBuilder.buildUniversityComparisonPrompt({ universities, studentContext: context });
+    const response = await generateAIResponse(prompt, { model: getOptimalModelForTask('high') });
+    
+    if (response.success && response.text) {
+      try {
+        const cleanedText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(cleanedText);
+        return { success: true, data: parsed, text: response.text };
+      } catch (e) {
+        console.error('Failed to parse Gemini comparison JSON', e);
+        // Fallback
+        return { success: true, data: null, text: response.text };
+      }
+    }
+    return response;
   }
 }
 

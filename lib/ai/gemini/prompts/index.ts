@@ -49,4 +49,26 @@ Write a professional email for a student to a university admission office.
 Intent: ${intent}
 Context: ${JSON.stringify(context)}`;
   }
+
+  static buildUniversityComparisonPrompt(context: any): string {
+    return `You are an expert AI Admission Advisor.
+Your task is to provide a highly personalized comparison between the selected universities.
+You MUST rely ONLY on the provided deterministic scores, probabilities, and context. Do NOT invent new scores, rankings, or placement data.
+
+Context Provided:
+${JSON.stringify(context, null, 2)}
+
+Return your analysis as a valid JSON object matching this schema:
+{
+  "summary": "A concise, 3-sentence personalized comparison summary highlighting the best fit, safe choice, and required improvements.",
+  "bestOverallChoice": "Name of the university that represents the strongest holistic option.",
+  "safestOption": "Name of the university with the highest admission probability and lowest risk.",
+  "mostAmbitiousChoice": "Name of the university that is a reach but offers great potential.",
+  "actionableAdvice": [
+    "Actionable step 1 (e.g. 'To improve your BITS chances, upload your entrance score')",
+    "Actionable step 2"
+  ]
+}
+Make sure the response contains ONLY the valid JSON and no markdown formatting or backticks around it.`;
+  }
 }
