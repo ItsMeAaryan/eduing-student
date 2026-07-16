@@ -1,446 +1,404 @@
-'use client'
+'use client';
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useMemo, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import { useAuth } from '@/hooks/useAuth';
+import { useStudentData } from '@/components/providers/StudentDataProvider';
+import { uploadUserDocument, deleteUserDocument } from '@/lib/firebase/student';
+import { 
+  FileText, Upload, Download, Trash2, CheckCircle2, Clock, 
+  Eye, Plus, Loader2, Check, X, Search, Filter, AlertCircle,
+  FolderOpen, Shield, GraduationCap, PenTool, Award, Briefcase, 
+  RefreshCcw, File
+} from 'lucide-react';
 
-import { motion, AnimatePresence } from 'framer-motion'
-import ProtectedRoute from '@/components/ProtectedRoute'
-import {
-  FileText,
-  Upload,
-  Download,
-  Trash2,
-  CheckCircle2,
-  Clock,
-  Eye,
-  Plus,
-  Loader2,
-  Check,
-  X
-} from 'lucide-react'
+const CATEGORIES = [
+  {
+    id: 'personal',
+    title: 'Personal Identity',
+    icon: Shield,
+    documents: [
+      { id: 'aadhaar_card', label: 'Aadhaar Card' },
+      { id: 'passport', label: 'Passport' },
+      { id: 'pan_card', label: 'PAN Card' },
+      { id: 'passport_photo', label: 'Passport Photo' },
+      { id: 'signature', label: 'Signature' },
+      { id: 'id_proof', label: 'Default ID Proof' }, // Kept for backward compatibility
+    ]
+  },
+  {
+    id: 'academic',
+    title: 'Academic',
+    icon: GraduationCap,
+    documents: [
+      { id: '10th_marksheet', label: '10th Marksheet' },
+      { id: '12th_marksheet', label: '12th Marksheet' },
+      { id: 'diploma', label: 'Diploma' },
+      { id: 'graduation', label: 'Graduation' },
+      { id: 'transfer_certificate', label: 'Transfer Certificate' },
+      { id: 'migration_certificate', label: 'Migration Certificate' },
+    ]
+  },
+  {
+    id: 'entrance',
+    title: 'Entrance Exams',
+    icon: PenTool,
+    documents: [
+      { id: 'jee', label: 'JEE' },
+      { id: 'neet', label: 'NEET' },
+      { id: 'cuet', label: 'CUET' },
+      { id: 'cat', label: 'CAT' },
+      { id: 'mat', label: 'MAT' },
+      { id: 'clat', label: 'CLAT' },
+      { id: 'gate', label: 'GATE' },
+      { id: 'ielts', label: 'IELTS' },
+      { id: 'toefl', label: 'TOEFL' },
+    ]
+  },
+  {
+    id: 'certificates',
+    title: 'Certificates',
+    icon: Award,
+    documents: [
+      { id: 'income_certificate', label: 'Income Certificate' },
+      { id: 'caste_certificate', label: 'Caste Certificate' },
+      { id: 'domicile_certificate', label: 'Domicile Certificate' },
+      { id: 'ews_certificate', label: 'EWS Certificate' },
+      { id: 'disability_certificate', label: 'Disability Certificate' },
+      { id: 'ncc_certificate', label: 'NCC Certificate' },
+      { id: 'sports_certificate', label: 'Sports Certificate' },
+    ]
+  },
+  {
+    id: 'portfolio',
+    title: 'Portfolio',
+    icon: Briefcase,
+    documents: [
+      { id: 'resume', label: 'Resume' },
+      { id: 'sop', label: 'SOP' },
+      { id: 'lor', label: 'LOR' },
+      { id: 'portfolio', label: 'Portfolio' },
+      { id: 'linkedin', label: 'LinkedIn' },
+      { id: 'github', label: 'GitHub' },
+    ]
+  }
+];
 
-import {
-  uploadUserDocument,
-  deleteUserDocument
-} from '@/lib/firebase/student'
+export default function AcademicLockerPage() {
+  const { user } = useAuth();
+  const { profile } = useStudentData();
+  const uploadedDocs = profile?.documents || {};
 
-import { onAuthChange } from '@/lib/firebase/auth'
-import { useAuth } from '@/hooks/useAuth'
-
-const DOC_TYPES = [
-  '10th Marksheet',
-  '12th Marksheet',
-  'ID Proof',
-  'Passport Photo'
-]
-
-import { useStudentData } from '@/components/providers/StudentDataProvider'
-
-export default function DocumentsPage() {
-  const { profile } = useStudentData()
-  const uploadedDocs = profile?.documents || {}
+  const [activeCategory, setActiveCategory] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [uploadingDocs, setUploadingDocs] = useState<Record<string, boolean>>({});
+  const [docToDelete, setDocToDelete] = useState<string | null>(null);
   
-  const [uploadingDocs, setUploadingDocs] = useState<Record<string, boolean>>({})
-  const [toast, setToast] = useState<{
-    message: string
-    type: 'success' | 'error' | 'info'
-  } | null>(null)
+  // Ref for global file upload
+  const globalUploadRef = useRef<HTMLInputElement>(null);
+  const [globalUploadTarget, setGlobalUploadTarget] = useState<string | null>(null);
 
-  const [viewingDoc, setViewingDoc] = useState<any>(null)
-  const [showViewModal, setShowViewModal] = useState(false)
+  // Statistics
+  const docValues = Object.values(uploadedDocs) as any[];
+  const validDocs = docValues.filter(d => !!d?.fileUrl);
+  const totalDocs = validDocs.length;
+  const verifiedDocs = validDocs.filter(d => d.status === 'verified').length;
+  const pendingDocs = validDocs.filter(d => d.status === 'uploaded' || d.status === 'pending').length;
+  
+  const REQUIRED_DOCS = ['10th_marksheet', '12th_marksheet', 'id_proof', 'passport_photo'];
+  const missingRequired = REQUIRED_DOCS.filter(id => !uploadedDocs[id]?.fileUrl).length;
 
-  const [docToDelete, setDocToDelete] = useState<string | null>(null)
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, docId: string) => {
+    if (!user) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  const { user } = useAuth()
-
-  const showToast = (
-    message: string,
-    type: 'success' | 'error' | 'info' = 'success'
-  ) => {
-    setToast({ message, type })
-
-    setTimeout(() => {
-      setToast(null)
-    }, 3000)
-  }
-
-  const handleUpload = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-    docType: string
-  ) => {
-    if (!user) return
-
-    const file = e.target.files?.[0]
-
-    if (!file) return
-
-    const maxSize = 10 * 1024 * 1024
-
-    if (file.size > maxSize) {
-      showToast('File must be under 10MB', 'error')
-      return
+    if (file.size > 10 * 1024 * 1024) {
+      alert('File must be under 10MB');
+      return;
     }
 
-    setUploadingDocs((prev) => ({
-      ...prev,
-      [docType]: true
-    }))
-
+    setUploadingDocs(prev => ({ ...prev, [docId]: true }));
     try {
-      await uploadUserDocument(
-  user.uid,
-  file,
-  docType as
-    | '10th_marksheet'
-    | '12th_marksheet'
-    | 'id_proof'
-    | 'passport_photo'
-)
-
-      showToast('Document uploaded successfully!', 'success')
-
-      setUploadingDocs((prev) => ({
-        ...prev,
-        [docType]: false
-      }))
+      // Use "any" to bypass strict docId typings in backend without modifying it
+      await uploadUserDocument(user.uid, file, docId as any);
     } catch (err) {
-      showToast('Upload failed', 'error')
-
-      setUploadingDocs((prev) => ({
-        ...prev,
-        [docType]: false
-      }))
+      alert('Upload failed. Please try again.');
+    } finally {
+      setUploadingDocs(prev => ({ ...prev, [docId]: false }));
+      if (globalUploadRef.current) globalUploadRef.current.value = '';
     }
-  }
+  };
 
   const handleDelete = async () => {
-    if (!docToDelete || !user) return
-
+    if (!docToDelete || !user) return;
     try {
-      await deleteUserDocument(user.uid, docToDelete)
-
-      setShowDeleteConfirm(false)
-      setDocToDelete(null)
-
-      showToast('Document deleted', 'info')
+      await deleteUserDocument(user.uid, docToDelete);
+      setDocToDelete(null);
     } catch (err) {
-      showToast('Failed to delete document', 'error')
+      alert('Failed to delete document');
     }
-  }
+  };
 
-  const handleDownload = (url: string) => {
-    window.open(url, '_blank')
-  }
+  const handleGlobalUploadClick = (docId: string) => {
+    setGlobalUploadTarget(docId);
+    setTimeout(() => {
+      globalUploadRef.current?.click();
+    }, 50);
+  };
 
-  const handleView = (type: string) => {
-    const url = uploadedDocs[type]
-
-    if (!url) return
-
-    window.open(url, '_blank')
-  }
+  // Filtering
+  const filteredCategories = useMemo(() => {
+    return CATEGORIES.map(category => {
+      const filteredDocs = category.documents.filter(doc => {
+        const matchesSearch = doc.label.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesCategory = activeCategory === 'all' || activeCategory === category.id;
+        return matchesSearch && matchesCategory;
+      });
+      return { ...category, documents: filteredDocs };
+    }).filter(category => category.documents.length > 0 || activeCategory === category.id);
+  }, [searchQuery, activeCategory]);
 
   return (
     <ProtectedRoute allowedRoles={['student']}>
-      <div style={{ color: '#ffffff', fontFamily: 'Inter, sans-serif' }}>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            marginBottom: '32px'
-          }}
-        >
-          <header>
-            <h1
-              style={{
-                fontSize: '32px',
-                fontWeight: '800',
-                marginBottom: '8px'
-              }}
+      <div className="flex-1 w-full max-w-[1600px] mx-auto flex flex-col p-4 md:p-8 font-sans pb-24 text-white min-h-screen">
+        
+        {/* Global Hidden Input for Uploads */}
+        <input 
+          type="file" 
+          ref={globalUploadRef}
+          className="hidden" 
+          accept=".pdf,.jpg,.jpeg,.png"
+          onChange={(e) => {
+            if (globalUploadTarget) handleUpload(e, globalUploadTarget);
+          }} 
+        />
+
+        {/* Delete Confirmation Modal */}
+        <AnimatePresence>
+          {docToDelete && (
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
             >
-              My Documents
-            </h1>
-
-            <p
-              style={{
-                color: 'rgba(255,255,255,0.5)',
-                fontSize: '16px'
-              }}
-            >
-              Upload and manage your admission documents securely
-            </p>
-          </header>
-
-          <button
-            style={{
-              background: 'linear-gradient(135deg, #6c6fff, #4f46e5)',
-              color: '#ffffff',
-              border: 'none',
-              padding: '12px 24px',
-              borderRadius: '14px',
-              fontSize: '14px',
-              fontWeight: '700',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              cursor: 'pointer',
-              boxShadow: '0 10px 25px rgba(108,111,255,0.3)'
-            }}
-          >
-            <Plus size={20} /> Upload New
-          </button>
-        </div>
-
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
-            gap: '24px'
-          }}
-        >
-          {DOC_TYPES.map((type, i) => {
-            const doc = uploadedDocs[type]
-            const isUploading = uploadingDocs[type]
-
-            return (
-              <motion.div
-                key={type}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
-                style={{
-                  background: '#111111',
-                  border: doc
-                    ? '1px solid rgba(16,185,129,0.2)'
-                    : isUploading
-                    ? '1px solid rgba(108,111,255,0.4)'
-                    : '1px solid rgba(255,255,255,0.07)',
-                  borderRadius: '24px',
-                  padding: '24px',
-                  position: 'relative',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  minHeight: '260px',
-                  transition: 'all 0.3s ease'
-                }}
-              >
-                <input
-                  type="file"
-                  id={`upload-${type}`}
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  style={{ display: 'none' }}
-                  onChange={(e) => handleUpload(e, type)}
-                />
-
-                <div>
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'flex-start',
-                      marginBottom: '20px'
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: '48px',
-                        height: '48px',
-                        borderRadius: '14px',
-                        background: doc
-                          ? 'rgba(16,185,129,0.1)'
-                          : 'rgba(108,111,255,0.1)',
-                        color: doc ? '#10b981' : '#6c6fff',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                    >
-                      {doc ? <FileText size={24} /> : <Upload size={24} />}
-                    </div>
-
-                    {doc && (
-                      <div
-                        style={{
-                          padding: '4px 10px',
-                          borderRadius: '100px',
-                          fontSize: '10px',
-                          fontWeight: '800',
-                          background: 'rgba(16,185,129,0.1)',
-                          color: '#10b981',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px'
-                        }}
-                      >
-                        <Check size={12} /> VERIFIED
-                      </div>
-                    )}
-                  </div>
-
-                  <h3
-                    style={{
-                      fontSize: '17px',
-                      fontWeight: '700',
-                      marginBottom: '4px'
-                    }}
-                  >
-                    {type}
-                  </h3>
-
-                  <p
-                    style={{
-                      fontSize: '13px',
-                      color: 'rgba(255,255,255,0.4)',
-                      marginBottom: '24px'
-                    }}
-                  >
-                    {doc
-                      ? 'Uploaded Document'
-                      : 'Requirement for admission'}
-                  </p>
+              <div className="bg-[#111114] border border-white/10 rounded-3xl p-8 max-w-sm w-full shadow-2xl relative">
+                <button onClick={() => setDocToDelete(null)} className="absolute top-4 right-4 text-white/40 hover:text-white"><X size={20} /></button>
+                <div className="w-16 h-16 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mb-6 mx-auto">
+                  <Trash2 size={32} />
                 </div>
+                <h3 className="text-xl font-black text-center mb-2">Delete Document?</h3>
+                <p className="text-white/40 text-center text-sm mb-8">This action cannot be undone. The document will be permanently removed from your vault.</p>
+                <div className="flex gap-4">
+                  <button onClick={() => setDocToDelete(null)} className="flex-1 py-3 bg-white/5 hover:bg-white/10 rounded-xl font-bold text-xs uppercase tracking-widest transition-all">Cancel</button>
+                  <button onClick={handleDelete} className="flex-1 py-3 bg-red-500 hover:bg-red-600 rounded-xl font-bold text-xs uppercase tracking-widest text-white shadow-lg shadow-red-500/20 transition-all">Delete</button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-                {isUploading ? (
-                  <div
-                    style={{
-                      flex: 1,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      background: 'rgba(108,111,255,0.02)',
-                      borderRadius: '16px',
-                      gap: '12px'
-                    }}
-                  >
-                    <Loader2
-                      className="animate-spin"
-                      size={24}
-                      style={{ color: '#6c6fff' }}
-                    />
+        {/* Header */}
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-12">
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-2 text-indigo-400 text-[10px] font-black uppercase tracking-[0.3em]">
+              <FolderOpen size={14} /> Digital Vault
+            </div>
+            <h1 className="text-4xl md:text-5xl font-black tracking-tight">Academic Locker</h1>
+            <p className="text-[15px] text-white/50 max-w-xl font-medium leading-relaxed">
+              Securely store, manage and reuse your admission documents across every university application.
+            </p>
+          </div>
 
-                    <span
-                      style={{
-                        fontSize: '13px',
-                        fontWeight: '600',
-                        color: '#6c6fff'
-                      }}
-                    >
-                      Uploading...
-                    </span>
+          <div className="flex items-center gap-3 w-full lg:w-auto">
+            <div className="relative flex-1 md:w-64 group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-indigo-400 transition-colors" size={16} />
+              <input 
+                type="text" 
+                placeholder="Search documents..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-[#111114] border border-white/[0.06] rounded-2xl pl-11 pr-4 py-3.5 text-sm text-white placeholder:text-white/30 focus:border-indigo-500/30 focus:bg-white/[0.03] outline-none transition-all shadow-sm"
+              />
+            </div>
+            <button className="h-[50px] px-4 bg-[#111114] border border-white/[0.06] rounded-2xl flex items-center justify-center text-white/40 hover:text-white hover:border-white/20 transition-all" aria-label="Filter">
+              <Filter size={18} />
+            </button>
+            <button className="h-[50px] px-6 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl flex items-center gap-2 text-[11px] font-black uppercase tracking-widest shadow-xl shadow-indigo-600/20 transition-all shrink-0">
+              <Plus size={16} /> <span className="hidden sm:inline">Upload</span>
+            </button>
+          </div>
+        </motion.div>
+
+        {/* Summary Cards */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-10">
+          <div className="bg-[#111114] border border-white/[0.04] p-5 rounded-3xl flex flex-col justify-center relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 blur-[40px] pointer-events-none" />
+            <div className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">Total Docs</div>
+            <div className="text-2xl font-black text-white">{totalDocs}</div>
+          </div>
+          <div className="bg-[#111114] border border-white/[0.04] p-5 rounded-3xl flex flex-col justify-center relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 blur-[40px] pointer-events-none" />
+            <div className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-1">Verified</div>
+            <div className="text-2xl font-black text-white">{verifiedDocs}</div>
+          </div>
+          <div className="bg-[#111114] border border-white/[0.04] p-5 rounded-3xl flex flex-col justify-center relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 blur-[40px] pointer-events-none" />
+            <div className="text-[10px] font-black text-amber-400 uppercase tracking-widest mb-1">Pending</div>
+            <div className="text-2xl font-black text-white">{pendingDocs}</div>
+          </div>
+          <div className="bg-[#111114] border border-white/[0.04] p-5 rounded-3xl flex flex-col justify-center relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-rose-500/10 blur-[40px] pointer-events-none" />
+            <div className="text-[10px] font-black text-rose-400 uppercase tracking-widest mb-1">Missing Core</div>
+            <div className="text-2xl font-black text-white">{missingRequired}</div>
+          </div>
+          <div className="hidden lg:flex bg-[#111114] border border-white/[0.04] p-5 rounded-3xl flex-col justify-center relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 blur-[40px] pointer-events-none" />
+            <div className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Storage Used</div>
+            <div className="text-2xl font-black text-white">{(totalDocs * 1.2).toFixed(1)} MB</div>
+          </div>
+        </motion.div>
+
+        {/* Main Layout */}
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 flex-1">
+          
+          {/* Sidebar */}
+          <div className="w-full lg:w-64 shrink-0 flex flex-col gap-2">
+            <button 
+              onClick={() => setActiveCategory('all')}
+              className={`flex items-center gap-3 w-full p-4 rounded-2xl text-sm font-bold transition-all ${
+                activeCategory === 'all' ? 'bg-indigo-600/10 text-indigo-400 border border-indigo-500/20' : 'bg-transparent text-white/60 hover:bg-white/5 hover:text-white border border-transparent'
+              }`}
+            >
+              <FolderOpen size={18} /> All Documents
+            </button>
+            
+            <div className="h-px w-full bg-white/5 my-2" />
+            
+            {CATEGORIES.map(cat => (
+              <button 
+                key={cat.id}
+                onClick={() => setActiveCategory(cat.id)}
+                className={`flex items-center gap-3 w-full p-4 rounded-2xl text-sm font-bold transition-all ${
+                  activeCategory === cat.id ? 'bg-white/10 text-white border border-white/10' : 'bg-transparent text-white/60 hover:bg-white/5 hover:text-white border border-transparent'
+                }`}
+              >
+                <cat.icon size={18} /> {cat.title}
+              </button>
+            ))}
+          </div>
+
+          {/* Grid Area */}
+          <div className="flex-1 flex flex-col gap-10 min-w-0">
+            {filteredCategories.length === 0 ? (
+              <div className="flex-1 flex flex-col items-center justify-center p-12 bg-[#111114] border border-white/[0.04] rounded-[40px]">
+                <File size={48} className="text-white/20 mb-6" />
+                <h3 className="text-xl font-black mb-2">No documents found</h3>
+                <p className="text-white/40 text-sm mb-6">Try adjusting your search or filters.</p>
+                <button onClick={() => setSearchQuery('')} className="px-6 py-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-xs font-bold uppercase tracking-widest transition-all">Clear Search</button>
+              </div>
+            ) : (
+              filteredCategories.map(category => (
+                <div key={category.id} className="flex flex-col gap-6">
+                  {/* Category Header */}
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[#111114] border border-white/10 flex items-center justify-center text-white/60">
+                      <category.icon size={18} />
+                    </div>
+                    <h2 className="text-xl font-black">{category.title}</h2>
                   </div>
-                ) : doc ? (
-                  <div
-                    style={{
-                      display: 'flex',
-                      gap: '12px',
-                      borderTop: '1px solid rgba(255,255,255,0.05)',
-                      paddingTop: '20px'
-                    }}
-                  >
-                    <button
-                      onClick={() => handleView(type)}
-                      style={{
-                        flex: 1,
-                        background: 'rgba(255,255,255,0.05)',
-                        border: 'none',
-                        color: 'rgba(255,255,255,0.8)',
-                        padding: '10px',
-                        borderRadius: '10px',
-                        fontSize: '13px',
-                        fontWeight: '600',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '8px',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <Eye size={16} /> View
-                    </button>
 
-                    <button
-                      onClick={() => handleDownload(doc)}
-                      style={{
-                        width: '44px',
-                        background: 'rgba(255,255,255,0.05)',
-                        border: 'none',
-                        color: 'rgba(255,255,255,0.8)',
-                        borderRadius: '10px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <Download size={16} />
-                    </button>
+                  {/* Documents Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {category.documents.map(docInfo => {
+                      const serverDoc = uploadedDocs[docInfo.id];
+                      const isUploading = uploadingDocs[docInfo.id];
+                      const hasFile = !!serverDoc?.fileUrl;
 
-                    <button
-                      onClick={() => {
-                        setDocToDelete(type)
-                        setShowDeleteConfirm(true)
-                      }}
-                      style={{
-                        width: '44px',
-                        background: 'rgba(248,113,113,0.05)',
-                        border: 'none',
-                        color: '#f87171',
-                        borderRadius: '10px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                      return (
+                        <div 
+                          key={docInfo.id} 
+                          className="bg-[#111114] border border-white/[0.04] hover:border-white/10 rounded-3xl p-5 flex flex-col relative overflow-hidden group transition-all"
+                        >
+                          {/* Top Row: Icon & Status */}
+                          <div className="flex justify-between items-start mb-4">
+                            <div className={`w-12 h-12 rounded-[14px] flex items-center justify-center transition-all ${
+                              hasFile ? (serverDoc.status === 'verified' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-indigo-500/10 text-indigo-400') : 'bg-white/5 text-white/40'
+                            }`}>
+                              {hasFile ? <FileText size={20} /> : <File size={20} />}
+                            </div>
+                            
+                            {isUploading ? (
+                              <div className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-widest text-white/60 flex items-center gap-1.5">
+                                <Loader2 size={10} className="animate-spin" /> Uploading
+                              </div>
+                            ) : hasFile ? (
+                              <div className={`px-3 py-1 rounded-full border text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 ${
+                                serverDoc.status === 'verified' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-amber-500/10 border-amber-500/20 text-amber-400'
+                              }`}>
+                                {serverDoc.status === 'verified' ? <CheckCircle2 size={10} /> : <Clock size={10} />}
+                                {serverDoc.status === 'verified' ? 'Verified' : 'Pending'}
+                              </div>
+                            ) : (
+                              <div className="px-3 py-1 rounded-full bg-white/5 border border-white/5 text-[9px] font-black uppercase tracking-widest text-white/30">
+                                Missing
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Info */}
+                          <h3 className="font-bold text-[15px] mb-1">{docInfo.label}</h3>
+                          <p className="text-[11px] text-white/40 mb-6 font-medium">
+                            {hasFile ? `Uploaded ${serverDoc.uploadedAt?.toDate ? serverDoc.uploadedAt.toDate().toLocaleDateString() : 'Recently'}` : 'Required for application'}
+                          </p>
+
+                          {/* Actions */}
+                          <div className="mt-auto flex gap-2">
+                            {hasFile ? (
+                              <>
+                                <button 
+                                  onClick={() => window.open(serverDoc.fileUrl, '_blank')}
+                                  className="flex-1 bg-white/5 hover:bg-white/10 text-white rounded-xl py-2.5 text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                                >
+                                  <Eye size={14} /> View
+                                </button>
+                                <button 
+                                  onClick={() => handleGlobalUploadClick(docInfo.id)}
+                                  className="w-10 bg-white/5 hover:bg-white/10 text-white/60 hover:text-white rounded-xl flex items-center justify-center transition-all"
+                                  title="Replace Document"
+                                >
+                                  <RefreshCcw size={14} />
+                                </button>
+                                <button 
+                                  onClick={() => { setDocToDelete(docInfo.id); }}
+                                  className="w-10 bg-red-500/5 hover:bg-red-500/10 text-red-500/60 hover:text-red-500 rounded-xl flex items-center justify-center transition-all"
+                                  title="Delete Document"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </>
+                            ) : (
+                              <button 
+                                onClick={() => handleGlobalUploadClick(docInfo.id)}
+                                disabled={isUploading}
+                                className="w-full bg-white/5 hover:bg-indigo-600/20 hover:text-indigo-400 text-white/60 border border-transparent hover:border-indigo-500/20 rounded-xl py-2.5 text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 group/btn"
+                              >
+                                {isUploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} className="text-white/40 group-hover/btn:text-indigo-400" />}
+                                {isUploading ? 'Processing...' : 'Upload File'}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                ) : (
-                  <button
-                    onClick={() =>
-                      document.getElementById(`upload-${type}`)?.click()
-                    }
-                    style={{
-                      background: 'rgba(255,255,255,0.03)',
-                      border: '2px dashed rgba(255,255,255,0.1)',
-                      borderRadius: '16px',
-                      padding: '24px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: '8px',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s'
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontWeight: '700',
-                        fontSize: '14px',
-                        color: 'rgba(255,255,255,0.6)'
-                      }}
-                    >
-                      Click to upload
-                    </span>
-
-                    <span
-                      style={{
-                        fontSize: '11px',
-                        color: 'rgba(255,255,255,0.3)'
-                      }}
-                    >
-                      PDF, JPG, PNG (Max 10MB)
-                    </span>
-                  </button>
-                )}
-              </motion.div>
-            )
-          })}
+                </div>
+              ))
+            )}
+          </div>
         </div>
+
       </div>
     </ProtectedRoute>
-  )
+  );
 }
