@@ -23,11 +23,11 @@ describe('StudentLayout', () => {
   it('renders its children', () => {
     render(
       <StudentLayout>
-        <div data-testid="page-content">Dashboard content</div>
+        <div data-testid="page-content">Home content</div>
       </StudentLayout>
     )
     expect(screen.getByTestId('page-content')).toBeInTheDocument()
-    expect(screen.getByText('Dashboard content')).toBeInTheDocument()
+    expect(screen.getByText('Home content')).toBeInTheDocument()
   })
 
   it('renders the student sidebar alongside children', () => {
@@ -36,7 +36,7 @@ describe('StudentLayout', () => {
         <div>content</div>
       </StudentLayout>
     )
-    // StudentSidebar renders nav items like "Dashboard"
-    expect(screen.getAllByText(/Dashboard/i).length).toBeGreaterThan(0)
+    // StudentSidebar renders nav items like "Home" instead of "Dashboard"
+    expect(screen.getByRole('link', { name: /home/i })).toBeInTheDocument()
   })
 })
