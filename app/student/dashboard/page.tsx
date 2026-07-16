@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { useStudentData } from '@/components/providers/StudentDataProvider'
 import { ProfileStrengthCard } from '@/components/dashboard/ProfileStrengthCard'
+import { AdmissionChecklistCard } from '@/components/dashboard/AdmissionChecklistCard'
 
 // Animations
 const itemFade = {
@@ -348,7 +349,7 @@ export default function StudentDashboard() {
         </motion.div>
 
         {/* Upcoming Deadlines (Span 4) */}
-        <motion.div variants={itemFade} className="col-span-12 xl:col-span-4 bg-[#111114] border border-white/[0.06] rounded-[24px] p-6 h-[320px] flex flex-col">
+        <motion.div variants={itemFade} className="col-span-12 xl:col-span-4 bg-[#111114] border border-white/[0.06] rounded-[24px] p-6 h-[380px] flex flex-col">
           <h3 className="text-[15px] font-display font-semibold text-white mb-5 shrink-0 flex items-center gap-2">
             <Clock size={16} className="text-amber-400" />
             Deadlines
@@ -383,7 +384,7 @@ export default function StudentDashboard() {
         </motion.div>
 
         {/* Document Vault (Span 4) */}
-        <motion.div variants={itemFade} className="col-span-12 xl:col-span-4 bg-[#111114] border border-white/[0.06] rounded-[24px] p-6 h-[320px] flex flex-col">
+        <motion.div variants={itemFade} className="col-span-12 xl:col-span-4 bg-[#111114] border border-white/[0.06] rounded-[24px] p-6 h-[380px] flex flex-col">
           <h3 className="text-[15px] font-display font-semibold text-white mb-5 shrink-0 flex items-center gap-2">
             <FileCheck2 size={16} className="text-brand-indigoLight" />
             Document Vault
@@ -441,53 +442,9 @@ export default function StudentDashboard() {
           </div>
         </motion.div>
 
-        {/* Recent Activity (Span 4) */}
-        <motion.div variants={itemFade} className="col-span-12 xl:col-span-4 bg-[#111114] border border-white/[0.06] rounded-[24px] p-6 h-[320px] flex flex-col">
-          <h3 className="text-[15px] font-display font-semibold text-white mb-5 shrink-0 flex items-center gap-2">
-            <Flame size={16} className="text-orange-400" />
-            Activity
-          </h3>
-          <div className="flex-1 relative custom-scrollbar overflow-y-auto">
-            {(Array.isArray(notifications) ? notifications : []).length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center bg-white/[0.02] border border-white/[0.04] rounded-[20px] p-6 text-center group hover:bg-white/[0.03] transition-colors">
-                <div className="w-14 h-14 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-400 mb-4 group-hover:scale-110 transition-transform duration-500">
-                  <Flame size={28} />
-                </div>
-                <h4 className="text-[15px] font-display font-semibold text-white mb-2">No recent activity</h4>
-                <p className="text-[12px] text-white/50 mb-5 max-w-[220px]">When universities update your application, it will appear here.</p>
-                <Link href="/student/discover" className="h-9 px-5 bg-white/[0.05] border border-white/10 hover:border-white/30 rounded-full text-[12px] font-semibold text-white flex items-center justify-center transition-colors">
-                  Explore Programs
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-1 relative before:absolute before:top-6 before:bottom-4 before:left-[27px] before:w-px before:bg-gradient-to-b before:from-white/10 before:via-white/5 before:to-transparent z-10">
-                {(Array.isArray(notifications) ? notifications : []).map((n: any, i: number) => {
-                  let Icon = FileText;
-                  let color = 'text-[#818CF8]';
-                  let bg = 'bg-[#818CF8]/10';
-                  let border = 'border-[#818CF8]/20';
-                  
-                  if (n.type === 'offer') { Icon = ShieldCheck; color = 'text-emerald-400'; bg = 'bg-emerald-500/10'; border = 'border-emerald-500/20'; }
-                  else if (n.type === 'interview') { Icon = Calendar; color = 'text-amber-400'; bg = 'bg-amber-500/10'; border = 'border-amber-500/20'; }
-                  else if (n.type === 'update') { Icon = FileCheck2; color = 'text-brand-indigoLight'; bg = 'bg-brand-indigo/10'; border = 'border-brand-indigo/20'; }
-                  
-                  const dateStr = n.createdAt?.toDate ? n.createdAt.toDate().toLocaleDateString('en-US', { day: 'numeric', month: 'short' }) : 'Recently';
-
-                  return (
-                    <div key={i} className="relative flex items-start gap-3 p-2 -ml-2 rounded-[12px] group hover:bg-[#1A1A24] transition-all duration-300">
-                      <div className={`relative z-10 w-9 h-9 rounded-full flex items-center justify-center shrink-0 border ${bg} ${color} ${border} group-hover:scale-110 shadow-sm transition-transform duration-300`}>
-                        <Icon size={14} strokeWidth={2.5} />
-                      </div>
-                      <div className="flex-1 pt-1.5 min-w-0">
-                        <div className="text-[13px] font-medium text-white/90 truncate group-hover:text-white transition-colors">{n.message || 'Activity recorded'}</div>
-                        <div className="text-[11px] text-white/40 mt-0.5">{dateStr}</div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+        {/* Admission Checklist (Span 4) */}
+        <motion.div variants={itemFade} className="col-span-12 xl:col-span-4 h-[380px]">
+          <AdmissionChecklistCard className="h-full border-brand-indigo/20 shadow-[0_4px_30px_rgba(79,70,229,0.1)]" />
         </motion.div>
 
         {/* Analytics (Span 6) */}
