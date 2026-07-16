@@ -8,6 +8,7 @@ import {
   Clock, Flame, LineChart, Sparkles, Plus, Bookmark
 } from 'lucide-react'
 import { useStudentData } from '@/components/providers/StudentDataProvider'
+import { ProfileStrengthCard } from '@/components/dashboard/ProfileStrengthCard'
 
 // Animations
 const itemFade = {
@@ -490,40 +491,8 @@ export default function StudentDashboard() {
         </motion.div>
 
         {/* Analytics (Span 6) */}
-        <motion.div variants={itemFade} className="col-span-12 xl:col-span-6 bg-[#111114] border border-white/[0.06] rounded-[24px] p-6 h-[260px] flex flex-col">
-          <h3 className="text-[15px] font-display font-semibold text-white mb-5 flex items-center gap-2">
-            <LineChart size={16} className="text-[#818CF8]" />
-            Profile Strength Analytics
-          </h3>
-          <div className="flex items-center gap-8 flex-1">
-            <div className="relative w-32 h-32 shrink-0">
-              <svg className="w-full h-full transform -rotate-90">
-                <circle cx="64" cy="64" r="56" stroke="rgba(255,255,255,0.05)" strokeWidth="12" fill="none" />
-                <circle cx="64" cy="64" r="56" stroke="url(#gradient)" strokeWidth="12" fill="none" strokeDasharray="351" strokeDashoffset={351 - (351 * profileScore) / 100} strokeLinecap="round" className="transition-all duration-1000" />
-                <defs>
-                  <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#4F46E5" />
-                    <stop offset="100%" stopColor="#818CF8" />
-                  </linearGradient>
-                </defs>
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                <span className="text-[24px] font-bold text-white leading-none">{profileScore}%</span>
-              </div>
-            </div>
-            <div className="flex-1 space-y-3">
-              <div className="text-[13px] text-white/70">
-                {profileScore < 100 
-                  ? "Your profile is almost complete. Adding missing information will boost your visibility." 
-                  : "Your profile is highly competitive. You are ready to apply to top universities."}
-              </div>
-              {profileScore < 100 && (
-                <Link href="/student/profile" className="inline-flex h-9 px-4 rounded-full bg-white/[0.04] hover:bg-white/[0.08] text-[12px] font-semibold text-white items-center justify-center transition-colors border border-white/10">
-                  Improve Profile
-                </Link>
-              )}
-            </div>
-          </div>
+        <motion.div variants={itemFade} className="col-span-12 xl:col-span-6 h-[260px]">
+          <ProfileStrengthCard />
         </motion.div>
 
         {/* Offers (Span 4) */}

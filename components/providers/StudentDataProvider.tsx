@@ -4,6 +4,7 @@ import { onAuthStateChanged } from 'firebase/auth'
 import { collection, query, where, onSnapshot, doc } from 'firebase/firestore'
 import { auth, db } from '@/lib/firebase/config'
 import { useRouter } from 'next/navigation'
+import { calculateProfileStrength } from '@/lib/utils/profileStrength'
 
 const normalizeArray = (data: any) => Array.isArray(data) ? data : data ? Object.values(data) : [];
 
@@ -108,7 +109,8 @@ export function StudentDataProvider({ children }: { children: React.ReactNode })
   const savedPrograms = normalizeArray(profile?.savedPrograms)
   
   // Calculate completion percentage robustly
-  const profileScore = profile?.completionPercentage ?? profile?.profileScore ?? 0
+  const profileStrength = calculateProfileStrength(profile, profile?.documents || {});
+  const profileScore = profileStrength.percentage;
 
   const safeApps = Array.isArray(applications) ? applications : []
   const safeNotifs = Array.isArray(notifications) ? notifications : []
