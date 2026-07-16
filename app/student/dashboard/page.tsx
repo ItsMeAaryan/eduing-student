@@ -11,6 +11,7 @@ import { useStudentData } from '@/components/providers/StudentDataProvider'
 import { ProfileStrengthCard } from '@/components/dashboard/ProfileStrengthCard'
 import { AdmissionChecklistCard } from '@/components/dashboard/AdmissionChecklistCard'
 import { DashboardRecommendationWidget } from '@/components/dashboard/RecommendationWidget'
+import { ScholarshipWidget } from '@/components/dashboard/ScholarshipWidget'
 
 // Animations
 const itemFade = {
@@ -392,8 +393,13 @@ export default function StudentDashboard() {
           <AdmissionChecklistCard className="h-full border-brand-indigo/20 shadow-[0_4px_30px_rgba(79,70,229,0.1)]" />
         </motion.div>
 
-        {/* Analytics (Span 6) */}
-        <motion.div variants={itemFade} className="col-span-12 xl:col-span-6 h-[260px]">
+        {/* Scholarships (Span 4) */}
+        <motion.div variants={itemFade} className="col-span-12 xl:col-span-4 h-[380px]">
+          <ScholarshipWidget className="h-full" />
+        </motion.div>
+
+        {/* Analytics (Span 4) */}
+        <motion.div variants={itemFade} className="col-span-12 xl:col-span-4 h-[380px]">
           <ProfileStrengthCard />
         </motion.div>
 
