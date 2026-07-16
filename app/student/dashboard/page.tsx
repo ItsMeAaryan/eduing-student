@@ -10,6 +10,7 @@ import {
 import { useStudentData } from '@/components/providers/StudentDataProvider'
 import { ProfileStrengthCard } from '@/components/dashboard/ProfileStrengthCard'
 import { AdmissionChecklistCard } from '@/components/dashboard/AdmissionChecklistCard'
+import { DashboardRecommendationWidget } from '@/components/dashboard/RecommendationWidget'
 
 // Animations
 const itemFade = {
@@ -288,64 +289,8 @@ export default function StudentDashboard() {
         </motion.div>
 
         {/* AI Recommendations (Span 4) */}
-        <motion.div variants={itemFade} className="col-span-12 xl:col-span-4 bg-[#111114] border border-brand-indigo/20 rounded-[24px] p-6 relative overflow-hidden group hover:border-brand-indigo/30 transition-colors h-[380px] flex flex-col">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-brand-indigo/10 blur-[50px] rounded-full mix-blend-screen opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-          <h3 className="text-[15px] font-display font-semibold text-white flex items-center gap-2 mb-5 shrink-0 z-10">
-            <Sparkles size={16} className="text-amber-400" />
-            AI Matches
-          </h3>
-          
-          <div className="flex-1 flex flex-col justify-between z-10 custom-scrollbar overflow-y-auto">
-            {aiMatches.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center bg-white/[0.02] border border-white/[0.04] rounded-[20px] p-6 text-center group hover:bg-white/[0.03] transition-colors">
-                <div className="w-14 h-14 rounded-full bg-brand-indigo/10 flex items-center justify-center text-brand-indigoLight mb-4 group-hover:scale-110 transition-transform duration-500">
-                  <Sparkles size={28} />
-                </div>
-                <h4 className="text-[15px] font-display font-semibold text-white mb-2">No recommendations yet.</h4>
-                <p className="text-[12px] text-white/50 mb-5 max-w-[220px]">Complete your profile to unlock AI recommendations.</p>
-                <Link href="/student/profile" className="h-9 px-5 bg-brand-indigo rounded-full text-[12px] font-semibold text-white flex items-center justify-center hover:bg-brand-indigoLight hover:shadow-[0_4px_20px_rgba(79,70,229,0.4)] transition-all">
-                  Update Profile
-                </Link>
-              </div>
-            ) : (
-              aiMatches.map((rec: any, i: number) => (
-                <div key={i} className="group/card relative p-3.5 rounded-[16px] bg-[#14141A] border border-white/[0.04] hover:bg-[#1A1A24] hover:shadow-[0_4px_20px_rgba(0,0,0,0.3)] transition-all duration-300 overflow-hidden mb-3 last:mb-0">
-                  <div className="absolute inset-0 opacity-0 group-hover/card:opacity-100 transition-opacity duration-500 pointer-events-none">
-                    <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-brand-indigo/10 mix-blend-screen" />
-                    <div className="absolute inset-0 ring-1 ring-inset ring-amber-500/20 rounded-[16px]" />
-                  </div>
-                  
-                  <div className="relative z-10 flex gap-3">
-                    <div className="w-10 h-10 rounded-[12px] bg-gradient-to-br from-[#1E1E24] to-[#111114] border border-white/[0.08] flex items-center justify-center text-white font-display font-bold text-[14px] shrink-0 shadow-inner group-hover/card:border-amber-500/30 transition-colors">
-                      {(rec.universityName || 'U').charAt(0)}
-                    </div>
-                    
-                    <div className="flex-1 min-w-0 flex flex-col justify-center">
-                      <div className="flex justify-between items-start mb-0.5">
-                        <h4 className="text-[13px] font-semibold text-white truncate pr-2">{rec.universityName}</h4>
-                        <div className="flex items-center gap-1 shrink-0 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded-md">
-                          <Sparkles size={10} className="text-emerald-400" />
-                          <span className="text-[10px] font-bold text-emerald-400">{rec.matchPercentage}%</span>
-                        </div>
-                      </div>
-                      
-                      <p className="text-[11px] text-white/50 truncate font-medium mb-2">{rec.programName}</p>
-                      
-                      <div className="flex justify-between items-center gap-2">
-                        <div className="flex items-center gap-1.5 text-[10px] text-white/40 truncate">
-                          <Zap size={10} className="text-amber-400 shrink-0" />
-                          <span className="truncate">{rec.reason || 'AI Match Profile'}</span>
-                        </div>
-                        <button className="h-6 px-3 rounded-full bg-white/[0.05] hover:bg-brand-indigo text-[10px] font-semibold text-white/70 hover:text-white transition-colors shrink-0 border border-white/[0.05] hover:border-brand-indigo">
-                          Apply
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+        <motion.div variants={itemFade} className="col-span-12 xl:col-span-4 h-[380px]">
+          <DashboardRecommendationWidget />
         </motion.div>
 
         {/* Upcoming Deadlines (Span 4) */}

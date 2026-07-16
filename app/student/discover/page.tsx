@@ -22,6 +22,8 @@ import {
   listenUniversitiesFiltered 
 } from '@/lib/firebase/universities'
 import { useAuth } from '@/hooks/useAuth'
+import { useStudentData } from '@/components/providers/StudentDataProvider'
+import { recommendUniversities } from '@/lib/utils/recommendationEngine'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { University } from '@/types/firebase'
 
@@ -37,6 +39,7 @@ export default function PremiumDiscoverPage() {
   const [error, setError] = useState<string | null>(null)
   
   // Search & Filter State
+  const [viewMode, setViewMode] = useState<'Recommended' | 'All'>('Recommended')
   const [searchQuery, setSearchQuery] = useState('')
   const [activeLevel, setActiveLevel] = useState<'All' | 'UG' | 'PG'>('All')
   const [selectedState, setSelectedState] = useState('')
@@ -71,14 +74,34 @@ export default function PremiumDiscoverPage() {
   }, [activeLevel, selectedState, minRating, selectedNAAC])
 
 
+  const { profile, documents, uniqueApps, savedPrograms, profileScore } = useStudentData()
+
+  // Recommendations
+  const recommendations = useMemo(() => {
+    return recommendUniversities(universities, {
+      profile,
+      documents,
+      applications: uniqueApps,
+      savedPrograms,
+      profileScore
+    });
+  }, [universities, profile, documents, uniqueApps, savedPrograms, profileScore])
+
   // Client-side search for name/program (partial match)
   const filteredUniversities = useMemo(() => {
-    if (!searchQuery) return universities
-    return universities.filter(uni => 
+    let baseList = universities
+    
+    if (viewMode === 'Recommended') {
+      baseList = recommendations.map(r => r.university)
+    }
+
+    if (!searchQuery) return baseList
+    return baseList.filter(uni => 
       uni.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       uni.programs.some(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
     )
-  }, [universities, searchQuery])
+  }, [universities, recommendations, viewMode, searchQuery])
+
 
 
   const handleApply = (uni: University) => {
@@ -288,11 +311,27 @@ export default function PremiumDiscoverPage() {
 
             {/* MAIN CONTENT GRID */}
             <main className="space-y-8">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="flex items-center gap-2 bg-white/5 p-1 rounded-xl border border-white/5">
+                  <button 
+                    onClick={() => setViewMode('Recommended')} 
+                    className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${viewMode === 'Recommended' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-white/40 hover:text-white'}`}
+                  >
+                    <Star size={16} /> Recommended
+                  </button>
+                  <button 
+                    onClick={() => setViewMode('All')} 
+                    className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${viewMode === 'All' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-white/40 hover:text-white'}`}
+                  >
+                    All Universities
+                  </button>
+                </div>
+                
                 <h2 className="text-sm font-black text-white/46 uppercase tracking-[0.2em]">
                   {loading ? 'Searching Database...' : `${filteredUniversities.length} Institutions Found`}
                 </h2>
               </div>
+
 
               {loading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -403,6 +442,17 @@ export default function PremiumDiscoverPage() {
                               <Building2 size={20} className="text-white/40" />
                             </button>
                           </div>
+
+                          {/* Reason for recommendation if applicable */}
+                          {viewMode === 'Recommended' && (
+                            <div className="mt-6 pt-6 border-t border-white/5">
+                              {recommendations.find(r => r.university.id === uni.id)?.matchReasons.map((reason, rIdx) => (
+                                <div key={rIdx} className="flex items-center gap-2 text-xs font-medium text-emerald-400 mb-1">
+                                  <CheckCircle2 size={12} /> {reason}
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </motion.div>
                     ))}
