@@ -5,75 +5,26 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Calendar as CalendarIcon, Sparkles, ChevronLeft, ChevronRight,
   Clock, CheckCircle2, AlertCircle, X, ExternalLink, GraduationCap,
-  MapPin, CalendarDays, FileText, Phone, CreditCard, PenTool, XCircle
+  MapPin, CalendarDays, Flame, ShieldAlert
 } from "lucide-react";
 import { useStudentData } from "@/components/providers/StudentDataProvider";
 import { useRouter } from "next/navigation";
+import { generateDeadlineInsights, DeadlineInsight } from "@/lib/utils/deadlineEngine";
 
 export default function CalendarPage() {
   const router = useRouter();
-  const { deadlines: rawDeadlines, applications: rawApplications, loading } = useStudentData();
+  const { deadlines, uniqueApps, documents, profileScore, loading } = useStudentData();
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<DeadlineInsight | null>(null);
 
-  // Normalize events
-  const events = useMemo(() => {
-    const combined: any[] = [];
-    const deadlines = Array.isArray(rawDeadlines) ? rawDeadlines : [];
-    const applications = Array.isArray(rawApplications) ? rawApplications : [];
-
-    // Add explicit deadlines
-    deadlines.forEach((d: any) => {
-      if (d.date) {
-        combined.push({
-          id: d.id || Math.random().toString(),
-          title: d.title || 'Deadline',
-          date: new Date(d.date?.toDate ? d.date.toDate() : d.date),
-          type: d.type || 'deadline',
-          status: d.status || 'pending',
-          university: d.universityName || 'Various',
-          program: d.program || '',
-          notes: d.notes || ''
-        });
-      }
+  const { insights, upcomingDeadlines, completedDeadlines, criticalTasks, weeklyPlan } = useMemo(() => {
+    return generateDeadlineInsights({
+      deadlines: deadlines || [],
+      applications: uniqueApps || [],
+      documents: documents || [],
+      profileScore: profileScore || 0
     });
-
-    // Add deadlines from applications
-    applications.forEach((a: any) => {
-      if (a.deadline) {
-        combined.push({
-          id: `app-${a.id}`,
-          title: `Application Deadline`,
-          date: new Date(a.deadline?.toDate ? a.deadline.toDate() : a.deadline),
-          type: 'Application Deadline',
-          status: a.status === 'submitted' || a.status === 'selected' ? 'completed' : 'pending',
-          university: a.universityName || 'University',
-          program: a.program || '',
-          notes: 'Application submission deadline',
-          appId: a.id
-        });
-      }
-    });
-
-    // Filter out invalid dates
-    return combined.filter(e => !isNaN(e.date.getTime()));
-  }, [rawDeadlines, rawApplications]);
-
-  // Statistics
-  const today = new Date();
-  today.setHours(0,0,0,0);
-  
-  const upcomingCount = events.filter(e => e.date >= today && e.status !== 'completed').length;
-  
-  const nextWeek = new Date(today);
-  nextWeek.setDate(today.getDate() + 7);
-  const thisWeekCount = events.filter(e => e.date >= today && e.date <= nextWeek && e.status !== 'completed').length;
-
-  const nextMonth = new Date(today);
-  nextMonth.setMonth(today.getMonth() + 1);
-  const thisMonthCount = events.filter(e => e.date >= today && e.date <= nextMonth && e.status !== 'completed').length;
-
-  const completedCount = events.filter(e => e.status === 'completed').length;
+  }, [deadlines, uniqueApps, documents, profileScore]);
 
   // Calendar logic
   const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
@@ -83,21 +34,7 @@ export default function CalendarPage() {
   const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
   const nextMonthClick = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
 
-  // Determine colors based on type
-  const getEventStyle = (type: string, status: string) => {
-    if (status === 'completed') return { bg: 'bg-green-500/10', text: 'text-green-500', border: 'border-green-500/20', icon: CheckCircle2 };
-    
-    const t = type.toLowerCase();
-    if (t.includes('interview') || t.includes('counselling')) return { bg: 'bg-amber-500/10', text: 'text-amber-400', border: 'border-amber-500/20', icon: Phone };
-    if (t.includes('document')) return { bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500/20', icon: FileText };
-    if (t.includes('fee') || t.includes('payment')) return { bg: 'bg-rose-500/10', text: 'text-rose-400', border: 'border-rose-500/20', icon: CreditCard };
-    if (t.includes('exam')) return { bg: 'bg-purple-500/10', text: 'text-purple-400', border: 'border-purple-500/20', icon: PenTool };
-    if (t.includes('offer')) return { bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/20', icon: Sparkles };
-    
-    return { bg: 'bg-indigo-500/10', text: 'text-indigo-400', border: 'border-indigo-500/20', icon: AlertCircle }; // Default for application deadline
-  };
-
-  const currentMonthEvents = events.filter(e => 
+  const currentMonthEvents = insights.filter(e => 
     e.date.getMonth() === currentDate.getMonth() && 
     e.date.getFullYear() === currentDate.getFullYear()
   ).sort((a, b) => a.date.getTime() - b.date.getTime());
@@ -109,6 +46,16 @@ export default function CalendarPage() {
       </div>
     );
   }
+
+  const getPriorityStyle = (priority: string) => {
+    switch(priority) {
+      case 'Completed': return { bg: 'bg-green-500/10', text: 'text-green-500', border: 'border-green-500/20' };
+      case 'Critical': return { bg: 'bg-rose-500/10', text: 'text-rose-400', border: 'border-rose-500/20' };
+      case 'High': return { bg: 'bg-amber-500/10', text: 'text-amber-400', border: 'border-amber-500/20' };
+      case 'Medium': return { bg: 'bg-indigo-500/10', text: 'text-indigo-400', border: 'border-indigo-500/20' };
+      default: return { bg: 'bg-white/5', text: 'text-white/60', border: 'border-white/10' };
+    }
+  };
 
   return (
     <div className="flex-1 w-full max-w-7xl mx-auto flex flex-col p-4 md:p-8 font-sans pb-24 overflow-hidden relative">
@@ -133,7 +80,7 @@ export default function CalendarPage() {
             >
               <div className="p-8 pb-32">
                 <div className="flex items-center justify-between mb-10">
-                  <div className="text-[10px] font-black uppercase tracking-widest text-white/40">Event Details</div>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-white/40">Deadline Intelligence</div>
                   <button onClick={() => setSelectedEvent(null)} className="p-2 bg-white/5 hover:bg-white/10 rounded-xl text-white/40 hover:text-white transition-all">
                     <X size={20} />
                   </button>
@@ -142,9 +89,10 @@ export default function CalendarPage() {
                 <div className="space-y-8">
                   <div>
                     <h2 className="text-3xl font-black text-white mb-4 leading-tight">{selectedEvent.title}</h2>
-                    <div className="flex items-center gap-3">
-                      <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${getEventStyle(selectedEvent.type, selectedEvent.status).bg} ${getEventStyle(selectedEvent.type, selectedEvent.status).text} ${getEventStyle(selectedEvent.type, selectedEvent.status).border} flex items-center gap-1.5`}>
-                        {selectedEvent.status === 'completed' ? 'Completed' : selectedEvent.type}
+                    <div className="flex flex-wrap items-center gap-3">
+                      <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${getPriorityStyle(selectedEvent.priority).bg} ${getPriorityStyle(selectedEvent.priority).text} ${getPriorityStyle(selectedEvent.priority).border}`}>
+                        {selectedEvent.priority === 'Critical' && <Flame size={10} className="inline mr-1 mb-0.5" />}
+                        {selectedEvent.priority}
                       </div>
                       <span className="text-sm font-bold text-white/40 flex items-center gap-1.5">
                         <Clock size={14} /> {selectedEvent.date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
@@ -156,23 +104,30 @@ export default function CalendarPage() {
                     <div>
                       <div className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-2">Institution</div>
                       <div className="text-lg font-bold text-white flex items-center gap-2">
-                        <MapPin size={18} className="text-indigo-400" /> {selectedEvent.university}
+                        <MapPin size={18} className="text-indigo-400" /> {selectedEvent.universityName}
                       </div>
                     </div>
-                    {selectedEvent.program && (
+                    
+                    <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <div className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-2">Program</div>
-                        <div className="text-lg font-bold text-white flex items-center gap-2">
-                          <GraduationCap size={18} className="text-indigo-400" /> {selectedEvent.program}
+                        <div className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-2">Est. Time</div>
+                        <div className="text-sm font-bold text-white">{selectedEvent.estimatedTime}</div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-2">Risk Level</div>
+                        <div className={`text-sm font-bold ${selectedEvent.riskLevel === 'High Risk' ? 'text-rose-400' : selectedEvent.riskLevel === 'Medium Risk' ? 'text-amber-400' : 'text-emerald-400'}`}>
+                          {selectedEvent.riskLevel}
                         </div>
                       </div>
-                    )}
-                    {selectedEvent.notes && (
+                    </div>
+
+                    {selectedEvent.requiredDocuments.length > 0 && (
                       <div>
-                        <div className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-2">Notes</div>
-                        <p className="text-sm text-white/60 leading-relaxed bg-[#0a0a0f] p-4 rounded-2xl border border-white/[0.05]">
-                          {selectedEvent.notes}
-                        </p>
+                        <div className="text-[10px] font-black uppercase tracking-widest text-amber-400/80 mb-2">Action Required</div>
+                        <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl text-amber-400 text-xs font-medium flex gap-2 items-start">
+                          <ShieldAlert size={16} className="shrink-0 mt-0.5" />
+                          <div>Missing required document: {selectedEvent.requiredDocuments.join(', ')}</div>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -186,7 +141,7 @@ export default function CalendarPage() {
                         Open Application <ExternalLink size={16} />
                       </button>
                     )}
-                    {selectedEvent.status !== 'completed' && (
+                    {selectedEvent.status !== 'Completed' && (
                       <button className="w-full py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all flex items-center justify-center gap-2">
                         Mark as Complete <CheckCircle2 size={16} />
                       </button>
@@ -206,11 +161,11 @@ export default function CalendarPage() {
         className="flex flex-col gap-3 mb-10"
       >
         <div className="flex items-center gap-2 text-indigo-400 text-[10px] font-black uppercase tracking-[0.3em]">
-          <CalendarDays size={14} /> Master Schedule
+          <CalendarDays size={14} /> Intelligence Planner
         </div>
-        <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight">Academic Planner</h1>
+        <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight">Admission Planner</h1>
         <p className="text-[16px] text-white/50 max-w-xl font-medium">
-          Track every admission deadline, interview, and crucial milestone in one place.
+          Your personal admission timeline with AI-driven prioritization and risk analysis.
         </p>
       </motion.div>
 
@@ -222,20 +177,20 @@ export default function CalendarPage() {
         className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10"
       >
         <div className="bg-[#111114] border border-white/[0.04] p-5 rounded-3xl flex flex-col justify-center">
-          <div className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">Upcoming</div>
-          <div className="text-2xl font-black text-white">{upcomingCount}</div>
+          <div className="text-[10px] font-black text-rose-400 uppercase tracking-widest mb-1 flex items-center gap-1"><Flame size={12} /> Critical</div>
+          <div className="text-2xl font-black text-white">{criticalTasks.length}</div>
         </div>
         <div className="bg-[#111114] border border-white/[0.04] p-5 rounded-3xl flex flex-col justify-center">
-          <div className="text-[10px] font-black text-amber-400 uppercase tracking-widest mb-1">This Week</div>
-          <div className="text-2xl font-black text-white">{thisWeekCount}</div>
+          <div className="text-[10px] font-black text-amber-400 uppercase tracking-widest mb-1">Upcoming</div>
+          <div className="text-2xl font-black text-white">{upcomingDeadlines.length}</div>
         </div>
         <div className="bg-[#111114] border border-white/[0.04] p-5 rounded-3xl flex flex-col justify-center">
-          <div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1">This Month</div>
-          <div className="text-2xl font-black text-white">{thisMonthCount}</div>
+          <div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1">This Week</div>
+          <div className="text-2xl font-black text-white">{weeklyPlan.length}</div>
         </div>
         <div className="bg-[#111114] border border-white/[0.04] p-5 rounded-3xl flex flex-col justify-center">
-          <div className="text-[10px] font-black text-green-500 uppercase tracking-widest mb-1">Completed</div>
-          <div className="text-2xl font-black text-white">{completedCount}</div>
+          <div className="text-[10px] font-black text-green-500 uppercase tracking-widest mb-1 flex items-center gap-1"><CheckCircle2 size={12} /> Completed</div>
+          <div className="text-2xl font-black text-white">{completedDeadlines.length}</div>
         </div>
       </motion.div>
 
@@ -297,7 +252,7 @@ export default function CalendarPage() {
                           tabIndex={0}
                           onClick={(ev) => { ev.stopPropagation(); setSelectedEvent(e); }}
                           onKeyDown={(ev) => { if (ev.key === 'Enter') { ev.stopPropagation(); setSelectedEvent(e); } }}
-                          className={`w-2 h-2 rounded-full cursor-pointer hover:scale-150 transition-transform ${getEventStyle(e.type, e.status).bg.replace('/10', '')}`}
+                          className={`w-2 h-2 rounded-full cursor-pointer hover:scale-150 transition-transform ${getPriorityStyle(e.priority).bg.replace('/10', '')}`}
                           title={e.title}
                         />
                       ))}
@@ -319,16 +274,12 @@ export default function CalendarPage() {
         >
           <div className="bg-[#111114] border border-white/[0.04] rounded-[40px] p-6 md:p-8 flex-1 flex flex-col">
             <h3 className="text-sm font-black text-white/60 uppercase tracking-widest mb-6 flex items-center gap-2">
-              <Sparkles size={16} className="text-amber-400" /> Upcoming Events
+              <Sparkles size={16} className="text-amber-400" /> High Priority Tasks
             </h3>
             
             <div className="flex-1 flex flex-col gap-4 overflow-y-auto pr-2 no-scrollbar">
-              {events.filter(e => e.date >= today && e.status !== 'completed')
-                .sort((a, b) => a.date.getTime() - b.date.getTime())
-                .slice(0, 5)
-                .map((e: any, i: number) => {
-                  const style = getEventStyle(e.type, e.status);
-                  const Icon = style.icon;
+              {[...criticalTasks, ...upcomingDeadlines].slice(0, 5).map((e: any) => {
+                  const style = getPriorityStyle(e.priority);
                   
                   return (
                     <div 
@@ -337,29 +288,34 @@ export default function CalendarPage() {
                       tabIndex={0}
                       onClick={() => setSelectedEvent(e)}
                       onKeyDown={(ev) => { if (ev.key === 'Enter') setSelectedEvent(e) }}
-                      className="group p-4 bg-white/[0.02] border border-white/[0.04] rounded-2xl hover:border-white/10 transition-all cursor-pointer flex gap-4 items-center"
+                      className="group p-4 bg-white/[0.02] border border-white/[0.04] rounded-2xl hover:border-white/10 transition-all cursor-pointer flex flex-col gap-2"
                     >
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${style.bg} ${style.text} group-hover:scale-105 transition-transform`}>
-                        <Icon size={20} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-bold text-white truncate">{e.title}</h4>
-                        <div className="text-[11px] font-semibold text-white/40 truncate">{e.university}</div>
-                        <div className="text-[10px] text-white/30 uppercase tracking-widest mt-1">
-                          {e.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1 min-w-0 pr-2">
+                          <h4 className="text-[13px] font-bold text-white truncate">{e.title}</h4>
+                          <div className="text-[11px] font-semibold text-white/40 truncate mt-0.5">{e.universityName}</div>
+                        </div>
+                        <div className={`px-2 py-0.5 rounded border text-[9px] font-black uppercase tracking-widest shrink-0 ${style.bg} ${style.text} ${style.border}`}>
+                           {e.daysRemaining === 0 ? 'Today' : e.daysRemaining < 0 ? 'Overdue' : `${e.daysRemaining} days`}
                         </div>
                       </div>
+                      
+                      {(e.riskLevel === 'High Risk' || e.requiredDocuments.length > 0) && (
+                        <div className="mt-1 flex items-center gap-1.5 text-[10px] text-amber-400/80 bg-amber-500/10 px-2 py-1 rounded-md border border-amber-500/10 w-fit">
+                          <ShieldAlert size={12} /> {e.requiredDocuments.length > 0 ? `Missing ${e.requiredDocuments[0]}` : 'High Risk'}
+                        </div>
+                      )}
                     </div>
                   )
               })}
 
-              {events.filter(e => e.date >= today && e.status !== 'completed').length === 0 && (
+              {criticalTasks.length === 0 && upcomingDeadlines.length === 0 && (
                 <div className="flex-1 flex flex-col items-center justify-center py-10 text-center opacity-60">
-                  <CalendarIcon size={32} className="text-white/20 mb-4" />
-                  <div className="text-sm font-bold text-white mb-1">No upcoming events</div>
-                  <div className="text-[11px] text-white/40 mb-6">Your schedule is clear.</div>
+                  <CheckCircle2 size={32} className="text-emerald-400 mb-4" />
+                  <div className="text-sm font-bold text-white mb-1">🎉 You&apos;re on track.</div>
+                  <div className="text-[11px] text-white/40 mb-6 max-w-[150px]">No urgent admission tasks are pending.</div>
                   <button 
-                    onClick={() => router.push('/student/universities')}
+                    onClick={() => router.push('/student/discover')}
                     className="px-6 py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
                   >
                     Explore Universities

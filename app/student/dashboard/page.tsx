@@ -12,6 +12,7 @@ import { ProfileStrengthCard } from '@/components/dashboard/ProfileStrengthCard'
 import { AdmissionChecklistCard } from '@/components/dashboard/AdmissionChecklistCard'
 import { DashboardRecommendationWidget } from '@/components/dashboard/RecommendationWidget'
 import { ScholarshipWidget } from '@/components/dashboard/ScholarshipWidget'
+import { DeadlineWidget } from '@/components/dashboard/DeadlineWidget'
 
 // Animations
 const itemFade = {
@@ -295,38 +296,8 @@ export default function StudentDashboard() {
         </motion.div>
 
         {/* Upcoming Deadlines (Span 4) */}
-        <motion.div variants={itemFade} className="col-span-12 xl:col-span-4 bg-[#111114] border border-white/[0.06] rounded-[24px] p-6 h-[380px] flex flex-col">
-          <h3 className="text-[15px] font-display font-semibold text-white mb-5 shrink-0 flex items-center gap-2">
-            <Clock size={16} className="text-amber-400" />
-            Deadlines
-          </h3>
-          <div className="flex-1 space-y-4 custom-scrollbar overflow-y-auto">
-            {deadlines.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center bg-white/[0.02] border border-white/[0.04] rounded-[20px] p-6 text-center group hover:bg-white/[0.03] transition-colors">
-                <div className="w-14 h-14 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-400 mb-4 group-hover:scale-110 transition-transform duration-500">
-                  <Clock size={28} />
-                </div>
-                <h4 className="text-[15px] font-display font-semibold text-white mb-2">No upcoming deadlines</h4>
-                <p className="text-[12px] text-white/50 mb-5 max-w-[220px]">Your schedule is clear. Check the calendar for upcoming university events.</p>
-                <Link href="/student/calendar" className="h-9 px-5 bg-white/[0.05] border border-white/10 hover:border-white/30 rounded-full text-[12px] font-semibold text-white flex items-center justify-center transition-colors">
-                  View Calendar
-                </Link>
-              </div>
-            ) : (
-              deadlines.map((d: any, i: number) => (
-                <div key={i} className="flex gap-4 items-start">
-                  <div className="w-[2px] h-[36px] bg-amber-500/20 rounded-full shrink-0" />
-                  <div>
-                    <h4 className="text-[13px] font-semibold text-white/90">{d.title || 'Deadline'}</h4>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-[11px] font-medium text-amber-400">{d.date || 'Soon'}</span>
-                      <span className="text-[11px] text-white/30">• {d.universityName || 'University'}</span>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+        <motion.div variants={itemFade} className="col-span-12 xl:col-span-4 h-[380px]">
+          <DeadlineWidget className="h-full" />
         </motion.div>
 
         {/* Document Vault (Span 4) */}
