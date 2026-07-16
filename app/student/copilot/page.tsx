@@ -2,11 +2,14 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Send, User, ChevronRight, FileText, Target, Award, Calendar, RefreshCcw, Copy, Trash2, ArrowRight } from 'lucide-react';
+import { 
+  Sparkles, Send, User, Target, Award, Calendar, RefreshCcw, 
+  Copy, PanelLeftClose, PanelLeftOpen, MessageSquare, Search, 
+  Plus, Edit3, ShieldAlert, GraduationCap, MapPin, AlignLeft,
+  Wand2, FileText, CheckCircle2, ChevronRight, PenTool, Briefcase, ArrowRight
+} from 'lucide-react';
 import { useStudentData } from '@/components/providers/StudentDataProvider';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import { AIWorkspaceLayout } from '@/components/ai/AIWorkspaceLayout';
-import { AIContextCard } from '@/components/ai/AIContextCard';
 
 // Firebase & Engines
 import { calculateProfileStrength } from '@/lib/utils/profileStrength';
@@ -17,17 +20,34 @@ import { generateDeadlineInsights } from '@/lib/utils/deadlineEngine';
 import { CopilotService } from '@/lib/ai/gemini/services';
 import { useAIChat, ChatMessage } from '@/hooks/useAIChat';
 
-const SUGGESTED_TOPICS = [
-  "How can I improve my admission chances?",
-  "Why is this university recommended?",
-  "Explain my scholarship eligibility.",
-  "Which applications should I prioritize?",
+const QUICK_ACTIONS = [
+  { icon: User, label: 'Improve Profile' },
+  { icon: MapPin, label: 'Find Universities' },
+  { icon: Award, label: 'Scholarships' },
+  { icon: FileText, label: 'Resume' },
+  { icon: PenTool, label: 'SOP' },
+  { icon: Briefcase, label: 'Interview' },
+  { icon: Edit3, label: 'Writing' }
+];
+
+const SUGGESTIONS = [
+  "Find universities for me",
+  "Improve my profile",
+  "Check admission chances",
+  "Recommend scholarships",
+  "Plan my admission",
+  "Ask anything"
+];
+
+const BOTTOM_PILLS = [
+  "Explain", "Summarize", "Compare", "Generate", "Improve", "Rewrite", "Plan"
 ];
 
 export default function CopilotPage() {
   const { profile, documents, uniqueApps, savedPrograms, deadlines, universities, scholarships } = useStudentData();
   const { messages, setMessages, isTyping, sendMessage, clearMessages } = useAIChat();
   const [input, setInput] = useState('');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Compute Engines
@@ -47,18 +67,6 @@ export default function CopilotPage() {
       deadlineInsights
     };
   }, [profile, documents, uniqueApps, savedPrograms, deadlines, universities, scholarships]);
-
-  // Initial Welcome
-  useEffect(() => {
-    if (profile && messages.length === 0) {
-      setMessages([{
-        id: 'welcome',
-        role: 'assistant',
-        content: `Hi ${profile.firstName || 'Student'} 👋\n\nI'm your EDUING AI Copilot.\n\nI can help you discover universities, improve your admission chances, understand scholarships, prepare documents, compare colleges, and guide you through every step of your admission journey.`,
-        timestamp: new Date()
-      }]);
-    }
-  }, [profile, messages.length, setMessages]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -104,17 +112,17 @@ export default function CopilotPage() {
 
     const flushList = (key: number) => {
       if (listItems.length > 0) {
-        elements.push(<ul key={`ul-${key}`} className="list-disc my-2">{listItems}</ul>);
+        elements.push(<ul key={`ul-${key}`} className="list-disc pl-6 my-4 space-y-2 text-[15px]">{listItems}</ul>);
         listItems = [];
       }
     };
 
     content.split('\n').forEach((line, i) => {
       const trimmed = line.trim();
-      if (trimmed.startsWith('•') || trimmed.startsWith('- ')) {
-        const itemText = trimmed.replace(/^[•-]\s*/, '');
+      if (trimmed.startsWith('•') || trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+        const itemText = trimmed.replace(/^[•*\-]\s*/, '');
         listItems.push(
-          <li key={`li-${i}`} className="ml-4 mb-1">
+          <li key={`li-${i}`}>
             {formatInlineText(itemText)}
           </li>
         );
@@ -122,13 +130,10 @@ export default function CopilotPage() {
         flushList(i);
         if (trimmed) {
           elements.push(
-            <div key={`p-${i}`} className={elements.length > 0 ? "mt-2" : ""}>
+            <p key={`p-${i}`} className="text-[15px] leading-relaxed mb-4 last:mb-0">
               {formatInlineText(line)}
-            </div>
+            </p>
           );
-        } else {
-          // Empty line, could just push a spacer if needed
-          elements.push(<div key={`br-${i}`} className="h-2" />);
         }
       }
     });
@@ -139,186 +144,284 @@ export default function CopilotPage() {
 
   if (!context) {
     return (
-      <div className="min-h-screen bg-[#0A0A0F] flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#09090B] flex items-center justify-center">
+        <div className="w-12 h-12 border-2 border-[#6D5DF6]/30 border-t-[#6D5DF6] rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
     <ProtectedRoute allowedRoles={['student']}>
-      <AIWorkspaceLayout
-        title="AI Copilot"
-        icon={<Sparkles size={16} />}
-        leftPanel={
-          <>
-            <div>
-              <h3 className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-3 px-2">Suggested Topics</h3>
-              <div className="space-y-1">
-                {SUGGESTED_TOPICS.map((topic, i) => (
-                  <button 
-                    key={i}
-                    onClick={() => handleSend(topic)}
-                    className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-white/5 text-[12px] font-medium text-white/60 hover:text-white transition-colors"
-                  >
-                    {topic}
-                  </button>
-                ))}
-              </div>
+      <div className="h-screen bg-[#09090B] text-white selection:bg-[#6D5DF6]/30 font-sans flex flex-col overflow-hidden">
+        
+        {/* HEADER */}
+        <header className="h-[72px] shrink-0 border-b border-white/5 flex items-center justify-between px-6 bg-[#111113] z-20">
+          <div className="flex items-center gap-4">
+            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 bg-[#151519] border border-white/5 hover:bg-white/5 rounded-[12px] text-gray-400 hover:text-white transition-colors">
+              {sidebarOpen ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}
+            </button>
+            <div className="flex flex-col">
+              <h1 className="text-[16px] font-medium flex items-center gap-2">AI Copilot 
+                <span className="px-2 py-0.5 bg-[#6D5DF6]/10 border border-[#6D5DF6]/20 text-[#6D5DF6] text-[10px] font-medium rounded-full flex items-center gap-1">
+                  <Sparkles size={10} /> Gemini 2.5 Flash
+                </span>
+              </h1>
+              <span className="text-[12px] text-gray-500">Your personal admission advisor.</span>
             </div>
-
-            <div>
-              <h3 className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-3 px-2">Quick Actions</h3>
-              <div className="space-y-2">
-                <button onClick={() => handleSend("Improve My Profile")} className="w-full flex items-center gap-3 px-3 py-2.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 rounded-xl text-xs font-bold transition-colors border border-indigo-500/10">
-                  <User size={14} /> Improve Profile
-                </button>
-                <button onClick={() => handleSend("Recommend Universities")} className="w-full flex items-center gap-3 px-3 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-xl text-xs font-bold transition-colors border border-emerald-500/10">
-                  <Target size={14} /> Find Universities
-                </button>
-              </div>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <div className="relative hidden md:block">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
+              <input type="text" placeholder="Search conversations..." className="bg-[#151519] border border-white/5 rounded-full pl-9 pr-4 py-2 text-[12px] text-white outline-none focus:border-[#6D5DF6]/50 transition-colors w-[200px]" />
             </div>
+            <button onClick={clearMessages} className="p-2 bg-[#6D5DF6] hover:bg-[#6D5DF6]/90 text-white rounded-full transition-colors" title="New Chat">
+              <Plus size={18} />
+            </button>
+          </div>
+        </header>
 
-            <div className="pt-6 border-t border-white/5">
-              <button 
-                onClick={clearMessages}
-                className="w-full py-3 bg-white/5 hover:bg-white/10 rounded-xl text-xs font-bold text-white/40 hover:text-white transition-colors flex items-center justify-center gap-2"
+        <div className="flex flex-1 overflow-hidden">
+          
+          {/* LEFT SIDEBAR */}
+          <AnimatePresence initial={false}>
+            {sidebarOpen && (
+              <motion.div 
+                initial={{ width: 0, opacity: 0 }}
+                animate={{ width: 280, opacity: 1 }}
+                exit={{ width: 0, opacity: 0 }}
+                className="h-full bg-[#111113] border-r border-white/5 flex flex-col shrink-0 overflow-hidden z-10"
               >
-                <RefreshCcw size={14} /> Clear Conversation
-              </button>
-            </div>
-          </>
-        }
-        centerPanel={
-          <>
-            <div className="flex-1 w-full space-y-8 mt-10 pb-32">
-              <AnimatePresence initial={false}>
-                {messages.map((msg) => (
-                  <motion.div
-                    key={msg.id}
-                    initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div className={`max-w-[85%] rounded-[24px] p-5 ${
-                      msg.role === 'user' 
-                        ? 'bg-indigo-600 text-white rounded-br-sm' 
-                        : 'bg-[#14141A] border border-white/5 text-white/90 rounded-bl-sm'
-                    }`}>
-                      {msg.role === 'assistant' && (
-                        <div className="flex items-center gap-2 mb-3 text-indigo-400 text-xs font-bold">
-                          <Sparkles size={14} /> Copilot
-                        </div>
-                      )}
-                      <div className="text-[14px] leading-relaxed font-medium">
-                        {formatMessageContent(msg.content)}
-                      </div>
-                      
-                      {msg.role === 'assistant' && (
-                        <div className="flex items-center gap-3 mt-4 pt-3 border-t border-white/5">
-                          <button className="text-white/30 hover:text-white transition-colors"><Copy size={12} /></button>
-                          <button className="text-white/30 hover:text-white transition-colors"><RefreshCcw size={12} /></button>
-                        </div>
-                      )}
+                <div className="flex-1 overflow-y-auto p-4 space-y-8 no-scrollbar w-[280px]">
+                  
+                  {/* Recent Chats (Mocked for UI as requested) */}
+                  <div>
+                    <h3 className="text-[11px] font-medium text-gray-500 uppercase tracking-wider mb-3 px-2">Pinned</h3>
+                    <div className="space-y-1">
+                      <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[12px] bg-[#151519] text-[13px] text-white border border-white/5">
+                        <MessageSquare size={14} className="text-[#6D5DF6]" /> MIT Application Plan
+                      </button>
                     </div>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-
-              {isTyping && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
-                  <div className="bg-[#14141A] border border-white/5 rounded-[24px] rounded-bl-sm p-5 flex gap-2 items-center">
-                    <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                   </div>
-                </motion.div>
+
+                  <div>
+                    <h3 className="text-[11px] font-medium text-gray-500 uppercase tracking-wider mb-3 px-2">Today</h3>
+                    <div className="space-y-1">
+                      <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[12px] hover:bg-[#151519] text-[13px] text-gray-400 hover:text-white transition-colors">
+                        <MessageSquare size={14} /> Scholarship Eligibility Check
+                      </button>
+                      <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[12px] hover:bg-[#151519] text-[13px] text-gray-400 hover:text-white transition-colors">
+                        <MessageSquare size={14} /> Compare Stanford vs MIT
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Quick Actions */}
+                  <div>
+                    <h3 className="text-[11px] font-medium text-gray-500 uppercase tracking-wider mb-3 px-2">Quick Actions</h3>
+                    <div className="grid grid-cols-2 gap-2 px-1">
+                      {QUICK_ACTIONS.map((action, i) => (
+                        <button 
+                          key={i} 
+                          onClick={() => handleSend(`Help me with ${action.label.toLowerCase()}`)}
+                          className="flex flex-col items-center justify-center gap-2 p-3 bg-[#151519] border border-white/5 hover:border-[#6D5DF6]/30 hover:bg-[#151519]/80 rounded-[16px] transition-all"
+                        >
+                          <action.icon size={16} className="text-gray-400" />
+                          <span className="text-[11px] text-gray-400">{action.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* CENTER CHAT AREA */}
+          <div className="flex-1 flex flex-col relative bg-[#09090B]">
+            <div className="flex-1 overflow-y-auto custom-scrollbar">
+              
+              {messages.length === 0 ? (
+                /* EMPTY STATE */
+                <div className="h-full flex flex-col items-center justify-center p-8 max-w-3xl mx-auto text-center">
+                  <div className="w-20 h-20 bg-[#6D5DF6]/10 rounded-[32px] flex items-center justify-center mb-8 border border-[#6D5DF6]/20">
+                    <Sparkles size={32} className="text-[#6D5DF6]" />
+                  </div>
+                  <h2 className="text-[32px] font-medium mb-12">What would you like help with today?</h2>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                    {SUGGESTIONS.map((sug, i) => (
+                      <button 
+                        key={i}
+                        onClick={() => handleSend(sug)}
+                        className="bg-[#111113] border border-white/5 hover:border-white/20 rounded-[24px] p-6 text-left transition-all group"
+                      >
+                        <span className="text-[15px] font-medium text-gray-300 group-hover:text-white transition-colors">{sug}</span>
+                        <div className="mt-4 w-8 h-8 rounded-full bg-[#151519] flex items-center justify-center text-gray-500 group-hover:bg-white/10 group-hover:text-white transition-colors">
+                          <ArrowRight size={14} />
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                /* CHAT MESSAGES */
+                <div className="max-w-4xl mx-auto pt-8 pb-40 px-4 md:px-8 space-y-8">
+                  <AnimatePresence initial={false}>
+                    {messages.map((msg) => (
+                      <motion.div
+                        key={msg.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                      >
+                        {msg.role === 'user' ? (
+                          <div className="max-w-[70%] bg-[#151519] border border-white/5 rounded-[24px] px-6 py-4 text-[15px] text-white">
+                            {msg.content}
+                          </div>
+                        ) : (
+                          <div className="max-w-[85%] bg-transparent text-white">
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="w-8 h-8 rounded-full bg-[#6D5DF6] flex items-center justify-center">
+                                <Sparkles size={14} className="text-white" />
+                              </div>
+                              <span className="text-[14px] font-medium text-gray-300">EDUING Copilot</span>
+                            </div>
+                            <div className="pl-11">
+                              {formatMessageContent(msg.content)}
+                              <div className="flex items-center gap-2 mt-4 pt-4 border-t border-white/5">
+                                <button className="p-1.5 text-gray-500 hover:text-white rounded-[8px] hover:bg-white/5 transition-colors"><Copy size={14} /></button>
+                                <button className="p-1.5 text-gray-500 hover:text-white rounded-[8px] hover:bg-white/5 transition-colors"><RefreshCcw size={14} /></button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                  
+                  {isTyping && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
+                       <div className="flex items-center gap-3 mb-3">
+                        <div className="w-8 h-8 rounded-full bg-[#6D5DF6] flex items-center justify-center">
+                          <Sparkles size={14} className="text-white" />
+                        </div>
+                        <span className="text-[14px] font-medium text-gray-300">Thinking...</span>
+                      </div>
+                    </motion.div>
+                  )}
+                  <div ref={messagesEndRef} className="h-4" />
+                </div>
               )}
-              <div ref={messagesEndRef} />
             </div>
 
-            <div className="absolute bottom-0 inset-x-0 p-4 md:p-8 bg-gradient-to-t from-[#050505] via-[#050505] to-transparent pointer-events-none">
-              <div className="max-w-3xl mx-auto relative pointer-events-auto">
-                <input
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSend(input)}
-                  placeholder="Ask about your admission journey..."
-                  className="w-full bg-[#111114] border border-white/10 rounded-full pl-6 pr-14 py-4 text-sm focus:border-indigo-500/50 outline-none transition-all text-white placeholder:text-white/30 shadow-2xl"
-                />
-                <button 
-                  onClick={() => handleSend(input)}
-                  disabled={!input.trim() || isTyping}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-indigo-600 hover:bg-indigo-500 disabled:bg-white/5 disabled:text-white/20 rounded-full flex items-center justify-center transition-all text-white"
-                >
-                  <Send size={16} />
-                </button>
+            {/* INPUT AREA */}
+            <div className="absolute bottom-0 inset-x-0 pt-10 pb-8 px-4 md:px-8 bg-gradient-to-t from-[#09090B] via-[#09090B] to-transparent pointer-events-none z-20">
+              <div className="max-w-4xl mx-auto pointer-events-auto">
+                
+                {/* AI Quick Actions (Pills) */}
+                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar mb-4 px-2">
+                  {BOTTOM_PILLS.map(pill => (
+                    <button 
+                      key={pill} 
+                      onClick={() => setInput(`${pill} `)}
+                      className="px-4 py-1.5 bg-[#111113] border border-white/5 hover:border-white/20 rounded-full text-[12px] font-medium text-gray-400 hover:text-white transition-colors shrink-0"
+                    >
+                      {pill}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="relative bg-[#111113] border border-white/10 rounded-[32px] p-2 shadow-[0_0_40px_rgba(0,0,0,0.5)] focus-within:border-[#6D5DF6]/50 transition-colors">
+                  <div className="flex items-center">
+                    <button className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-white transition-colors">
+                      <Plus size={20} />
+                    </button>
+                    <input
+                      type="text"
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSend(input)}
+                      placeholder="Ask Copilot anything..."
+                      className="flex-1 bg-transparent px-2 py-4 text-[15px] outline-none text-white placeholder:text-gray-600"
+                    />
+                    <button 
+                      onClick={() => handleSend(input)}
+                      disabled={!input.trim() || isTyping}
+                      className="w-10 h-10 bg-[#6D5DF6] hover:bg-[#6D5DF6]/90 disabled:bg-white/5 disabled:text-gray-600 rounded-full flex items-center justify-center transition-all text-white shrink-0 mx-1"
+                    >
+                      <Send size={16} className={input.trim() && !isTyping ? "translate-x-0.5" : ""} />
+                    </button>
+                  </div>
+                </div>
+                <div className="text-center mt-3">
+                  <span className="text-[10px] text-gray-600">Copilot can make mistakes. Consider verifying critical admission deadlines.</span>
+                </div>
               </div>
             </div>
-          </>
-        }
-        rightPanel={
-          <>
-            <div className="p-6 border-b border-white/5">
-              <h2 className="text-sm font-black text-white/80">Active Context</h2>
-              <p className="text-[10px] text-white/40 mt-1 uppercase tracking-widest">Auto-synced with Engines</p>
+
+          </div>
+
+          {/* RIGHT PANEL - ADMISSION SNAPSHOT */}
+          <div className="w-[320px] bg-[#111113] border-l border-white/5 flex flex-col shrink-0 z-10 hidden xl:flex">
+            <div className="p-6 border-b border-white/5 bg-[#151519]">
+              <h2 className="text-[14px] font-medium flex items-center gap-2">
+                <AlignLeft size={16} className="text-[#6D5DF6]" />
+                Admission Snapshot
+              </h2>
             </div>
             
-            <div className="flex-1 overflow-y-auto p-5 space-y-6 custom-scrollbar">
-              {/* Profile Strength */}
-              <AIContextCard
-                title="Profile"
-                icon={User}
-                value={`${context.profileEngine.percentage}%`}
-                progress={context.profileEngine.percentage}
-              />
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar">
+              
+              <SnapshotCard title="Profile Strength" value={`${context.profileEngine.percentage}%`} icon={User}>
+                <div className="w-full h-1.5 bg-[#151519] rounded-full mt-3 overflow-hidden">
+                  <div className="h-full bg-[#6D5DF6]" style={{ width: `${context.profileEngine.percentage}%` }} />
+                </div>
+              </SnapshotCard>
 
-              {/* Top Checklist */}
-              <AIContextCard
-                title="Priorities"
-                icon={FileText}
-                valueColor="text-emerald-400"
-              >
-                {context.checklist.tasks.filter((t: any) => t.priority === 'Critical' || t.priority === 'High').slice(0, 3).map((t: any, i: number) => (
-                  <div key={i} className="text-[11px] text-white/60 truncate flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                    {t.title}
-                  </div>
-                ))}
-                {context.checklist.tasks.length === 0 && <div className="text-[11px] text-white/40">No critical tasks.</div>}
-              </AIContextCard>
+              {context.recommendations.length > 0 && (
+                <SnapshotCard title="Top Match" value={`${context.recommendations[0].overallMatchScore}%`} icon={Target}>
+                  <div className="text-[12px] text-gray-400 mt-2">{context.recommendations[0].university.name}</div>
+                </SnapshotCard>
+              )}
 
-              {/* Top Recommendations */}
-              <AIContextCard
-                title="Matches"
-                icon={Target}
-                valueColor="text-amber-400"
-              >
-                {context.recommendations.slice(0, 3).map((r: any, i: number) => (
-                  <div key={i} className="flex justify-between items-center">
-                    <span className="text-[11px] text-white/60 truncate max-w-[150px]">{r.university.name}</span>
-                    <span className="text-[10px] font-bold text-amber-400">{r.overallMatchScore}%</span>
-                  </div>
-                ))}
-              </AIContextCard>
+              {context.scholarshipsResults.length > 0 && (
+                <SnapshotCard title="Scholarship Eligible" value={context.scholarshipsResults.filter(s=>s.eligibilityScore >= 70).length.toString()} icon={Award}>
+                  <div className="text-[12px] text-gray-400 mt-2 truncate">{context.scholarshipsResults[0].scholarship.name}</div>
+                </SnapshotCard>
+              )}
 
-              {/* Scholarships */}
-              <AIContextCard
-                title="Scholarships"
-                icon={Award}
-                valueColor="text-rose-400"
-              >
-                {context.scholarshipsResults.filter(s => s.eligibilityScore >= 60).slice(0, 2).map((s, i) => (
-                  <div key={i} className="text-[11px] text-white/60 truncate">
-                    {s.scholarship.name}
-                  </div>
-                ))}
-              </AIContextCard>
+              {context.deadlineInsights.criticalTasks.length > 0 ? (
+                <SnapshotCard title="Critical Tasks" value={context.deadlineInsights.criticalTasks.length.toString()} icon={ShieldAlert} color="text-rose-400">
+                  <div className="text-[12px] text-rose-400/80 mt-2 line-clamp-2">{context.deadlineInsights.criticalTasks[0].title}</div>
+                </SnapshotCard>
+              ) : (
+                <SnapshotCard title="Critical Tasks" value="0" icon={CheckCircle2} color="text-emerald-400">
+                  <div className="text-[12px] text-emerald-400/80 mt-2">You are all caught up!</div>
+                </SnapshotCard>
+              )}
+
             </div>
-          </>
-        }
-      />
+          </div>
+
+        </div>
+      </div>
     </ProtectedRoute>
   );
+}
+
+function SnapshotCard({ title, value, icon: Icon, color = "text-white", children }: any) {
+  return (
+    <div className="bg-[#151519] border border-white/5 rounded-[20px] p-5">
+      <div className="flex justify-between items-start mb-2">
+        <div className="flex items-center gap-2 text-gray-400">
+          <Icon size={14} />
+          <span className="text-[12px] font-medium">{title}</span>
+        </div>
+        <div className={`text-[20px] font-medium ${color}`}>{value}</div>
+      </div>
+      {children}
+    </div>
+  )
 }

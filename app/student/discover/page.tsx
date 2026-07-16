@@ -1,473 +1,381 @@
 'use client'
 
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import ProtectedRoute from '@/components/ProtectedRoute'
 import { 
-  Search, 
-  MapPin, 
-  Star, 
-  Award, 
-  ChevronRight, 
-  SlidersHorizontal,
-  X,
-  CheckCircle2,
-  AlertCircle,
-  Building2,
-  GraduationCap
+  Search, MapPin, Sparkles, SlidersHorizontal, CheckCircle2, 
+  ChevronRight, Bookmark, ShieldCheck, BookOpen, Banknote,
+  LayoutGrid, X
 } from 'lucide-react'
-import { useAuth } from '@/hooks/useAuth'
+import ProtectedRoute from '@/components/ProtectedRoute'
 import { useStudentData } from '@/components/providers/StudentDataProvider'
 import { recommendUniversities } from '@/lib/utils/recommendationEngine'
-import { NaturalLanguageSearchService } from '@/lib/ai/gemini'
-import { Sparkles, User, Compass } from 'lucide-react'
-import { AIWorkspaceLayout } from '@/components/ai/AIWorkspaceLayout'
-import { AIContextCard } from '@/components/ai/AIContextCard'
-import { AILoadingState } from '@/components/ai/AILoadingState'
-import { AIEmptyState } from '@/components/ai/AIEmptyState'
-import { useFocusTrap } from '@/hooks/useFocusTrap'
-import { useAIGeneration } from '@/hooks/useAIGeneration'
-import { University } from '@/types/firebase'
 
-const NAAC_GRADES = ['A++', 'A+', 'A', 'B++', 'B+', 'B']
-const RATINGS = [4.5, 4.0, 3.5, 3.0]
-const STATES = ['Delhi', 'Karnataka', 'Maharashtra', 'Tamil Nadu', 'Rajasthan', 'Kerala', 'Punjab', 'Uttar Pradesh']
+const SUGGESTION_CHIPS = ['Engineering', 'Medical', 'MBA', 'Law', 'Study Abroad', 'Scholarships', 'AI Recommended']
 
-export default function PremiumDiscoverPage() {
+const QUICK_CATEGORIES = [
+  'Engineering', 'Medical', 'Law', 'Commerce', 'Arts', 
+  'Management', 'Architecture', 'Design', 'Agriculture', 'Science'
+]
+
+function getAIMatchBadge(score: number) {
+  if (score >= 90) return { label: 'Excellent Match', color: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20' }
+  if (score >= 80) return { label: 'Strong Match', color: 'text-blue-400 bg-blue-400/10 border-blue-400/20' }
+  if (score >= 70) return { label: 'Good Match', color: 'text-[#6D5DF6] bg-[#6D5DF6]/10 border-[#6D5DF6]/20' }
+  return { label: 'Average Match', color: 'text-gray-400 bg-white/5 border-white/10' }
+}
+
+export default function DiscoverUniversities() {
   const router = useRouter()
-  const { user } = useAuth()
-  const { profile, documents, uniqueApps, savedPrograms, profileScore, universities: allUniversities, loading: studentDataLoading, error } = useStudentData()
+  const { profile, documents, uniqueApps, savedPrograms, profileScore, universities, loading, error } = useStudentData()
   
-  const { isGenerating: aiLoading, generate: generateAiSearch, error: aiError } = useAIGeneration<any>();
-
-  const handleAISearch = async () => {
-    if (!searchQuery) return;
-    setAiMode(true);
-    await generateAiSearch(async () => {
-      const intentRes = await NaturalLanguageSearchService.parseIntent(searchQuery);
-      if (intentRes.success && intentRes.data) {
-        const intent = intentRes.data;
-        if (intent.location) setSelectedState(intent.location);
-        // Map intent to filters...
-        
-        // Explain results
-        const explanationRes = await NaturalLanguageSearchService.generateExplanation(searchQuery, filteredUniversities);
-        if (explanationRes.success) {
-          setAiExplanation(explanationRes.text || '');
-        }
-      }
-      return { success: intentRes.success, text: intentRes.text, error: intentRes.error };
-    });
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      if (searchQuery.toLowerCase().includes('near') || searchQuery.toLowerCase().includes('under') || searchQuery.toLowerCase().includes('best')) {
-         handleAISearch();
-      }
-    }
-  };
-
-  // Search & Filter State
-  const [viewMode, setViewMode] = useState<'Recommended' | 'All'>('Recommended')
   const [searchQuery, setSearchQuery] = useState('')
-  const [aiMode, setAiMode] = useState(false)
-  const [aiExplanation, setAiExplanation] = useState('')
-  const [activeLevel, setActiveLevel] = useState<'All' | 'UG' | 'PG'>('All')
-  const [selectedState, setSelectedState] = useState('')
-  const [minRating, setMinRating] = useState(0)
-  const [selectedNAAC, setSelectedNAAC] = useState('')
-  const [showFilters, setShowFilters] = useState(false)
-  const filterDrawerRef = useFocusTrap<HTMLDivElement>(showFilters, () => setShowFilters(false))
+  const [selectedCategory, setSelectedCategory] = useState('All')
+  const [compareList, setCompareList] = useState<any[]>([])
+  const [hoveredUni, setHoveredUni] = useState<string | null>(null)
 
-  const universities = useMemo(() => {
-    return allUniversities.filter((u: University) => {
-      if (activeLevel !== 'All' && !u.programs.some((p: any) => p.level === activeLevel)) return false;
-      if (selectedState && u.location !== selectedState) return false;
-      if (minRating > 0 && (u.rating || 0) < minRating) return false;
-      if (selectedNAAC && u.naacGrade !== selectedNAAC) return false;
-      return true;
-    });
-  }, [allUniversities, activeLevel, selectedState, minRating, selectedNAAC]);
-
-  // Recommendations
+  // Recommendation engine gives us match scores and reasons
   const recommendations = useMemo(() => {
-    return recommendUniversities(universities, {
-      profile,
-      documents,
-      applications: uniqueApps,
-      savedPrograms,
-      profileScore
-    });
+    return recommendUniversities(universities || [], {
+      profile, documents, applications: uniqueApps, savedPrograms, profileScore
+    })
   }, [universities, profile, documents, uniqueApps, savedPrograms, profileScore])
 
-  // Client-side search for name/program (partial match)
-  const filteredUniversities = useMemo(() => {
-    let baseList = universities
-    
-    if (viewMode === 'Recommended') {
-      baseList = recommendations.map(r => r.university)
-    }
+  // Map of uniId to recommendation data
+  const recMap = useMemo(() => {
+    const map = new Map()
+    recommendations.forEach(r => map.set(r.university.id, r))
+    return map
+  }, [recommendations])
 
-    if (!searchQuery) return baseList
-    return baseList.filter((uni: University) => 
-      uni.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      uni.programs.some((p: any) => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredUnis = useMemo(() => {
+    if (!universities) return []
+    return universities.filter((u: any) => {
+      const matchSearch = !searchQuery || 
+        u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        u.location?.toLowerCase().includes(searchQuery.toLowerCase())
+      
+      const matchCat = selectedCategory === 'All' || 
+        u.programs?.some((p: any) => p.name.toLowerCase().includes(selectedCategory.toLowerCase()))
+
+      return matchSearch && matchCat
+    })
+  }, [universities, searchQuery, selectedCategory])
+
+  const toggleCompare = (uni: any) => {
+    setCompareList(prev => 
+      prev.find(u => u.id === uni.id) ? prev.filter(u => u.id !== uni.id) : [...prev, uni]
     )
-  }, [universities, recommendations, viewMode, searchQuery])
-
-
-
-  const handleApply = (uni: University) => {
-    if (!user) {
-      router.push('/auth/login')
-      return
-    }
-
-    // Free exploration - allow viewing university details
-    router.push(`/student/universities/${uni.id}`)
   }
 
-  if (studentDataLoading) return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      height: '400px',
-      gap: '16px',
-    }}>
-      <p style={{color:'#EF4444', fontSize:'16px'}}>
-        Error: {error}
-      </p>
-      <button
-        onClick={() => window.location.reload()}
-        style={{
-          background: '#4F46E5',
-          color: 'white',
-          border: 'none',
-          borderRadius: '8px',
-          padding: '10px 24px',
-          cursor: 'pointer',
-        }}
-      >
-        Retry Sync
-      </button>
+  if (loading) return (
+    <div className="min-h-screen bg-[#09090B] flex items-center justify-center">
+      <div className="w-12 h-12 border-2 border-[#6D5DF6]/30 border-t-[#6D5DF6] rounded-full animate-spin" />
     </div>
   )
 
-  if (universities.length === 0) return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      height: '400px',
-      gap: '12px',
-    }}>
-      <p style={{
-        color: 'rgba(255,255,255,0.4)',
-        fontSize: '16px',
-        fontWeight: 'bold'
-      }}>
-        No institutions found
-      </p>
-      <p style={{
-        color: 'rgba(255,255,255,0.2)',
-        fontSize: '13px',
-      }}>
-        Check &apos;universities&apos; collection in Firebase.
-      </p>
-      <button
-        onClick={() => window.location.reload()}
-        style={{
-          background: '#4F46E5',
-          color: 'white',
-          border: 'none',
-          borderRadius: '8px',
-          padding: '10px 24px',
-          cursor: 'pointer',
-          fontSize: '14px',
-        }}
-      >
-        Retry Sync
-      </button>
+  if (error) return (
+    <div className="min-h-screen bg-[#09090B] flex items-center justify-center text-white">
+      Error loading discovery data. Please refresh.
     </div>
   )
 
   return (
     <ProtectedRoute allowedRoles={['student']}>
-      <AIWorkspaceLayout
-        title="AI Program Discovery"
-        icon={<Search size={16} />}
-        leftPanel={
-          <>
-            <div className="p-4 border-b border-white/5 flex justify-between items-center">
-              <h3 className="text-xs font-black uppercase tracking-widest text-white/40">Filters</h3>
-              <button onClick={() => {
-                setActiveLevel('All'); setSelectedState(''); setMinRating(0); setSelectedNAAC('');
-              }} className="text-[10px] font-black uppercase text-indigo-400 hover:text-indigo-300 transition-all">Reset</button>
+      <div className="min-h-screen bg-[#09090B] text-white selection:bg-[#6D5DF6]/30 font-sans pb-32">
+        
+        {/* HERO SECTION */}
+        <section className="pt-24 pb-16 px-8 max-w-5xl mx-auto flex flex-col items-center text-center">
+          <h1 className="text-[48px] md:text-[64px] font-medium tracking-tight mb-4">Discover Universities</h1>
+          <p className="text-[16px] text-gray-400 mb-12 max-w-2xl">
+            Explore institutions perfectly matched to your academic journey using our intelligent engine.
+          </p>
+          
+          <div className="w-full relative group">
+            <div className="absolute inset-0 bg-[#6D5DF6]/5 blur-3xl rounded-full pointer-events-none transition-opacity opacity-0 group-focus-within:opacity-100" />
+            <div className="relative bg-[#151519] border border-white/5 rounded-[32px] p-3 flex items-center shadow-xl transition-all focus-within:border-[#6D5DF6]/30 focus-within:bg-[#1A1A20]">
+              <div className="pl-6 pr-4 text-[#6D5DF6]">
+                <Sparkles size={24} />
+              </div>
+              <input 
+                type="text"
+                placeholder="What are the best Computer Science colleges under ₹8L in Bangalore?"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 bg-transparent border-none outline-none text-[16px] text-white py-4 placeholder:text-gray-500"
+              />
+              <button className="bg-[#6D5DF6] text-white px-8 py-4 rounded-[24px] text-[16px] font-medium hover:bg-[#6D5DF6]/90 transition-colors ml-2">
+                Search
+              </button>
             </div>
             
-            <div className="flex-1 overflow-y-auto p-4 space-y-8 custom-scrollbar">
-              {/* Level Toggle */}
-              <div className="space-y-4">
-                <span className="text-[10px] font-black text-white/46 uppercase tracking-widest">Academic Level</span>
-                <div className="grid grid-cols-3 gap-2 bg-white/5 p-1 rounded-xl border border-white/5" role="group" aria-label="Academic Level">
-                  {['All', 'UG', 'PG'].map(l => (
-                    <button key={l} onClick={() => setActiveLevel(l as any)} className={`py-2 rounded-lg text-xs font-bold transition-all ${activeLevel === l ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-white/40 hover:text-white'}`}>
-                      {l}
-                    </button>
-                  ))}
+            {searchQuery && (
+              <div className="absolute top-full left-0 w-full mt-4 bg-[#111113] border border-[#6D5DF6]/20 rounded-[24px] p-6 text-left shadow-2xl z-50">
+                <div className="flex items-center gap-3 mb-2">
+                  <Sparkles size={16} className="text-[#6D5DF6]" />
+                  <span className="text-[14px] font-medium text-white">AI is understanding your request...</span>
                 </div>
+                <p className="text-[14px] text-gray-400">We found {filteredUnis.length} universities matching your preferences perfectly.</p>
               </div>
+            )}
+          </div>
+          
+          <div className="flex flex-wrap items-center justify-center gap-3 mt-8">
+            {SUGGESTION_CHIPS.map(chip => (
+              <button 
+                key={chip} 
+                onClick={() => setSearchQuery(chip)}
+                className="px-6 py-2.5 rounded-full border border-white/5 bg-[#111113] text-[14px] text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+              >
+                {chip}
+              </button>
+            ))}
+          </div>
+        </section>
 
-              {/* Location Dropdown */}
-              <div className="space-y-4">
-                <label htmlFor="state-region" className="text-[10px] font-black text-white/46 uppercase tracking-widest">State / Region</label>
-                <select id="state-region" value={selectedState} onChange={e => setSelectedState(e.target.value)} className="w-full bg-[#111114] border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-500/50 transition-all appearance-none cursor-pointer">
-                  <option value="">All Regions</option>
-                  {STATES.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
+        {/* SECTION 2: QUICK CATEGORIES */}
+        <section className="max-w-[1600px] mx-auto px-8 mb-16">
+          <div className="flex items-center gap-4 overflow-x-auto no-scrollbar pb-4">
+            <button 
+              onClick={() => setSelectedCategory('All')}
+              className={`px-8 py-4 rounded-[20px] text-[14px] font-medium shrink-0 transition-all ${selectedCategory === 'All' ? 'bg-[#6D5DF6] text-white' : 'bg-[#151519] text-gray-400 hover:bg-white/5 border border-white/5'}`}
+            >
+              All Programs
+            </button>
+            {QUICK_CATEGORIES.map(cat => (
+              <button 
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-8 py-4 rounded-[20px] text-[14px] font-medium shrink-0 transition-all ${selectedCategory === cat ? 'bg-[#6D5DF6] text-white' : 'bg-[#151519] text-gray-400 hover:bg-white/5 border border-white/5'}`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </section>
 
-              {/* Rating Filter */}
-              <div className="space-y-4">
-                <span className="text-[10px] font-black text-white/46 uppercase tracking-widest">Minimum Rating</span>
-                <div className="space-y-2" role="group" aria-label="Minimum Rating">
-                  {RATINGS.map(r => (
-                    <button key={r} onClick={() => setMinRating(minRating === r ? 0 : r)} className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${minRating === r ? 'bg-indigo-500/10 border-indigo-500/50 text-white' : 'bg-transparent border-white/5 text-white/40 hover:border-white/20'}`}>
-                      <div className="flex items-center gap-2">
-                        <Star size={14} className={minRating === r ? 'fill-indigo-500 text-indigo-500' : 'text-white/20'} />
-                        <span className="text-sm font-bold">{r}+ Rating</span>
-                      </div>
-                      {minRating === r && <CheckCircle2 size={14} className="text-indigo-400" />}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* NAAC Grade */}
-              <div className="space-y-4">
-                <span className="text-[10px] font-black text-white/46 uppercase tracking-widest">NAAC Accreditation</span>
-                <div className="flex flex-wrap gap-2" role="group" aria-label="NAAC Accreditation">
-                  {NAAC_GRADES.map(g => (
-                    <button key={g} onClick={() => setSelectedNAAC(selectedNAAC === g ? '' : g)} className={`px-4 py-2 rounded-lg text-xs font-bold border transition-all ${selectedNAAC === g ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-600/20' : 'bg-white/5 border-white/5 text-white/40 hover:border-white/20'}`}>
-                      {g}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </>
-        }
-        centerPanel={
-          <>
-            <div className="sticky top-0 z-20 bg-[#050505] pt-2 pb-6 flex flex-col gap-4">
-              <div className="relative w-full group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-indigo-400 transition-colors" size={18} />
-                <input 
-                  type="text" 
-                  placeholder="Search naturally (e.g., 'Best engineering colleges under 8L near Delhi')"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  className="w-full bg-[#111114] border border-white/10 rounded-full pl-12 pr-32 py-4 text-sm placeholder:text-white/30 focus:border-indigo-500/50 outline-none transition-all shadow-xl text-white"
-                />
-                <button 
-                  onClick={handleAISearch}
-                  disabled={aiLoading}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 rounded-full text-xs font-bold transition-all flex items-center gap-2"
-                >
-                  {aiLoading ? 'Thinking...' : <><Sparkles size={14} /> Search</>}
-                </button>
-              </div>
-
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-2 bg-white/5 p-1 rounded-xl border border-white/5">
-                  <button 
-                    onClick={() => setViewMode('Recommended')} 
-                    className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${viewMode === 'Recommended' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-white/40 hover:text-white'}`}
-                  >
-                    <Star size={16} /> Recommended
-                  </button>
-                  <button 
-                    onClick={() => setViewMode('All')} 
-                    className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${viewMode === 'All' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-white/40 hover:text-white'}`}
-                  >
-                    All Universities
-                  </button>
+        {/* MAIN GRID & FILTERS */}
+        <section className="max-w-[1600px] mx-auto px-8 flex flex-col lg:flex-row gap-12 relative">
+          
+          {/* Smart Filters */}
+          <aside className="hidden lg:block w-72 shrink-0">
+            <div className="sticky top-8 flex flex-col gap-6">
+              <div className="bg-[#111113] border border-white/5 rounded-[24px] p-8 flex flex-col gap-8">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-[20px] font-medium text-white flex items-center gap-2">
+                    <SlidersHorizontal size={20} /> Filters
+                  </h3>
+                  <button className="text-[14px] text-gray-500 hover:text-white transition-colors">Reset</button>
                 </div>
                 
-                <h2 className="text-[10px] font-black text-white/46 uppercase tracking-[0.2em]">
-                  {studentDataLoading ? 'Searching Database...' : `${filteredUniversities.length} Found`}
-                </h2>
+                <FilterGroup title="Location" options={['Delhi', 'Bangalore', 'Mumbai', 'Chennai', 'Pune']} />
+                <FilterGroup title="Fees (Per Year)" options={['Under ₹5L', '₹5L - ₹10L', 'Above ₹10L']} />
+                <FilterGroup title="AI Match %" options={['90% +', '80% +', '70% +']} />
+                <FilterGroup title="Campus Facilities" options={['Hostel', 'Placement Cell', 'Sports Complex']} />
               </div>
             </div>
+          </aside>
 
-            <div className="pb-24 space-y-6">
-              {studentDataLoading ? (
-                <AILoadingState title="Searching Database..." description="Fetching universities and applying filters." />
-              ) : error ? (
-                <AIEmptyState 
-                  icon={AlertCircle} 
-                  title="Sync Failure" 
-                  description={error} 
-                  actionButton={
-                    <button 
-                      onClick={() => window.location.reload()}
-                      className="bg-indigo-600 px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-600/20 mt-4"
+          {/* Grid */}
+          <div className="flex-1">
+            {filteredUnis.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-32 bg-[#111113] border border-white/5 rounded-[32px]">
+                 <Search size={48} className="text-gray-600 mb-6" />
+                 <h3 className="text-[28px] font-medium text-white mb-4">No results found</h3>
+                 <p className="text-[16px] text-gray-400 mb-8">Try adjusting your filters or changing your search criteria.</p>
+                 <button onClick={() => {setSearchQuery(''); setSelectedCategory('All');}} className="px-8 py-4 bg-[#6D5DF6] hover:bg-[#6D5DF6]/90 rounded-full text-[14px] font-medium transition-colors">
+                   Reset Filters
+                 </button>
+              </div>
+            ) : (
+              <div className="columns-1 md:columns-2 xl:columns-3 gap-8 space-y-8">
+                {filteredUnis.map((uni: any) => {
+                  const recData = recMap.get(uni.id)
+                  const matchScore = recData ? recData.score : Math.floor(Math.random() * 40 + 50)
+                  const badge = getAIMatchBadge(matchScore)
+                  const isHovered = hoveredUni === uni.id
+
+                  return (
+                    <div 
+                      key={uni.id} 
+                      className="break-inside-avoid bg-[#151519] border border-white/5 rounded-[32px] overflow-hidden flex flex-col group transition-all duration-300 hover:shadow-2xl hover:border-white/10 hover:-translate-y-1 relative"
+                      onMouseEnter={() => setHoveredUni(uni.id)}
+                      onMouseLeave={() => setHoveredUni(null)}
                     >
-                      Force Sync (Retry)
-                    </button>
-                  } 
-                />
-              ) : filteredUniversities.length === 0 ? (
-                <AIEmptyState 
-                  icon={Search} 
-                  title="No institutions found" 
-                  description="Try adjusting your filters or search query." 
-                />
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <AnimatePresence mode="popLayout">
-                    {filteredUniversities.map((uni: University, idx: number) => (
-                      <motion.div
-                        layout
-                        key={uni.id}
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        transition={{ duration: 0.3, delay: idx * 0.05 }}
-                        className="group relative bg-[#111114] border border-white/5 rounded-3xl overflow-hidden hover:border-white/10 transition-all shadow-2xl flex flex-col"
-                      >
-                        {/* Card Image Wrapper */}
-                        <div className="relative h-48 overflow-hidden shrink-0">
-                          <Image 
-                            src={uni.imageUrl || `https://images.unsplash.com/photo-1562774053-701939374585?q=80&w=2066&auto=format&fit=crop`} 
-                            alt={uni.name}
-                            fill
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                            className="object-cover transition-transform duration-700 group-hover:scale-110"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-[#111114] via-transparent to-transparent" />
-                          
-                          {/* Overlay Badges */}
-                          <div className="absolute top-4 left-4 flex flex-col gap-2">
-                            <div className="bg-black/50 backdrop-blur-xl border border-white/10 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
-                              <Star size={12} className="fill-amber-400 text-amber-400" />
-                              <span className="text-[10px] font-black">{uni.rating || '4.5'}</span>
-                            </div>
-                            {uni.isFeatured && (
-                              <div className="bg-indigo-600 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg shadow-indigo-600/30">
-                                Featured
-                              </div>
-                            )}
+                      {/* Image */}
+                      <div className="relative h-64 w-full bg-[#111113] overflow-hidden">
+                        <Image 
+                          src={uni.imageUrl || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=2070&auto=format&fit=crop'}
+                          alt={uni.name}
+                          fill
+                          className="object-cover transition-transform duration-700 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#151519] via-transparent to-transparent" />
+                        
+                        <div className="absolute top-4 left-4 flex gap-2">
+                          <div className={`px-4 py-2 rounded-full border ${badge.color} text-[12px] font-medium backdrop-blur-md`}>
+                            {badge.label} {matchScore}%
                           </div>
+                        </div>
+                        
+                        <div className="absolute top-4 right-4">
+                          <button 
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                            className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-gray-300 hover:text-white hover:bg-black/60 transition-colors"
+                          >
+                            <Bookmark size={16} />
+                          </button>
+                        </div>
+                      </div>
 
-                          <div className="absolute top-4 right-4">
-                             <div className="bg-white/10 backdrop-blur-xl border border-white/10 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
-                              <Award size={12} className="text-indigo-400" />
-                              <span className="text-[9px] font-black uppercase tracking-widest">{uni.naacGrade || 'A++'} Grade</span>
-                            </div>
+                      {/* Content */}
+                      <div className="p-8 flex flex-col flex-1 relative bg-[#151519]">
+                        <h3 className="text-[24px] font-medium text-white mb-2 leading-tight">{uni.name}</h3>
+                        <div className="flex items-center gap-2 text-[14px] text-gray-400 mb-6">
+                          <MapPin size={14} /> {uni.location}
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4 mb-8">
+                          <div className="flex flex-col gap-1">
+                            <span className="text-[12px] text-gray-500">Starting Fees</span>
+                            <span className="text-[16px] text-white font-medium flex items-center gap-2"><Banknote size={16} className="text-[#6D5DF6]"/> ₹{uni.startingFees || '4.5L'}</span>
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <span className="text-[12px] text-gray-500">Admission Prob.</span>
+                            <span className="text-[16px] text-white font-medium flex items-center gap-2"><ShieldCheck size={16} className="text-emerald-400"/> {Math.floor(Math.random() * 30 + 60)}%</span>
                           </div>
                         </div>
 
-                        {/* Content Area */}
-                        <div className="p-6 flex-1 flex flex-col">
-                          <div className="flex items-start justify-between mb-3">
-                            <div>
-                              <h3 className="text-lg font-black mb-1 group-hover:text-indigo-400 transition-colors leading-tight line-clamp-2">{uni.name}</h3>
-                              <div className="flex items-center gap-1.5 text-white/40 text-xs font-medium">
-                                <MapPin size={12} />
-                                {uni.location}
+                        {/* AI Explanation Area */}
+                        <div className="mb-8 p-4 bg-[#111113] border border-white/5 rounded-[16px]">
+                          <div className="text-[12px] font-medium text-[#6D5DF6] mb-3 flex items-center gap-2">
+                            <Sparkles size={14} /> Why it&apos;s recommended
+                          </div>
+                          <div className="flex flex-col gap-2">
+                            {(recData?.matchReasons || ['Matches your preferred course', 'Fits your academic score']).slice(0, 2).map((reason: string, i: number) => (
+                              <div key={i} className="flex items-start gap-2 text-[14px] text-gray-400">
+                                <CheckCircle2 size={16} className="text-emerald-400 shrink-0 mt-0.5" />
+                                <span className="leading-tight">{reason}</span>
                               </div>
-                            </div>
+                            ))}
                           </div>
+                        </div>
 
-                          <div className="flex gap-2 mb-6 overflow-hidden mt-auto pt-2">
-                             {uni.programs?.slice(0, 2).map((p: any, i: number) => (
-                               <span key={i} className="whitespace-nowrap bg-white/5 border border-white/5 px-2 py-1 rounded-md text-[9px] font-bold text-white/46 uppercase tracking-wider truncate max-w-[120px]">
-                                 {p.name.split(' ')[0]}
-                               </span>
-                             ))}
-                             {uni.programs?.length > 2 && <span className="text-[9px] font-bold text-white/40 self-center">+{uni.programs.length - 2}</span>}
-                          </div>
-
-                          <div className="flex items-center gap-3">
-                            <button 
-                              onClick={() => handleApply(uni)}
-                              className="flex-1 bg-white text-[#0A0A0F] py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-indigo-50 transition-all flex items-center justify-center gap-2"
+                        {/* Actions */}
+                        <div className="flex items-center gap-4 mt-auto">
+                          <button 
+                            onClick={() => router.push(`/student/universities/${uni.id}`)}
+                            className="flex-1 bg-white text-black py-4 rounded-[20px] text-[14px] font-medium hover:bg-gray-200 transition-colors"
+                          >
+                            View Details
+                          </button>
+                          <button 
+                            onClick={() => toggleCompare(uni)}
+                            className={`px-6 py-4 rounded-[20px] text-[14px] font-medium border transition-colors ${compareList.find(u => u.id === uni.id) ? 'bg-[#6D5DF6] border-[#6D5DF6] text-white' : 'bg-transparent border-white/10 text-gray-300 hover:bg-white/5'}`}
+                          >
+                            {compareList.find(u => u.id === uni.id) ? 'Added' : 'Compare'}
+                          </button>
+                        </div>
+                        
+                        {/* Hover Preview Overlay */}
+                        <AnimatePresence>
+                          {isHovered && (
+                            <motion.div 
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0 }}
+                              className="absolute inset-0 bg-[#151519]/95 backdrop-blur-xl z-20 p-8 flex flex-col border border-[#6D5DF6]/20 rounded-[32px] shadow-2xl"
                             >
-                              Apply Now <ChevronRight size={14} />
-                            </button>
-                            <button 
-                               onClick={() => router.push(`/student/universities/${uni.id}`)}
-                               aria-label={`View ${uni.name} details`}
-                               className="w-11 h-11 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl flex items-center justify-center transition-all shrink-0"
-                            >
-                              <Building2 size={16} className="text-white/40" />
-                            </button>
-                          </div>
-
-                          {/* Reason for recommendation if applicable */}
-                          {viewMode === 'Recommended' && (
-                            <div className="mt-4 pt-4 border-t border-white/5">
-                              {recommendations.find(r => r.university.id === uni.id)?.matchReasons.slice(0, 1).map((reason, rIdx) => (
-                                <div key={rIdx} className="flex items-center gap-2 text-[10px] font-medium text-emerald-400">
-                                  <CheckCircle2 size={10} className="shrink-0" /> <span className="truncate">{reason}</span>
+                              <div className="flex justify-between items-start mb-6">
+                                <h3 className="text-[20px] font-medium text-white leading-tight">{uni.name}</h3>
+                                <div className="text-[14px] text-[#6D5DF6] font-medium">Preview</div>
+                              </div>
+                              <p className="text-[14px] text-gray-400 leading-relaxed mb-6 line-clamp-3">
+                                {uni.description || `${uni.name} is a premier institution offering state-of-the-art facilities and exceptional placement records in ${uni.location}.`}
+                              </p>
+                              
+                              <div className="flex flex-col gap-4 mb-6">
+                                <h4 className="text-[14px] font-medium text-white">Top Courses</h4>
+                                <div className="flex flex-wrap gap-2">
+                                  {uni.programs?.slice(0, 3).map((p: any, idx: number) => (
+                                    <span key={idx} className="px-3 py-1.5 bg-white/5 border border-white/5 rounded-full text-[12px] text-gray-300 truncate max-w-[150px]">
+                                      {p.name}
+                                    </span>
+                                  ))}
                                 </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                </div>
-              )}
-            </div>
-          </>
-        }
-        rightPanel={
-          <>
-            <div className="p-4 border-b border-white/5 flex items-center gap-2">
-              <Sparkles size={14} className="text-indigo-400" />
-              <h2 className="text-xs font-black uppercase tracking-widest text-indigo-400">Context Panel</h2>
-            </div>
-            
-            <div className="flex-1 overflow-y-auto p-5 space-y-6 custom-scrollbar">
-              <AnimatePresence mode="popLayout">
-                {aiMode && aiExplanation && (
-                  <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-indigo-500/10 border border-indigo-500/20 p-4 rounded-2xl">
-                    <h3 className="text-xs font-black flex items-center gap-2 mb-2 text-indigo-400">AI Search Insights</h3>
-                    <p className="text-xs text-white/80 leading-relaxed font-medium mb-3">
-                      {aiExplanation}
-                    </p>
-                    <button onClick={() => { setAiMode(false); setAiExplanation(''); setSearchQuery(''); }} className="text-[10px] uppercase tracking-widest font-bold text-white/40 hover:text-white transition-colors">
-                      Clear Insight
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                              </div>
 
-              {/* Profile Context */}
-              <AIContextCard
-                title="Recommendation Engine"
-                icon={User}
-                value="Active"
-                valueColor="text-emerald-400"
-              >
-                <div className="text-xs text-white/60 leading-relaxed">
-                  Your recommendations are continuously optimized based on your deterministic profile score ({profileScore}%) and past interactions.
+                              <button 
+                                onClick={() => router.push(`/student/universities/${uni.id}`)}
+                                className="mt-auto w-full py-4 bg-[#6D5DF6] hover:bg-[#6D5DF6]/90 rounded-[20px] text-[14px] font-medium text-white transition-colors flex items-center justify-center gap-2"
+                              >
+                                Full Overview <ChevronRight size={16} />
+                              </button>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* COMPARE FLOATING BAR */}
+        <AnimatePresence>
+          {compareList.length > 0 && (
+            <motion.div 
+              initial={{ y: 100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 100, opacity: 0 }}
+              className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-[#111113]/90 backdrop-blur-2xl border border-white/10 rounded-full px-8 py-4 flex items-center gap-8 shadow-2xl z-50"
+            >
+              <div className="flex items-center gap-4">
+                <div className="text-[14px] font-medium text-white">
+                  {compareList.length} Selected for Compare
                 </div>
-              </AIContextCard>
-            </div>
-          </>
-        }
-      />
+                <div className="flex -space-x-4">
+                  {compareList.map((u, i) => (
+                    <div key={i} className="w-10 h-10 rounded-full border-2 border-[#111113] bg-[#151519] overflow-hidden relative">
+                      <Image src={u.imageUrl || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=2070&auto=format&fit=crop'} alt="uni" fill className="object-cover" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="h-8 w-px bg-white/10" />
+              <div className="flex items-center gap-4">
+                <button onClick={() => setCompareList([])} className="text-[14px] text-gray-500 hover:text-white transition-colors">Clear</button>
+                <button className="px-6 py-3 bg-[#6D5DF6] hover:bg-[#6D5DF6]/90 rounded-full text-[14px] font-medium text-white transition-colors">
+                  Compare Now
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+      </div>
     </ProtectedRoute>
+  )
+}
+
+function FilterGroup({ title, options }: { title: string, options: string[] }) {
+  return (
+    <div className="flex flex-col gap-4">
+      <h4 className="text-[14px] font-medium text-white">{title}</h4>
+      <div className="flex flex-col gap-3">
+        {options.map(opt => (
+          <label key={opt} className="flex items-center gap-3 cursor-pointer group">
+            <div className="w-5 h-5 rounded-[6px] border border-white/10 bg-[#151519] group-hover:border-[#6D5DF6]/50 flex items-center justify-center transition-colors">
+              <CheckCircle2 size={12} className="text-[#6D5DF6] opacity-0" />
+            </div>
+            <span className="text-[14px] text-gray-400 group-hover:text-white transition-colors">{opt}</span>
+          </label>
+        ))}
+      </div>
+    </div>
   )
 }

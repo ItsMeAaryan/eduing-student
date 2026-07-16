@@ -56,7 +56,6 @@ function ResumeBuilderContent() {
     alert('Copied to clipboard');
   };
 
-
   const handleUpdateSection = (index: number, field: 'heading' | 'content', value: string) => {
     const newSections = [...resumeSections];
     newSections[index][field] = value;
@@ -82,139 +81,151 @@ function ResumeBuilderContent() {
 
   return (
     <AIWorkspaceLayout
-      title="AI Resume Builder"
+      title="Resume Editor"
       icon={<FileText size={16} />}
+      themeColor="cyan"
       headerActions={
         <>
-          <button onClick={handleCopy} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-bold transition-all flex items-center gap-2">
-            <Copy size={14} /> Copy Text
+          <button onClick={handleCopy} className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-full text-xs font-bold transition-all flex items-center gap-2">
+            <Copy size={14} /> Copy
           </button>
-          <button className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-bold transition-all flex items-center gap-2">
-            <Download size={14} /> Export PDF
+          <button className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-full text-xs font-bold transition-all flex items-center gap-2">
+            <Download size={14} /> PDF
           </button>
-          <button className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-indigo-500/20">
-            <Save size={14} /> Save Draft
+          <button className="px-5 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-full text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-cyan-500/20">
+            <Save size={14} /> Save
           </button>
         </>
       }
-      leftPanel={
-        <>
-          <div>
-            <h3 className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-3">Target Profile</h3>
+    >
+      <div className="flex flex-1 h-full overflow-hidden">
+        
+        {/* Left Toolbar */}
+        <div className="w-64 lg:w-72 border-r border-white/5 bg-[#08080C] flex flex-col z-10 shrink-0">
+          <div className="p-6 border-b border-white/5">
+            <h3 className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-4">Target Profile</h3>
             <div className="space-y-2">
               {['Academic (MS/PhD)', 'Software Engineering Internship', 'Research Assistant', 'Management Consulting'].map(mode => (
                 <button 
                   key={mode} 
                   onClick={() => setGenerationMode(mode)}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-all ${generationMode === mode ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' : 'text-white/60 hover:bg-white/5 border border-transparent'}`}
+                  className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all flex items-center gap-3 ${generationMode === mode ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' : 'text-white/60 hover:bg-white/5 border border-transparent'}`}
                 >
+                  <div className={`w-1.5 h-1.5 rounded-full ${generationMode === mode ? 'bg-cyan-400' : 'bg-transparent'}`} />
                   {mode}
                 </button>
               ))}
             </div>
           </div>
-          
-          <button 
-            onClick={handleGenerate}
-            disabled={isGenerating}
-            className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 disabled:opacity-50"
-          >
-            {isGenerating ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Wand2 size={16} />}
-            {isGenerating ? 'Generating...' : 'Generate Resume'}
-          </button>
-        </>
-      }
-      centerPanel={
-        <>
+          <div className="p-6">
+            <button 
+              onClick={handleGenerate}
+              disabled={isGenerating}
+              className="w-full py-4 bg-cyan-600 hover:bg-cyan-500 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(8,145,178,0.3)] disabled:opacity-50 text-white"
+            >
+              {isGenerating ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Wand2 size={16} />}
+              {isGenerating ? 'Drafting...' : 'Generate Resume'}
+            </button>
+          </div>
+        </div>
+
+        {/* Center Canvas */}
+        <div className="flex-1 bg-[#050505] overflow-y-auto p-8 lg:p-12 custom-scrollbar flex justify-center relative bg-[url('/grid-pattern.svg')] bg-[length:32px_32px]">
+          {/* Document A4 Wrapper */}
+          <div className="w-full max-w-[800px] min-h-[1056px] bg-white text-black shadow-2xl shadow-black/50 p-12 relative">
+            
             {resumeSections.length === 0 && !isGenerating && !generationError && (
-              <div className="text-center py-24">
-                <LayoutTemplate size={48} className="text-white/10 mx-auto mb-4" />
-                <h2 className="text-xl font-black text-white/60 mb-2">Blank Canvas</h2>
-                <p className="text-white/40 text-sm max-w-sm mx-auto">Click Generate Resume on the left to create a customized ATS-friendly resume using your EDUING profile.</p>
+              <div className="absolute inset-0 flex items-center justify-center flex-col text-black/20">
+                <LayoutTemplate size={64} className="mb-6 opacity-50" />
+                <h2 className="text-2xl font-bold mb-2">Empty Document</h2>
+                <p className="text-sm">Select a profile target and generate a draft.</p>
               </div>
             )}
+
             {generationError && (
-              <div className="text-center py-24">
-                <AlertCircle size={48} className="text-rose-500 mx-auto mb-4" />
-                <h2 className="text-xl font-black text-white/60 mb-2">Generation Error</h2>
-                <p className="text-rose-400 text-sm max-w-sm mx-auto">{generationError}</p>
+              <div className="absolute inset-0 flex items-center justify-center flex-col text-red-500/80">
+                <AlertCircle size={64} className="mb-6 opacity-50" />
+                <h2 className="text-2xl font-bold mb-2">Generation Failed</h2>
+                <p className="text-sm">{generationError}</p>
               </div>
             )}
             
             {isGenerating && (
-              <div className="text-center py-24 space-y-4">
-                 <div className="w-12 h-12 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mx-auto" />
-                 <p className="text-indigo-400 font-bold animate-pulse">Gemini is structuring your Resume...</p>
+              <div className="absolute inset-0 flex items-center justify-center flex-col bg-white/80 backdrop-blur-sm z-50">
+                 <div className="w-16 h-16 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin mb-6" />
+                 <p className="text-cyan-600 font-bold animate-pulse text-lg">Synthesizing Profile Data...</p>
               </div>
             )}
 
             {!isGenerating && resumeSections.length > 0 && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 pb-24">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
                 {profile && (
-                  <div className="text-center mb-8 pb-8 border-b border-white/10">
-                    <h2 className="text-3xl font-black text-white mb-2">{profile.firstName} {profile.lastName}</h2>
-                    <p className="text-sm text-white/60 font-medium">
+                  <div className="text-center mb-8 pb-6 border-b-2 border-black/10">
+                    <h1 className="text-4xl font-serif text-black mb-2">{profile.firstName} {profile.lastName}</h1>
+                    <p className="text-sm text-black/70 font-sans">
                       {profile.email} • {profile.phone || '+91 XXXXX XXXXX'} • {profile.location || 'India'}
                     </p>
                   </div>
                 )}
                 
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {resumeSections.map((section: any, idx: number) => (
                     <div 
                       key={idx} 
-                      className="group relative bg-[#111114] border border-white/5 hover:border-white/10 rounded-2xl p-6 transition-all"
+                      className="group relative rounded-lg p-2 -mx-2 hover:bg-black/[0.02] transition-colors border border-transparent hover:border-black/5"
                       draggable
                       onDragStart={(e) => handleDragStart(e, idx)}
                       onDragOver={handleDragOver}
                       onDrop={(e) => handleDrop(e, idx)}
                     >
-                      <div className="absolute left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing text-white/20 hover:text-white/60 p-2 transition-all">
+                      <div className="absolute -left-6 top-4 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing text-black/30 hover:text-black/60 p-1 transition-all">
                         <GripVertical size={16} />
                       </div>
                       
-                      <div className="pl-6">
-                        <div className="flex items-center justify-between mb-4">
-                          <input 
-                            type="text"
-                            value={section.heading}
-                            onChange={(e) => handleUpdateSection(idx, 'heading', e.target.value)}
-                            className="bg-transparent text-sm font-black text-indigo-400 uppercase tracking-widest outline-none border-b border-transparent focus:border-indigo-500/50 pb-1 transition-all"
-                          />
-                          <button className="opacity-0 group-hover:opacity-100 text-white/40 hover:text-white transition-opacity"><FileEdit size={14} /></button>
-                        </div>
-                        <textarea 
-                          value={section.content}
-                          onChange={(e) => handleUpdateSection(idx, 'content', e.target.value)}
-                          className="w-full bg-transparent text-[14px] leading-relaxed text-white/90 outline-none resize-none min-h-[100px] font-mono"
+                      <div className="flex items-center justify-between mb-3 border-b border-black/10 pb-1">
+                        <input 
+                          type="text"
+                          value={section.heading}
+                          onChange={(e) => handleUpdateSection(idx, 'heading', e.target.value)}
+                          className="bg-transparent text-lg font-serif font-bold text-black uppercase tracking-wider outline-none w-full"
                         />
                       </div>
+                      <textarea 
+                        value={section.content}
+                        onChange={(e) => handleUpdateSection(idx, 'content', e.target.value)}
+                        className="w-full bg-transparent text-[15px] leading-[1.6] text-black/90 outline-none resize-none min-h-[100px] font-sans"
+                        style={{ height: `${Math.max(100, section.content.split('\\n').length * 24)}px` }}
+                      />
                     </div>
                   ))}
                 </div>
               </motion.div>
             )}
-        </>
-      }
-      rightPanel={
-        <>
+          </div>
+        </div>
+
+        {/* Right Assistant Panel */}
+        <div className="w-80 border-l border-white/5 bg-[#08080C] flex flex-col shrink-0 z-10">
           <div className="flex border-b border-white/5">
-             <button onClick={() => setActiveTab('write')} className={`flex-1 py-4 text-xs font-black uppercase tracking-widest border-b-2 transition-all ${activeTab === 'write' ? 'border-indigo-500 text-indigo-400' : 'border-transparent text-white/40 hover:text-white'}`}>Assist</button>
-             <button onClick={() => setActiveTab('review')} className={`flex-1 py-4 text-xs font-black uppercase tracking-widest border-b-2 transition-all ${activeTab === 'review' ? 'border-indigo-500 text-indigo-400' : 'border-transparent text-white/40 hover:text-white'}`}>ATS Review</button>
+             <button onClick={() => setActiveTab('write')} className={`flex-1 py-4 text-xs font-black uppercase tracking-widest border-b-2 transition-all ${activeTab === 'write' ? 'border-cyan-500 text-cyan-400' : 'border-transparent text-white/40 hover:text-white'}`}>Assist</button>
+             <button onClick={() => setActiveTab('review')} className={`flex-1 py-4 text-xs font-black uppercase tracking-widest border-b-2 transition-all ${activeTab === 'review' ? 'border-cyan-500 text-cyan-400' : 'border-transparent text-white/40 hover:text-white'}`}>ATS Review</button>
           </div>
           
           <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
             {activeTab === 'write' && (
               <div className="space-y-6">
-                <div className="bg-white/5 border border-white/10 p-4 rounded-xl">
-                  <h4 className="text-xs font-bold mb-2 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-400"/> Profile Utilization</h4>
-                  <p className="text-[11px] text-white/60 leading-relaxed mb-3">Ensure your Resume includes all relevant projects and skills from your EDUING profile.</p>
-                  <div className="w-full bg-white/10 rounded-full h-1.5 mb-1"><div className="bg-emerald-500 h-full rounded-full" style={{width: '90%'}}/></div>
-                  <div className="text-right text-[10px] text-white/40 font-bold">90% Data Utilized</div>
+                <div className="bg-white/5 border border-white/10 p-5 rounded-2xl">
+                  <h4 className="text-xs font-bold mb-3 flex items-center gap-2"><CheckCircle2 size={16} className="text-emerald-400"/> Profile Utilization</h4>
+                  <p className="text-[11px] text-white/60 leading-relaxed mb-4">Your Resume incorporates all relevant projects and skills from your EDUING profile.</p>
+                  <div className="w-full bg-white/10 rounded-full h-2 mb-2 overflow-hidden"><div className="bg-emerald-500 h-full rounded-full" style={{width: '90%'}}/></div>
+                  <div className="flex justify-between items-center text-[10px] font-bold">
+                    <span className="text-emerald-400">Excellent</span>
+                    <span className="text-white/40">90% Data Utilized</span>
+                  </div>
                 </div>
 
-                <button onClick={handleReview} disabled={isReviewing || resumeSections.length === 0} className="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 disabled:opacity-50">
-                  {isReviewing ? <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <MessageSquareText size={14} />}
+                <button onClick={handleReview} disabled={isReviewing || resumeSections.length === 0} className="w-full py-4 bg-[#111114] hover:bg-[#1A1A24] border border-white/10 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-3 disabled:opacity-50">
+                  {isReviewing ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <MessageSquareText size={16} />}
                   Run ATS Simulator
                 </button>
               </div>
@@ -224,41 +235,53 @@ function ResumeBuilderContent() {
               <div className="space-y-6">
                 {!resumeReview && !isReviewing && !reviewError && (
                   <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-cyan-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-cyan-500/20 text-cyan-400">
+                      <LayoutTemplate size={24} />
+                    </div>
+                    <h3 className="text-sm font-bold text-white mb-2">No Review Found</h3>
                     <p className="text-xs text-white/40">Run ATS Simulator from the Assist tab to get feedback.</p>
                   </div>
                 )}
+                
                 {reviewError && (
-                  <div className="text-center py-12">
+                  <div className="text-center py-12 bg-red-500/10 rounded-2xl border border-red-500/20 p-6">
                     <AlertCircle size={32} className="text-rose-500 mx-auto mb-4" />
                     <p className="text-xs text-rose-400 font-bold">{reviewError}</p>
                   </div>
                 )}
+                
                 {isReviewing && (
                   <div className="text-center py-12">
-                     <div className="w-8 h-8 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mx-auto mb-4" />
-                     <p className="text-xs text-indigo-400 font-bold">Simulating ATS Parsing...</p>
+                     <div className="w-12 h-12 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin mx-auto mb-4" />
+                     <p className="text-xs text-cyan-400 font-bold">Simulating ATS Parsing...</p>
                   </div>
                 )}
+
                 {resumeReview && !isReviewing && (
                   <AnimatePresence>
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
                       <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-[#111114] p-4 rounded-2xl border border-white/5 text-center">
-                          <span className="text-2xl font-black text-indigo-400">{resumeReview.overallScore}</span>
-                          <h4 className="text-[10px] text-white/40 uppercase font-bold tracking-widest mt-1">Impact Score</h4>
+                        <div className="bg-[#111114] p-5 rounded-2xl border border-white/5 text-center flex flex-col items-center justify-center">
+                          <span className="text-3xl font-display font-black text-cyan-400">{resumeReview.overallScore}</span>
+                          <h4 className="text-[9px] text-white/40 uppercase font-bold tracking-widest mt-2">Impact Score</h4>
                         </div>
-                        <div className="bg-[#111114] p-4 rounded-2xl border border-white/5 text-center">
-                          <span className="text-2xl font-black text-emerald-400">{resumeReview.atsScore}</span>
-                          <h4 className="text-[10px] text-white/40 uppercase font-bold tracking-widest mt-1">ATS Score</h4>
+                        <div className="bg-[#111114] p-5 rounded-2xl border border-white/5 text-center flex flex-col items-center justify-center">
+                          <span className="text-3xl font-display font-black text-emerald-400">{resumeReview.atsScore}</span>
+                          <h4 className="text-[9px] text-white/40 uppercase font-bold tracking-widest mt-2">ATS Score</h4>
                         </div>
                       </div>
 
                       {resumeReview.strengths && resumeReview.strengths.length > 0 && (
                         <div>
-                          <h4 className="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-3">Strengths</h4>
-                          <ul className="space-y-2">
+                          <h4 className="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-3 flex items-center gap-2">
+                            <CheckCircle2 size={12} /> Strengths
+                          </h4>
+                          <ul className="space-y-3">
                             {resumeReview.strengths.map((s: string, i: number) => (
-                              <li key={i} className="text-xs text-white/70 flex items-start gap-2"><div className="w-1 h-1 bg-emerald-500 rounded-full mt-1.5 shrink-0"/>{s}</li>
+                              <li key={i} className="text-[11px] text-white/70 flex items-start gap-3 bg-emerald-500/5 p-3 rounded-xl border border-emerald-500/10">
+                                <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-1 shrink-0 shadow-[0_0_8px_rgba(16,185,129,0.8)]"/>
+                                <span className="leading-relaxed">{s}</span>
+                              </li>
                             ))}
                           </ul>
                         </div>
@@ -266,21 +289,27 @@ function ResumeBuilderContent() {
 
                       {resumeReview.weakBulletPoints && resumeReview.weakBulletPoints.length > 0 && (
                         <div>
-                          <h4 className="text-[10px] font-black uppercase tracking-widest text-rose-400 mb-3">Weak Bullet Points</h4>
-                          <ul className="space-y-2">
+                          <h4 className="text-[10px] font-black uppercase tracking-widest text-rose-400 mb-3 flex items-center gap-2">
+                            <AlertCircle size={12} /> Weak Bullet Points
+                          </h4>
+                          <ul className="space-y-3">
                             {resumeReview.weakBulletPoints.map((w: string, i: number) => (
-                              <li key={i} className="text-xs text-white/70 flex items-start gap-2"><div className="w-1 h-1 bg-rose-500 rounded-full mt-1.5 shrink-0"/>{w}</li>
+                              <li key={i} className="text-[11px] text-white/70 flex items-start gap-3 bg-rose-500/5 p-3 rounded-xl border border-rose-500/10">
+                                <div className="w-1.5 h-1.5 bg-rose-500 rounded-full mt-1 shrink-0 shadow-[0_0_8px_rgba(244,63,94,0.8)]"/>
+                                <span className="leading-relaxed">{w}</span>
+                              </li>
                             ))}
                           </ul>
                         </div>
                       )}
 
                       {resumeReview.actionableSuggestions && resumeReview.actionableSuggestions.length > 0 && (
-                        <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl">
-                          <h4 className="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-3 flex items-center gap-2"><AlertCircle size={12}/> Improvements</h4>
-                          <ul className="space-y-2">
+                        <div className="bg-amber-500/10 border border-amber-500/20 p-5 rounded-2xl mt-8 relative overflow-hidden">
+                          <div className="absolute -top-4 -right-4 text-amber-500/20"><Sparkles size={64}/></div>
+                          <h4 className="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-4 flex items-center gap-2 relative z-10"><Wand2 size={12}/> Actionable Advice</h4>
+                          <ul className="space-y-3 relative z-10">
                             {resumeReview.actionableSuggestions.map((g: string, i: number) => (
-                              <li key={i} className="text-[11px] text-amber-400/80 leading-relaxed">{g}</li>
+                              <li key={i} className="text-[11px] text-amber-400/90 leading-relaxed font-medium">{g}</li>
                             ))}
                           </ul>
                         </div>
@@ -291,9 +320,10 @@ function ResumeBuilderContent() {
               </div>
             )}
           </div>
-        </>
-      }
-    />
+        </div>
+
+      </div>
+    </AIWorkspaceLayout>
   );
 }
 
