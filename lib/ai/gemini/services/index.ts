@@ -57,8 +57,19 @@ export class AdmissionAdvisorService {
 
 export class CareerAdvisorService {
   static async getCareerPaths(context: any): Promise<GeminiResponse> {
-    const prompt = PromptBuilder.buildCareerPrompt(context);
-    return generateAIResponse(prompt, { model: getOptimalModelForTask('high') });
+    const prompt = PromptBuilder.buildCareerAdvisorPrompt(context);
+    const response = await generateAIResponse(prompt, { model: getOptimalModelForTask('high') });
+    if (response.success && response.text) {
+      try {
+        const cleanedText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(cleanedText);
+        return { success: true, data: parsed, text: response.text };
+      } catch (e) {
+        console.error('Failed to parse Gemini career JSON', e);
+        return { success: true, data: null, text: response.text };
+      }
+    }
+    return response;
   }
 }
 

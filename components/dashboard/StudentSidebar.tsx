@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { 
   LayoutDashboard, Search, FileText, Building2, Calendar, 
   Bookmark, Settings, LogOut, GraduationCap,
-  Command, Sparkles
+  Command, Sparkles, Briefcase
 } from "lucide-react";
 import { logoutUser } from "@/lib/firebase/auth";
 import { motion, AnimatePresence } from "framer-motion";
@@ -25,6 +25,7 @@ export default function StudentSidebar({ studentName = "Student", studentPhoto }
   const NAV_ITEMS = [
     { label: "Dashboard", href: "/student/dashboard", icon: LayoutDashboard, shortcut: "D" },
     { label: "AI Copilot", href: "/student/copilot", icon: Sparkles, shortcut: "I" },
+    { label: "Career Advisor", href: "/student/career", icon: Briefcase, shortcut: "W" },
     { label: "Applications", href: "/student/applications", icon: FileText, shortcut: "A" },
     { label: "Discover", href: "/student/discover", icon: Search, shortcut: "F" },
     { label: "Universities", href: "/student/universities", icon: Building2, shortcut: "U" },
