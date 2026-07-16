@@ -26,6 +26,8 @@ import { useStudentData } from '@/components/providers/StudentDataProvider'
 import { recommendUniversities } from '@/lib/utils/recommendationEngine'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { University } from '@/types/firebase'
+import { NaturalLanguageSearchService } from '@/lib/ai/gemini'
+import { Sparkles } from 'lucide-react'
 
 const NAAC_GRADES = ['A++', 'A+', 'A', 'B++', 'B+', 'B']
 const RATINGS = [4.5, 4.0, 3.5, 3.0]
@@ -38,9 +40,44 @@ export default function PremiumDiscoverPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   
+  const handleAISearch = async () => {
+    if (!searchQuery) return;
+    setAiLoading(true);
+    setAiMode(true);
+    try {
+      const intentRes = await NaturalLanguageSearchService.parseIntent(searchQuery);
+      if (intentRes.success && intentRes.data) {
+        const intent = intentRes.data;
+        if (intent.location) setSelectedState(intent.location);
+        // Map intent to filters...
+        
+        // Explain results
+        const explanationRes = await NaturalLanguageSearchService.generateExplanation(searchQuery, filteredUniversities);
+        if (explanationRes.success) {
+          setAiExplanation(explanationRes.text || '');
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      if (searchQuery.toLowerCase().includes('near') || searchQuery.toLowerCase().includes('under') || searchQuery.toLowerCase().includes('best')) {
+         handleAISearch();
+      }
+    }
+  };
+
   // Search & Filter State
   const [viewMode, setViewMode] = useState<'Recommended' | 'All'>('Recommended')
   const [searchQuery, setSearchQuery] = useState('')
+  const [aiMode, setAiMode] = useState(false)
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiExplanation, setAiExplanation] = useState('')
   const [activeLevel, setActiveLevel] = useState<'All' | 'UG' | 'PG'>('All')
   const [selectedState, setSelectedState] = useState('')
   const [minRating, setMinRating] = useState(0)
@@ -224,23 +261,45 @@ export default function PremiumDiscoverPage() {
               </p>
             </div>
 
-            {/* Compact Search & Filter */}
-            <div className="flex items-center gap-3 w-full md:w-auto">
-              <div className="relative flex-1 md:w-80 group">
+            {/* AI Search & Filter */}
+            <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
+              <div className="relative w-full md:w-[450px] group">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-indigo-400 transition-colors" size={18} />
                 <input 
                   type="text" 
-                  placeholder="Search institutions..."
+                  placeholder="Search naturally (e.g., 'Best engineering colleges under 8L near Delhi')"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-white/[0.03] border border-white/5 rounded-2xl pl-12 pr-4 py-3 text-sm placeholder:text-white/40 focus:border-indigo-500/30 focus:bg-white/[0.05] outline-none transition-all"
+                  onKeyDown={handleKeyDown}
+                  className="w-full bg-[#111114] border border-white/10 rounded-full pl-12 pr-24 py-4 text-sm placeholder:text-white/30 focus:border-indigo-500/50 outline-none transition-all shadow-xl"
                 />
+                <button 
+                  onClick={handleAISearch}
+                  disabled={aiLoading}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 rounded-full text-xs font-bold transition-all flex items-center gap-1"
+                >
+                  {aiLoading ? 'Thinking...' : <><Sparkles size={12} /> AI Search</>}
+                </button>
               </div>
               <button onClick={() => setShowFilters(!showFilters)} className="lg:hidden flex items-center justify-center w-12 h-12 bg-white/[0.03] border border-white/5 rounded-2xl text-white/40 hover:text-white transition-all">
                 <SlidersHorizontal size={20} />
               </button>
             </div>
           </div>
+          
+          {/* AI Explanation Banner */}
+          <AnimatePresence>
+            {aiMode && aiExplanation && (
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="bg-indigo-500/10 border border-indigo-500/20 rounded-2xl p-6 mb-8 flex gap-4 items-start">
+                <div className="w-10 h-10 bg-indigo-500/20 rounded-xl flex items-center justify-center text-indigo-400 shrink-0"><Sparkles size={20} /></div>
+                <div>
+                  <h3 className="text-sm font-black text-indigo-400 mb-1">AI Search Insights</h3>
+                  <p className="text-white/80 text-sm font-medium leading-relaxed">{aiExplanation}</p>
+                  <button onClick={() => { setAiMode(false); setAiExplanation(''); setSearchQuery(''); }} className="mt-3 text-xs text-white/40 hover:text-white underline">Clear AI Search</button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         <div className="max-w-7xl mx-auto px-6 pb-24">

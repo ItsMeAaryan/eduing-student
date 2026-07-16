@@ -5,3 +5,4 @@ export * from './client';
 export * from './prompts';
 export * from './context';
 export * from './services';
+export * from './services/searchService';

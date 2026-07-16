@@ -70,5 +70,33 @@ Return your analysis as a valid JSON object matching this schema:
   ]
 }
 Make sure the response contains ONLY the valid JSON and no markdown formatting or backticks around it.`;
+}
+
+  static buildNaturalLanguageSearchPrompt(query: string): string {
+    return `You are a search intent parser for an educational platform.
+Extract search parameters from the following user query: "${query}"
+
+Return ONLY a JSON object matching this exact schema:
+{
+  "course": "extracted course name or null",
+  "location": "extracted location or null",
+  "budget": number or null (e.g. 800000 for 8 lakh),
+  "collegeType": "Private" | "Government" | null,
+  "hostel": boolean or null,
+  "placements": "High" | null,
+  "scholarship": boolean or null
+}
+Ensure no markdown formatting or backticks around the JSON.`;
+  }
+
+  static buildSearchExplanationPrompt(context: any): string {
+    return `You are an AI Admission Advisor.
+Explain why the following search results match the student's natural language query and profile.
+
+Query: ${context.query}
+Results: ${JSON.stringify(context.results.map((r: any) => r.university?.name))}
+
+Provide a 2-sentence conversational summary of what you found and highlight the top match.
+Do not invent any data.`;
   }
 }
