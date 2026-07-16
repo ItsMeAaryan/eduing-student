@@ -31,10 +31,54 @@ Generate a resume structure based on the provided student data.
 Context: ${JSON.stringify(context)}`;
   }
 
-  static buildSOPPrompt(context: any): string {
-    return `You are a Statement of Purpose (SOP) Editor.
-Draft a compelling SOP outline using the student's background.
-Context: ${JSON.stringify(context)}`;
+  static buildSOPPrompt(context: any, mode: string): string {
+    return `You are an expert Statement of Purpose (SOP) Editor.
+Draft a professional, compelling SOP using the student's background. Do NOT invent achievements or fabricate facts. If information is missing, leave [Placeholders] for the student to fill in.
+
+Tone/Focus Mode: ${mode}
+
+Context Provided:
+${JSON.stringify(context, null, 2)}
+
+Return ONLY a JSON object matching this schema:
+{
+  "title": "A strong title for the SOP",
+  "sections": [
+    { "heading": "Introduction", "content": "..." },
+    { "heading": "Academic Journey", "content": "..." },
+    { "heading": "Projects & Achievements", "content": "..." },
+    { "heading": "Career Goals", "content": "..." },
+    { "heading": "Why this University", "content": "..." },
+    { "heading": "Why this Program", "content": "..." },
+    { "heading": "Future Vision", "content": "..." },
+    { "heading": "Conclusion", "content": "..." }
+  ]
+}
+Ensure no markdown formatting or backticks around the JSON.`;
+  }
+
+  static buildSOPReviewPrompt(sopContent: string, context: any): string {
+    return `You are an expert Admission Officer reviewing a Statement of Purpose (SOP).
+Provide constructive feedback on the following SOP.
+
+SOP Content:
+${sopContent}
+
+Student Context (for alignment check):
+${JSON.stringify(context, null, 2)}
+
+Return ONLY a JSON object matching this schema:
+{
+  "overallScore": number (1-100),
+  "strengths": ["Strength 1", "Strength 2"],
+  "weaknesses": ["Weakness 1", "Weakness 2"],
+  "grammarSuggestions": ["Suggestion 1", "Suggestion 2"],
+  "claritySuggestions": ["Suggestion 1"],
+  "impactSuggestions": ["Suggestion 1"],
+  "missingInformation": ["Missing 1"],
+  "actionableImprovements": ["Action 1"]
+}
+Ensure no markdown formatting or backticks around the JSON.`;
   }
 
   static buildInterviewPrompt(context: any): string {

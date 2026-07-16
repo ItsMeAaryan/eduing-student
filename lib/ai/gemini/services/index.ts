@@ -72,7 +72,39 @@ export class CareerAdvisorService {
     return response;
   }
 }
+export class SOPService {
+  static async generateSOP(context: any, mode: string = 'Formal Tone'): Promise<GeminiResponse> {
+    const prompt = PromptBuilder.buildSOPPrompt(context, mode);
+    const response = await generateAIResponse(prompt, { model: getOptimalModelForTask('high') });
+    if (response.success && response.text) {
+      try {
+        const cleanedText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(cleanedText);
+        return { success: true, data: parsed, text: response.text };
+      } catch (e) {
+        console.error('Failed to parse Gemini SOP generation JSON', e);
+        return { success: true, data: null, text: response.text };
+      }
+    }
+    return response;
+  }
 
+  static async reviewSOP(sopContent: string, context: any): Promise<GeminiResponse> {
+    const prompt = PromptBuilder.buildSOPReviewPrompt(sopContent, context);
+    const response = await generateAIResponse(prompt, { model: getOptimalModelForTask('high') });
+    if (response.success && response.text) {
+      try {
+        const cleanedText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(cleanedText);
+        return { success: true, data: parsed, text: response.text };
+      } catch (e) {
+        console.error('Failed to parse Gemini SOP review JSON', e);
+        return { success: true, data: null, text: response.text };
+      }
+    }
+    return response;
+  }
+}
 export class ScholarshipService {
   static async getFinancialAdvice(context: any): Promise<GeminiResponse> {
     const prompt = PromptBuilder.buildScholarshipPrompt(context);
