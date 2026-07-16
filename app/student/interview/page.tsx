@@ -4,10 +4,12 @@ import React, { useState, Suspense, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStudentData } from '@/components/providers/StudentDataProvider';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { useAIGeneration } from '@/hooks/useAIGeneration';
 
 import { InterviewService } from '@/lib/ai/gemini/services';
 
 import { Sparkles, Mic, Play, Pause, Square, MessageSquare, AlertCircle, Wand2, Download, Copy, Save, CheckCircle2, RefreshCw } from 'lucide-react';
+import { AIWorkspaceLayout } from '@/components/ai/AIWorkspaceLayout';
 
 function InterviewCoachContent() {
   const { profile } = useStudentData();
@@ -18,10 +20,9 @@ function InterviewCoachContent() {
   const [isSessionActive, setIsSessionActive] = useState(false);
   
   // Interview State
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [isEvaluating, setIsEvaluating] = useState(false);
+  const { data: currentQuestion, setData: setCurrentQuestion, isGenerating, generate: generateQuestion, error: generationError } = useAIGeneration<any>();
+  const { isGenerating: isEvaluating, generate: generateEvaluation, error: evaluationError } = useAIGeneration<any>();
   
-  const [currentQuestion, setCurrentQuestion] = useState<any>(null);
   const [currentAnswer, setCurrentAnswer] = useState('');
   
   const [history, setHistory] = useState<{question: any, answer: string, evaluation: any}[]>([]);
@@ -41,57 +42,35 @@ function InterviewCoachContent() {
   };
 
   const fetchNextQuestion = async (prevQ: string[]) => {
-    setIsGenerating(true);
-    setCurrentQuestion(null);
-    try {
-      const aiContext = {
-        studentProfile: profile,
-        achievements: profile?.achievements || [],
-        extracurriculars: profile?.extracurriculars || [],
-        experience: profile?.experience || [],
-        projects: profile?.projects || [],
-      };
-
-      const res = await InterviewService.generateQuestion(aiContext, interviewType, prevQ);
-      if (res.success && res.data) {
-        setCurrentQuestion(res.data);
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsGenerating(false);
-    }
+    const aiContext = {
+      studentProfile: profile,
+      achievements: profile?.achievements || [],
+      extracurriculars: profile?.extracurriculars || [],
+      experience: profile?.experience || [],
+      projects: profile?.projects || [],
+    };
+    await generateQuestion(() => InterviewService.generateQuestion(aiContext, interviewType, prevQ));
   };
 
   const handleSubmitAnswer = async () => {
     if (!currentAnswer.trim() || !currentQuestion) return;
     
-    setIsEvaluating(true);
-    try {
-      const aiContext = { studentProfile: profile };
-      const res = await InterviewService.evaluateAnswer(currentQuestion.question, currentAnswer, aiContext);
+    const aiContext = { studentProfile: profile };
+    const res = await generateEvaluation(() => InterviewService.evaluateAnswer(currentQuestion.question, currentAnswer, aiContext));
+    
+    if (res.success && res.data) {
+      const newHistory = [...history, {
+        question: currentQuestion,
+        answer: currentAnswer,
+        evaluation: res.data
+      }];
+      setHistory(newHistory);
       
-      if (res.success && res.data) {
-        const newHistory = [...history, {
-          question: currentQuestion,
-          answer: currentAnswer,
-          evaluation: res.data
-        }];
-        setHistory(newHistory);
-        
-        const newPrevQ = [...previousQuestions, currentQuestion.question];
-        setPreviousQuestions(newPrevQ);
-        
-        setCurrentAnswer('');
-        
-        // Optionally fetch next question immediately, or let user decide
-        // For this flow, we will fetch next question automatically
-        await fetchNextQuestion(newPrevQ);
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsEvaluating(false);
+      const newPrevQ = [...previousQuestions, currentQuestion.question];
+      setPreviousQuestions(newPrevQ);
+      
+      setCurrentAnswer('');
+      await fetchNextQuestion(newPrevQ);
     }
   };
 
@@ -102,32 +81,20 @@ function InterviewCoachContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white font-sans flex flex-col h-screen overflow-hidden">
-      {/* Top Navbar */}
-      <div className="h-16 border-b border-white/5 flex items-center justify-between px-6 bg-[#0A0A0F] shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-indigo-500/10 rounded-lg flex items-center justify-center text-indigo-400">
-            <Mic size={16} />
-          </div>
-          <div>
-            <h1 className="text-sm font-black">AI Interview Coach</h1>
-            <div className="text-[10px] text-white/40 font-bold uppercase tracking-widest flex items-center gap-1">
-              <Sparkles size={10} className="text-indigo-400" /> Powered by Gemini
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
+    <AIWorkspaceLayout
+      title="AI Interview Coach"
+      icon={<Mic size={16} />}
+      headerActions={
+        <>
           {isSessionActive && (
             <button onClick={handleEndSession} className="px-4 py-1.5 bg-rose-600 hover:bg-rose-500 rounded-lg text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-rose-500/20">
               <Square size={14} /> End Session
             </button>
           )}
-        </div>
-      </div>
-
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left Panel - Controls */}
-        <div className="w-64 border-r border-white/5 bg-[#08080C] p-4 flex flex-col gap-6 overflow-y-auto shrink-0">
+        </>
+      }
+      leftPanel={
+        <>
           <div className={isSessionActive ? 'opacity-50 pointer-events-none' : ''}>
             <h3 className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-3">Interview Type</h3>
             <div className="space-y-2">
@@ -166,10 +133,10 @@ function InterviewCoachContent() {
                 <p className="text-[10px] text-white/60 mt-1">{history.length} Questions Answered</p>
              </div>
           )}
-        </div>
-
-        {/* Center Panel - Conversation */}
-        <div className="flex-1 bg-[#050505] overflow-y-auto p-6 lg:p-12 flex flex-col">
+        </>
+      }
+      centerPanel={
+        <>
           {!isSessionActive && history.length === 0 && (
              <div className="flex-1 flex flex-col items-center justify-center text-center">
                 <Mic size={48} className="text-white/10 mx-auto mb-4" />
@@ -179,8 +146,8 @@ function InterviewCoachContent() {
           )}
 
           {(isSessionActive || history.length > 0) && (
-            <div className="flex-1 max-w-3xl mx-auto w-full space-y-8 pb-32">
-              
+            <div className="flex-1 max-w-3xl mx-auto w-full space-y-8 pb-32 flex flex-col justify-end min-h-full">
+              <div className="flex-1" />
               {/* History */}
               {history.map((item, idx) => (
                 <div key={idx} className="space-y-6">
@@ -242,7 +209,7 @@ function InterviewCoachContent() {
 
           {/* Input Area */}
           {isSessionActive && currentQuestion && !isGenerating && (
-            <div className="fixed bottom-0 left-64 right-80 p-6 bg-gradient-to-t from-[#050505] via-[#050505] to-transparent pointer-events-none">
+            <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#050505] via-[#050505] to-transparent pointer-events-none">
               <div className="max-w-3xl mx-auto w-full pointer-events-auto">
                  <div className="bg-[#111114] border border-white/10 focus-within:border-indigo-500/50 rounded-2xl p-2 transition-colors flex shadow-2xl">
                     <textarea 
@@ -270,15 +237,15 @@ function InterviewCoachContent() {
               </div>
             </div>
           )}
-        </div>
-
-        {/* Right Panel - AI Review */}
-        <div className="w-80 border-l border-white/5 bg-[#08080C] flex flex-col shrink-0">
+        </>
+      }
+      rightPanel={
+        <>
           <div className="p-4 border-b border-white/5">
              <h2 className="text-xs font-black uppercase tracking-widest text-white/40">Latest Evaluation</h2>
           </div>
           
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
             {history.length === 0 && !isEvaluating && (
               <div className="text-center py-12">
                  <p className="text-xs text-white/40">Answer a question to see real-time AI feedback.</p>
@@ -342,9 +309,9 @@ function InterviewCoachContent() {
               </AnimatePresence>
             )}
           </div>
-        </div>
-      </div>
-    </div>
+        </>
+      }
+    />
   );
 }
 

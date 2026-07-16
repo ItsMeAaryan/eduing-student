@@ -2,6 +2,7 @@
 import { Search, Bell, MessageSquare, ChevronDown, Command } from "lucide-react";
 import { useStudentData } from '@/components/providers/StudentDataProvider'
 import { usePathname } from "next/navigation";
+import Image from 'next/image'
 import { motion } from "framer-motion";
 import { useState } from "react";
 
@@ -109,7 +110,7 @@ export default function StudentTopBar() {
             
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-[13px] shadow-inner relative z-10">
               {profile?.profilePhotoURL ? (
-                <img src={profile.profilePhotoURL} alt="Avatar" className="w-full h-full rounded-full object-cover" />
+                <Image src={profile.profilePhotoURL} alt="Avatar" fill className="rounded-full object-cover" />
               ) : (
                 name.charAt(0)
               )}

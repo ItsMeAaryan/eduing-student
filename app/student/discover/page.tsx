@@ -18,16 +18,18 @@ import {
   Building2,
   GraduationCap
 } from 'lucide-react'
-import { 
-  listenUniversitiesFiltered 
-} from '@/lib/firebase/universities'
 import { useAuth } from '@/hooks/useAuth'
 import { useStudentData } from '@/components/providers/StudentDataProvider'
 import { recommendUniversities } from '@/lib/utils/recommendationEngine'
-import { useFocusTrap } from '@/hooks/useFocusTrap'
-import { University } from '@/types/firebase'
 import { NaturalLanguageSearchService } from '@/lib/ai/gemini'
-import { Sparkles } from 'lucide-react'
+import { Sparkles, User, Compass } from 'lucide-react'
+import { AIWorkspaceLayout } from '@/components/ai/AIWorkspaceLayout'
+import { AIContextCard } from '@/components/ai/AIContextCard'
+import { AILoadingState } from '@/components/ai/AILoadingState'
+import { AIEmptyState } from '@/components/ai/AIEmptyState'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
+import { useAIGeneration } from '@/hooks/useAIGeneration'
+import { University } from '@/types/firebase'
 
 const NAAC_GRADES = ['A++', 'A+', 'A', 'B++', 'B+', 'B']
 const RATINGS = [4.5, 4.0, 3.5, 3.0]
@@ -36,15 +38,14 @@ const STATES = ['Delhi', 'Karnataka', 'Maharashtra', 'Tamil Nadu', 'Rajasthan', 
 export default function PremiumDiscoverPage() {
   const router = useRouter()
   const { user } = useAuth()
-  const [universities, setUniversities] = useState<University[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { profile, documents, uniqueApps, savedPrograms, profileScore, universities: allUniversities, loading: studentDataLoading, error } = useStudentData()
   
+  const { isGenerating: aiLoading, generate: generateAiSearch, error: aiError } = useAIGeneration<any>();
+
   const handleAISearch = async () => {
     if (!searchQuery) return;
-    setAiLoading(true);
     setAiMode(true);
-    try {
+    await generateAiSearch(async () => {
       const intentRes = await NaturalLanguageSearchService.parseIntent(searchQuery);
       if (intentRes.success && intentRes.data) {
         const intent = intentRes.data;
@@ -57,11 +58,8 @@ export default function PremiumDiscoverPage() {
           setAiExplanation(explanationRes.text || '');
         }
       }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setAiLoading(false);
-    }
+      return { success: intentRes.success, text: intentRes.text, error: intentRes.error };
+    });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -76,7 +74,6 @@ export default function PremiumDiscoverPage() {
   const [viewMode, setViewMode] = useState<'Recommended' | 'All'>('Recommended')
   const [searchQuery, setSearchQuery] = useState('')
   const [aiMode, setAiMode] = useState(false)
-  const [aiLoading, setAiLoading] = useState(false)
   const [aiExplanation, setAiExplanation] = useState('')
   const [activeLevel, setActiveLevel] = useState<'All' | 'UG' | 'PG'>('All')
   const [selectedState, setSelectedState] = useState('')
@@ -85,33 +82,15 @@ export default function PremiumDiscoverPage() {
   const [showFilters, setShowFilters] = useState(false)
   const filterDrawerRef = useFocusTrap<HTMLDivElement>(showFilters, () => setShowFilters(false))
 
-  useEffect(() => {
-    setLoading(true)
-    const unsub = listenUniversitiesFiltered(
-      {
-        level: activeLevel === 'All' ? undefined : activeLevel,
-        location: selectedState || undefined,
-        minRating: minRating || undefined,
-        naacGrade: selectedNAAC || undefined,
-      },
-      (unis) => {
-        console.log("UNIVERSITIES:", unis.length)
-        setUniversities(unis)
-        setLoading(false)
-        setError(null)
-      },
-      (err) => {
-        console.error("FIRESTORE ERROR:", err)
-        setError(err.message)
-        setLoading(false)
-      }
-    )
-
-    return () => unsub()
-  }, [activeLevel, selectedState, minRating, selectedNAAC])
-
-
-  const { profile, documents, uniqueApps, savedPrograms, profileScore } = useStudentData()
+  const universities = useMemo(() => {
+    return allUniversities.filter((u: University) => {
+      if (activeLevel !== 'All' && !u.programs.some((p: any) => p.level === activeLevel)) return false;
+      if (selectedState && u.location !== selectedState) return false;
+      if (minRating > 0 && (u.rating || 0) < minRating) return false;
+      if (selectedNAAC && u.naacGrade !== selectedNAAC) return false;
+      return true;
+    });
+  }, [allUniversities, activeLevel, selectedState, minRating, selectedNAAC]);
 
   // Recommendations
   const recommendations = useMemo(() => {
@@ -133,9 +112,9 @@ export default function PremiumDiscoverPage() {
     }
 
     if (!searchQuery) return baseList
-    return baseList.filter(uni => 
+    return baseList.filter((uni: University) => 
       uni.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      uni.programs.some(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
+      uni.programs.some((p: any) => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
     )
   }, [universities, recommendations, viewMode, searchQuery])
 
@@ -151,34 +130,7 @@ export default function PremiumDiscoverPage() {
     router.push(`/student/universities/${uni.id}`)
   }
 
-  if (loading) return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      height: '400px',
-      flexDirection: 'column',
-      gap: '16px',
-    }}>
-      <div style={{
-        width: '40px', height: '40px',
-        border: '3px solid rgba(79,70,229,0.3)',
-        borderTop: '3px solid #4F46E5',
-        borderRadius: '50%',
-        animation: 'spin 1s linear infinite',
-      }}/>
-      <p style={{color:'rgba(255,255,255,0.4)'}}>
-        Loading universities...
-      </p>
-      <style>{`
-        @keyframes spin { 
-          to { transform: rotate(360deg) } 
-        }
-      `}</style>
-    </div>
-  )
-
-  if (error) return (
+  if (studentDataLoading) return (
     <div style={{
       display: 'flex',
       flexDirection: 'column',
@@ -247,23 +199,74 @@ export default function PremiumDiscoverPage() {
 
   return (
     <ProtectedRoute allowedRoles={['student']}>
-      <div className="min-h-screen bg-[#08080A] text-white font-sans selection:bg-indigo-500/30 relative z-10">
-        
-        {/* COMPACT HEADER */}
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
-            <div>
-              <h1 className="text-[28px] font-extrabold text-[#FAFAFA] mb-1 tracking-tight">
-                Discover Universities
-              </h1>
-              <p className="text-white/40 text-sm">
-                {universities.length} institutions found in database
-              </p>
+      <AIWorkspaceLayout
+        title="AI Program Discovery"
+        icon={<Search size={16} />}
+        leftPanel={
+          <>
+            <div className="p-4 border-b border-white/5 flex justify-between items-center">
+              <h3 className="text-xs font-black uppercase tracking-widest text-white/40">Filters</h3>
+              <button onClick={() => {
+                setActiveLevel('All'); setSelectedState(''); setMinRating(0); setSelectedNAAC('');
+              }} className="text-[10px] font-black uppercase text-indigo-400 hover:text-indigo-300 transition-all">Reset</button>
             </div>
+            
+            <div className="flex-1 overflow-y-auto p-4 space-y-8 custom-scrollbar">
+              {/* Level Toggle */}
+              <div className="space-y-4">
+                <span className="text-[10px] font-black text-white/46 uppercase tracking-widest">Academic Level</span>
+                <div className="grid grid-cols-3 gap-2 bg-white/5 p-1 rounded-xl border border-white/5" role="group" aria-label="Academic Level">
+                  {['All', 'UG', 'PG'].map(l => (
+                    <button key={l} onClick={() => setActiveLevel(l as any)} className={`py-2 rounded-lg text-xs font-bold transition-all ${activeLevel === l ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-white/40 hover:text-white'}`}>
+                      {l}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-            {/* AI Search & Filter */}
-            <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
-              <div className="relative w-full md:w-[450px] group">
+              {/* Location Dropdown */}
+              <div className="space-y-4">
+                <label htmlFor="state-region" className="text-[10px] font-black text-white/46 uppercase tracking-widest">State / Region</label>
+                <select id="state-region" value={selectedState} onChange={e => setSelectedState(e.target.value)} className="w-full bg-[#111114] border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-500/50 transition-all appearance-none cursor-pointer">
+                  <option value="">All Regions</option>
+                  {STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+
+              {/* Rating Filter */}
+              <div className="space-y-4">
+                <span className="text-[10px] font-black text-white/46 uppercase tracking-widest">Minimum Rating</span>
+                <div className="space-y-2" role="group" aria-label="Minimum Rating">
+                  {RATINGS.map(r => (
+                    <button key={r} onClick={() => setMinRating(minRating === r ? 0 : r)} className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${minRating === r ? 'bg-indigo-500/10 border-indigo-500/50 text-white' : 'bg-transparent border-white/5 text-white/40 hover:border-white/20'}`}>
+                      <div className="flex items-center gap-2">
+                        <Star size={14} className={minRating === r ? 'fill-indigo-500 text-indigo-500' : 'text-white/20'} />
+                        <span className="text-sm font-bold">{r}+ Rating</span>
+                      </div>
+                      {minRating === r && <CheckCircle2 size={14} className="text-indigo-400" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* NAAC Grade */}
+              <div className="space-y-4">
+                <span className="text-[10px] font-black text-white/46 uppercase tracking-widest">NAAC Accreditation</span>
+                <div className="flex flex-wrap gap-2" role="group" aria-label="NAAC Accreditation">
+                  {NAAC_GRADES.map(g => (
+                    <button key={g} onClick={() => setSelectedNAAC(selectedNAAC === g ? '' : g)} className={`px-4 py-2 rounded-lg text-xs font-bold border transition-all ${selectedNAAC === g ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-600/20' : 'bg-white/5 border-white/5 text-white/40 hover:border-white/20'}`}>
+                      {g}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </>
+        }
+        centerPanel={
+          <>
+            <div className="sticky top-0 z-20 bg-[#050505] pt-2 pb-6 flex flex-col gap-4">
+              <div className="relative w-full group">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-indigo-400 transition-colors" size={18} />
                 <input 
                   type="text" 
@@ -271,106 +274,18 @@ export default function PremiumDiscoverPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  className="w-full bg-[#111114] border border-white/10 rounded-full pl-12 pr-24 py-4 text-sm placeholder:text-white/30 focus:border-indigo-500/50 outline-none transition-all shadow-xl"
+                  className="w-full bg-[#111114] border border-white/10 rounded-full pl-12 pr-32 py-4 text-sm placeholder:text-white/30 focus:border-indigo-500/50 outline-none transition-all shadow-xl text-white"
                 />
                 <button 
                   onClick={handleAISearch}
                   disabled={aiLoading}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 rounded-full text-xs font-bold transition-all flex items-center gap-1"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 rounded-full text-xs font-bold transition-all flex items-center gap-2"
                 >
-                  {aiLoading ? 'Thinking...' : <><Sparkles size={12} /> AI Search</>}
+                  {aiLoading ? 'Thinking...' : <><Sparkles size={14} /> Search</>}
                 </button>
               </div>
-              <button onClick={() => setShowFilters(!showFilters)} className="lg:hidden flex items-center justify-center w-12 h-12 bg-white/[0.03] border border-white/5 rounded-2xl text-white/40 hover:text-white transition-all">
-                <SlidersHorizontal size={20} />
-              </button>
-            </div>
-          </div>
-          
-          {/* AI Explanation Banner */}
-          <AnimatePresence>
-            {aiMode && aiExplanation && (
-              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="bg-indigo-500/10 border border-indigo-500/20 rounded-2xl p-6 mb-8 flex gap-4 items-start">
-                <div className="w-10 h-10 bg-indigo-500/20 rounded-xl flex items-center justify-center text-indigo-400 shrink-0"><Sparkles size={20} /></div>
-                <div>
-                  <h3 className="text-sm font-black text-indigo-400 mb-1">AI Search Insights</h3>
-                  <p className="text-white/80 text-sm font-medium leading-relaxed">{aiExplanation}</p>
-                  <button onClick={() => { setAiMode(false); setAiExplanation(''); setSearchQuery(''); }} className="mt-3 text-xs text-white/40 hover:text-white underline">Clear AI Search</button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
 
-        <div className="max-w-7xl mx-auto px-6 pb-24">
-          <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-12">
-            
-            {/* FILTER SIDEBAR (Desktop) */}
-            <aside className="hidden lg:block space-y-10">
-              <div className="sticky top-24">
-                <div className="flex items-center justify-between mb-8">
-                  <h3 className="text-xl font-black">Refine Results</h3>
-                  <button onClick={() => {
-                    setActiveLevel('All'); setSelectedState(''); setMinRating(0); setSelectedNAAC('');
-                  }} className="text-[10px] font-black uppercase text-white/46 hover:text-white transition-all">Reset All</button>
-                </div>
-
-                <div className="space-y-8">
-                  {/* Level Toggle */}
-                  <div className="space-y-4">
-                    <span className="text-[10px] font-black text-white/46 uppercase tracking-widest">Academic Level</span>
-                    <div className="grid grid-cols-3 gap-2 bg-white/5 p-1 rounded-xl border border-white/5" role="group" aria-label="Academic Level">
-                      {['All', 'UG', 'PG'].map(l => (
-                        <button key={l} onClick={() => setActiveLevel(l as any)} className={`py-2 rounded-lg text-xs font-bold transition-all ${activeLevel === l ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-white/40 hover:text-white'}`}>
-                          {l}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Location Dropdown */}
-                  <div className="space-y-4">
-                    <label htmlFor="state-region" className="text-[10px] font-black text-white/46 uppercase tracking-widest">State / Region</label>
-                    <select id="state-region" value={selectedState} onChange={e => setSelectedState(e.target.value)} className="w-full bg-[#111114] border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-500/50 transition-all appearance-none cursor-pointer">
-                      <option value="">All Regions</option>
-                      {STATES.map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                  </div>
-
-                  {/* Rating Filter */}
-                  <div className="space-y-4">
-                    <span className="text-[10px] font-black text-white/46 uppercase tracking-widest">Minimum Rating</span>
-                    <div className="space-y-2" role="group" aria-label="Minimum Rating">
-                      {RATINGS.map(r => (
-                        <button key={r} onClick={() => setMinRating(minRating === r ? 0 : r)} className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${minRating === r ? 'bg-indigo-500/10 border-indigo-500/50 text-white' : 'bg-transparent border-white/5 text-white/40 hover:border-white/20'}`}>
-                          <div className="flex items-center gap-2">
-                            <Star size={14} className={minRating === r ? 'fill-indigo-500 text-indigo-500' : 'text-white/20'} />
-                            <span className="text-sm font-bold">{r}+ Rating</span>
-                          </div>
-                          {minRating === r && <CheckCircle2 size={14} className="text-indigo-400" />}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* NAAC Grade */}
-                  <div className="space-y-4">
-                    <span className="text-[10px] font-black text-white/46 uppercase tracking-widest">NAAC Accreditation</span>
-                    <div className="flex flex-wrap gap-2" role="group" aria-label="NAAC Accreditation">
-                      {NAAC_GRADES.map(g => (
-                        <button key={g} onClick={() => setSelectedNAAC(selectedNAAC === g ? '' : g)} className={`px-4 py-2 rounded-lg text-xs font-bold border transition-all ${selectedNAAC === g ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-600/20' : 'bg-white/5 border-white/5 text-white/40 hover:border-white/20'}`}>
-                          {g}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </aside>
-
-            {/* MAIN CONTENT GRID */}
-            <main className="space-y-8">
-              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-2 bg-white/5 p-1 rounded-xl border border-white/5">
                   <button 
                     onClick={() => setViewMode('Recommended')} 
@@ -386,44 +301,39 @@ export default function PremiumDiscoverPage() {
                   </button>
                 </div>
                 
-                <h2 className="text-sm font-black text-white/46 uppercase tracking-[0.2em]">
-                  {loading ? 'Searching Database...' : `${filteredUniversities.length} Institutions Found`}
+                <h2 className="text-[10px] font-black text-white/46 uppercase tracking-[0.2em]">
+                  {studentDataLoading ? 'Searching Database...' : `${filteredUniversities.length} Found`}
                 </h2>
               </div>
+            </div>
 
-
-              {loading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {[1,2,3,4].map(i => (
-                    <div key={i} className="h-[400px] bg-white/5 animate-pulse rounded-[40px] border border-white/5" />
-                  ))}
-                </div>
+            <div className="pb-24 space-y-6">
+              {studentDataLoading ? (
+                <AILoadingState title="Searching Database..." description="Fetching universities and applying filters." />
               ) : error ? (
-                <div className="py-32 text-center bg-[#111114] border border-white/5 rounded-[40px] px-8">
-                  <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-8">
-                    <AlertCircle size={32} className="text-red-500" />
-                  </div>
-                  <h3 className="text-2xl font-black mb-4">Sync Failure</h3>
-                  <p className="text-white/40 mb-10 max-w-md mx-auto">{error}</p>
-                  <button 
-                    onClick={() => window.location.reload()}
-                    className="bg-indigo-600 px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-600/20"
-                  >
-                    Force Sync (Retry)
-                  </button>
-                </div>
+                <AIEmptyState 
+                  icon={AlertCircle} 
+                  title="Sync Failure" 
+                  description={error} 
+                  actionButton={
+                    <button 
+                      onClick={() => window.location.reload()}
+                      className="bg-indigo-600 px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-600/20 mt-4"
+                    >
+                      Force Sync (Retry)
+                    </button>
+                  } 
+                />
               ) : filteredUniversities.length === 0 ? (
-                <div className="py-32 text-center bg-[#111114] border border-white/5 rounded-[40px]">
-                  <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-8 border border-white/5">
-                    <Search size={40} className="text-white/10" />
-                  </div>
-                  <h3 className="text-2xl font-black mb-2">No institutions found</h3>
-                  <p className="text-white/46">Try adjusting your filters or search query.</p>
-                </div>
+                <AIEmptyState 
+                  icon={Search} 
+                  title="No institutions found" 
+                  description="Try adjusting your filters or search query." 
+                />
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <AnimatePresence mode="popLayout">
-                    {filteredUniversities.map((uni, idx) => (
+                    {filteredUniversities.map((uni: University, idx: number) => (
                       <motion.div
                         layout
                         key={uni.id}
@@ -431,10 +341,10 @@ export default function PremiumDiscoverPage() {
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
                         transition={{ duration: 0.3, delay: idx * 0.05 }}
-                        className="group relative bg-[#111114] border border-white/5 rounded-3xl overflow-hidden hover:border-white/10 transition-all shadow-2xl"
+                        className="group relative bg-[#111114] border border-white/5 rounded-3xl overflow-hidden hover:border-white/10 transition-all shadow-2xl flex flex-col"
                       >
                         {/* Card Image Wrapper */}
-                        <div className="relative h-60 overflow-hidden">
+                        <div className="relative h-48 overflow-hidden shrink-0">
                           <Image 
                             src={uni.imageUrl || `https://images.unsplash.com/photo-1562774053-701939374585?q=80&w=2066&auto=format&fit=crop`} 
                             alt={uni.name}
@@ -445,69 +355,69 @@ export default function PremiumDiscoverPage() {
                           <div className="absolute inset-0 bg-gradient-to-t from-[#111114] via-transparent to-transparent" />
                           
                           {/* Overlay Badges */}
-                          <div className="absolute top-6 left-6 flex flex-col gap-2">
-                            <div className="bg-black/50 backdrop-blur-xl border border-white/10 px-4 py-2 rounded-xl flex items-center gap-2">
-                              <Star size={14} className="fill-amber-400 text-amber-400" />
-                              <span className="text-xs font-black">{uni.rating || '4.5'}</span>
+                          <div className="absolute top-4 left-4 flex flex-col gap-2">
+                            <div className="bg-black/50 backdrop-blur-xl border border-white/10 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
+                              <Star size={12} className="fill-amber-400 text-amber-400" />
+                              <span className="text-[10px] font-black">{uni.rating || '4.5'}</span>
                             </div>
                             {uni.isFeatured && (
-                              <div className="bg-indigo-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-600/30">
+                              <div className="bg-indigo-600 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg shadow-indigo-600/30">
                                 Featured
                               </div>
                             )}
                           </div>
 
-                          <div className="absolute top-6 right-6">
-                             <div className="bg-white/10 backdrop-blur-xl border border-white/10 px-4 py-2 rounded-xl flex items-center gap-2">
-                              <Award size={14} className="text-indigo-400" />
-                              <span className="text-[10px] font-black uppercase tracking-widest">{uni.naacGrade || 'A++'} Grade</span>
+                          <div className="absolute top-4 right-4">
+                             <div className="bg-white/10 backdrop-blur-xl border border-white/10 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
+                              <Award size={12} className="text-indigo-400" />
+                              <span className="text-[9px] font-black uppercase tracking-widest">{uni.naacGrade || 'A++'} Grade</span>
                             </div>
                           </div>
                         </div>
 
                         {/* Content Area */}
-                        <div className="p-8">
-                          <div className="flex items-start justify-between mb-4">
+                        <div className="p-6 flex-1 flex flex-col">
+                          <div className="flex items-start justify-between mb-3">
                             <div>
-                              <h3 className="text-2xl font-black mb-1 group-hover:text-indigo-400 transition-colors">{uni.name}</h3>
-                              <div className="flex items-center gap-2 text-white/40 text-sm font-medium">
-                                <MapPin size={14} />
+                              <h3 className="text-lg font-black mb-1 group-hover:text-indigo-400 transition-colors leading-tight line-clamp-2">{uni.name}</h3>
+                              <div className="flex items-center gap-1.5 text-white/40 text-xs font-medium">
+                                <MapPin size={12} />
                                 {uni.location}
                               </div>
                             </div>
                           </div>
 
-                          <div className="flex gap-2 mb-8 overflow-hidden">
-                             {uni.programs?.slice(0, 3).map((p, i) => (
-                               <span key={i} className="whitespace-nowrap bg-white/5 border border-white/5 px-3 py-1 rounded-lg text-[10px] font-bold text-white/46 uppercase tracking-wider">
+                          <div className="flex gap-2 mb-6 overflow-hidden mt-auto pt-2">
+                             {uni.programs?.slice(0, 2).map((p: any, i: number) => (
+                               <span key={i} className="whitespace-nowrap bg-white/5 border border-white/5 px-2 py-1 rounded-md text-[9px] font-bold text-white/46 uppercase tracking-wider truncate max-w-[120px]">
                                  {p.name.split(' ')[0]}
                                </span>
                              ))}
-                             {uni.programs?.length > 3 && <span className="text-[10px] font-bold text-white/40">+{uni.programs.length - 3}</span>}
+                             {uni.programs?.length > 2 && <span className="text-[9px] font-bold text-white/40 self-center">+{uni.programs.length - 2}</span>}
                           </div>
 
-                          <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-3">
                             <button 
                               onClick={() => handleApply(uni)}
-                              className="flex-1 bg-white text-[#0A0A0F] py-4 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-indigo-50 transition-all flex items-center justify-center gap-2"
+                              className="flex-1 bg-white text-[#0A0A0F] py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-indigo-50 transition-all flex items-center justify-center gap-2"
                             >
-                              Apply Now <ChevronRight size={18} />
+                              Apply Now <ChevronRight size={14} />
                             </button>
                             <button 
                                onClick={() => router.push(`/student/universities/${uni.id}`)}
                                aria-label={`View ${uni.name} details`}
-                               className="w-14 h-14 bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl flex items-center justify-center transition-all"
+                               className="w-11 h-11 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl flex items-center justify-center transition-all shrink-0"
                             >
-                              <Building2 size={20} className="text-white/40" />
+                              <Building2 size={16} className="text-white/40" />
                             </button>
                           </div>
 
                           {/* Reason for recommendation if applicable */}
                           {viewMode === 'Recommended' && (
-                            <div className="mt-6 pt-6 border-t border-white/5">
-                              {recommendations.find(r => r.university.id === uni.id)?.matchReasons.map((reason, rIdx) => (
-                                <div key={rIdx} className="flex items-center gap-2 text-xs font-medium text-emerald-400 mb-1">
-                                  <CheckCircle2 size={12} /> {reason}
+                            <div className="mt-4 pt-4 border-t border-white/5">
+                              {recommendations.find(r => r.university.id === uni.id)?.matchReasons.slice(0, 1).map((reason, rIdx) => (
+                                <div key={rIdx} className="flex items-center gap-2 text-[10px] font-medium text-emerald-400">
+                                  <CheckCircle2 size={10} className="shrink-0" /> <span className="truncate">{reason}</span>
                                 </div>
                               ))}
                             </div>
@@ -518,57 +428,46 @@ export default function PremiumDiscoverPage() {
                   </AnimatePresence>
                 </div>
               )}
-            </main>
+            </div>
+          </>
+        }
+        rightPanel={
+          <>
+            <div className="p-4 border-b border-white/5 flex items-center gap-2">
+              <Sparkles size={14} className="text-indigo-400" />
+              <h2 className="text-xs font-black uppercase tracking-widest text-indigo-400">Context Panel</h2>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-5 space-y-6 custom-scrollbar">
+              <AnimatePresence mode="popLayout">
+                {aiMode && aiExplanation && (
+                  <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-indigo-500/10 border border-indigo-500/20 p-4 rounded-2xl">
+                    <h3 className="text-xs font-black flex items-center gap-2 mb-2 text-indigo-400">AI Search Insights</h3>
+                    <p className="text-xs text-white/80 leading-relaxed font-medium mb-3">
+                      {aiExplanation}
+                    </p>
+                    <button onClick={() => { setAiMode(false); setAiExplanation(''); setSearchQuery(''); }} className="text-[10px] uppercase tracking-widest font-bold text-white/40 hover:text-white transition-colors">
+                      Clear Insight
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
-          </div>
-        </div>
-
-        {/* MOBILE FILTERS MODAL */}
-        <AnimatePresence>
-          {showFilters && (
-            <motion.div 
-              ref={filterDrawerRef}
-              role="dialog"
-              aria-modal="true"
-              aria-label="Filters"
-              tabIndex={-1}
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 lg:hidden bg-black/90 backdrop-blur-2xl flex flex-col p-8">
-               <div className="flex items-center justify-between mb-12">
-                 <h2 className="text-3xl font-black">Filters</h2>
-                 <button onClick={() => setShowFilters(false)} className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center border border-white/10">
-                   <X size={24} />
-                 </button>
-               </div>
-
-               <div className="flex-1 overflow-y-auto space-y-12">
-                  {/* MOBILE FILTER REPLICATION */}
-                  <div className="space-y-4">
-                    <span className="text-xs font-black text-white/46 uppercase tracking-widest">Academic Level</span>
-                    <div className="grid grid-cols-3 gap-2" role="group" aria-label="Academic Level">
-                       {['All', 'UG', 'PG'].map(l => (
-                         <button key={l} onClick={() => { setActiveLevel(l as any); setShowFilters(false); }} className={`py-4 rounded-2xl text-sm font-black transition-all ${activeLevel === l ? 'bg-indigo-600 text-white' : 'bg-white/5 text-white/46'}`}>
-                           {l}
-                         </button>
-                       ))}
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <span className="text-xs font-black text-white/46 uppercase tracking-widest">Select Region</span>
-                    <div className="grid grid-cols-2 gap-2" role="group" aria-label="Select Region">
-                       {STATES.map(s => (
-                         <button key={s} onClick={() => { setSelectedState(s); setShowFilters(false); }} className={`py-4 rounded-2xl text-xs font-black transition-all ${selectedState === s ? 'bg-indigo-600 text-white' : 'bg-white/5 text-white/46'}`}>
-                           {s}
-                         </button>
-                       ))}
-                    </div>
-                  </div>
-               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-      </div>
+              {/* Profile Context */}
+              <AIContextCard
+                title="Recommendation Engine"
+                icon={User}
+                value="Active"
+                valueColor="text-emerald-400"
+              >
+                <div className="text-xs text-white/60 leading-relaxed">
+                  Your recommendations are continuously optimized based on your deterministic profile score ({profileScore}%) and past interactions.
+                </div>
+              </AIContextCard>
+            </div>
+          </>
+        }
+      />
     </ProtectedRoute>
   )
 }

@@ -1,7 +1,7 @@
 'use client'
 import { createContext, useContext, useEffect, useState } from 'react'
 import { onAuthStateChanged } from 'firebase/auth'
-import { collection, query, where, onSnapshot, doc } from 'firebase/firestore'
+import { collection, query, where, onSnapshot, doc, getDocs } from 'firebase/firestore'
 import { auth, db } from '@/lib/firebase/config'
 import { useRouter } from 'next/navigation'
 import { calculateProfileStrength } from '@/lib/utils/profileStrength'
@@ -16,6 +16,8 @@ export function StudentDataProvider({ children }: { children: React.ReactNode })
   const [applications, setApplications] = useState<any[]>([])
   const [notifications, setNotifications] = useState<any[]>([])
   const [payments, setPayments] = useState<any[]>([])
+  const [universities, setUniversities] = useState<any[]>([])
+  const [scholarships, setScholarships] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -97,6 +99,15 @@ export function StudentDataProvider({ children }: { children: React.ReactNode })
         (err) => console.error('Payments error:', err)
       )
 
+      // Global Data (Universities & Scholarships)
+      getDocs(collection(db, 'universities')).then(snap => {
+        setUniversities(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }).catch(err => console.error('Universities error:', err));
+      
+      getDocs(collection(db, 'scholarships')).then(snap => {
+        setScholarships(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }).catch(err => console.error('Scholarships error:', err));
+
       return () => { unsubProfile(); unsubApps1(); unsubApps2(); unsubNotifs(); unsubPayments() }
     })
     return unsub
@@ -129,6 +140,8 @@ export function StudentDataProvider({ children }: { children: React.ReactNode })
     applications: safeApps,
     notifications: safeNotifs,
     payments: Array.isArray(payments) ? payments : [],
+    universities,
+    scholarships,
     loading,
     error,
     

@@ -4,6 +4,20 @@ import { PromptBuilder } from '../prompts';
 import { GeminiResponse, PromptConfig } from '../types';
 import { geminiConfig } from '../config';
 
+function parseGeminiResponse(response: GeminiResponse, contextName: string): GeminiResponse {
+  if (response.success && response.text) {
+    try {
+      const cleanedText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
+      const parsed = JSON.parse(cleanedText);
+      return { success: true, data: parsed, text: response.text };
+    } catch (e) {
+      console.error(`Failed to parse Gemini ${contextName} JSON`, e);
+      return { success: true, data: null, text: response.text };
+    }
+  }
+  return response;
+}
+
 async function generateAIResponse(
   prompt: string, 
   config?: PromptConfig
@@ -59,50 +73,20 @@ export class CareerAdvisorService {
   static async getCareerPaths(context: any): Promise<GeminiResponse> {
     const prompt = PromptBuilder.buildCareerAdvisorPrompt(context);
     const response = await generateAIResponse(prompt, { model: getOptimalModelForTask('high') });
-    if (response.success && response.text) {
-      try {
-        const cleanedText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
-        const parsed = JSON.parse(cleanedText);
-        return { success: true, data: parsed, text: response.text };
-      } catch (e) {
-        console.error('Failed to parse Gemini career JSON', e);
-        return { success: true, data: null, text: response.text };
-      }
-    }
-    return response;
+    return parseGeminiResponse(response, 'career');
   }
 }
 export class SOPService {
   static async generateSOP(context: any, mode: string = 'Formal Tone'): Promise<GeminiResponse> {
     const prompt = PromptBuilder.buildSOPPrompt(context, mode);
     const response = await generateAIResponse(prompt, { model: getOptimalModelForTask('high') });
-    if (response.success && response.text) {
-      try {
-        const cleanedText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
-        const parsed = JSON.parse(cleanedText);
-        return { success: true, data: parsed, text: response.text };
-      } catch (e) {
-        console.error('Failed to parse Gemini SOP generation JSON', e);
-        return { success: true, data: null, text: response.text };
-      }
-    }
-    return response;
+    return parseGeminiResponse(response, 'SOP generation');
   }
 
   static async reviewSOP(sopContent: string, context: any): Promise<GeminiResponse> {
     const prompt = PromptBuilder.buildSOPReviewPrompt(sopContent, context);
     const response = await generateAIResponse(prompt, { model: getOptimalModelForTask('high') });
-    if (response.success && response.text) {
-      try {
-        const cleanedText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
-        const parsed = JSON.parse(cleanedText);
-        return { success: true, data: parsed, text: response.text };
-      } catch (e) {
-        console.error('Failed to parse Gemini SOP review JSON', e);
-        return { success: true, data: null, text: response.text };
-      }
-    }
-    return response;
+    return parseGeminiResponse(response, 'SOP review');
   }
 }
 export class ScholarshipService {
@@ -116,19 +100,7 @@ export class UniversityComparisonService {
   static async compare(universities: any[], context: any): Promise<GeminiResponse> {
     const prompt = PromptBuilder.buildUniversityComparisonPrompt({ universities, studentContext: context });
     const response = await generateAIResponse(prompt, { model: getOptimalModelForTask('high') });
-    
-    if (response.success && response.text) {
-      try {
-        const cleanedText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
-        const parsed = JSON.parse(cleanedText);
-        return { success: true, data: parsed, text: response.text };
-      } catch (e) {
-        console.error('Failed to parse Gemini comparison JSON', e);
-        // Fallback
-        return { success: true, data: null, text: response.text };
-      }
-    }
-    return response;
+    return parseGeminiResponse(response, 'comparison');
   }
 }
 
@@ -153,33 +125,13 @@ export class ResumeService {
   static async generateResume(context: any, mode: string = 'Professional Resume'): Promise<GeminiResponse> {
     const prompt = PromptBuilder.buildResumePrompt(context, mode);
     const response = await generateAIResponse(prompt, { model: getOptimalModelForTask('high') });
-    if (response.success && response.text) {
-      try {
-        const cleanedText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
-        const parsed = JSON.parse(cleanedText);
-        return { success: true, data: parsed, text: response.text };
-      } catch (e) {
-        console.error('Failed to parse Gemini Resume generation JSON', e);
-        return { success: true, data: null, text: response.text };
-      }
-    }
-    return response;
+    return parseGeminiResponse(response, 'Resume generation');
   }
 
   static async reviewResume(resumeContent: string, context: any): Promise<GeminiResponse> {
     const prompt = PromptBuilder.buildResumeReviewPrompt(resumeContent, context);
     const response = await generateAIResponse(prompt, { model: getOptimalModelForTask('high') });
-    if (response.success && response.text) {
-      try {
-        const cleanedText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
-        const parsed = JSON.parse(cleanedText);
-        return { success: true, data: parsed, text: response.text };
-      } catch (e) {
-        console.error('Failed to parse Gemini Resume review JSON', e);
-        return { success: true, data: null, text: response.text };
-      }
-    }
-    return response;
+    return parseGeminiResponse(response, 'Resume review');
   }
 }
 
@@ -187,33 +139,13 @@ export class EmailService {
   static async generateEmail(context: any, intent: string): Promise<GeminiResponse> {
     const prompt = PromptBuilder.buildEmailPrompt(context, intent);
     const response = await generateAIResponse(prompt, { model: getOptimalModelForTask('high') });
-    if (response.success && response.text) {
-      try {
-        const cleanedText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
-        const parsed = JSON.parse(cleanedText);
-        return { success: true, data: parsed, text: response.text };
-      } catch (e) {
-        console.error('Failed to parse Gemini Email generation JSON', e);
-        return { success: true, data: null, text: response.text };
-      }
-    }
-    return response;
+    return parseGeminiResponse(response, 'Email generation');
   }
 
   static async reviewEmail(emailContent: string, context: any): Promise<GeminiResponse> {
     const prompt = PromptBuilder.buildEmailReviewPrompt(emailContent, context);
     const response = await generateAIResponse(prompt, { model: getOptimalModelForTask('high') });
-    if (response.success && response.text) {
-      try {
-        const cleanedText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
-        const parsed = JSON.parse(cleanedText);
-        return { success: true, data: parsed, text: response.text };
-      } catch (e) {
-        console.error('Failed to parse Gemini Email review JSON', e);
-        return { success: true, data: null, text: response.text };
-      }
-    }
-    return response;
+    return parseGeminiResponse(response, 'Email review');
   }
 }
 
@@ -221,32 +153,12 @@ export class InterviewService {
   static async generateQuestion(context: any, interviewType: string, previousQuestions: string[]): Promise<GeminiResponse> {
     const prompt = PromptBuilder.buildInterviewPrompt(context, interviewType, previousQuestions);
     const response = await generateAIResponse(prompt, { model: getOptimalModelForTask('high') });
-    if (response.success && response.text) {
-      try {
-        const cleanedText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
-        const parsed = JSON.parse(cleanedText);
-        return { success: true, data: parsed, text: response.text };
-      } catch (e) {
-        console.error('Failed to parse Gemini Interview generation JSON', e);
-        return { success: true, data: null, text: response.text };
-      }
-    }
-    return response;
+    return parseGeminiResponse(response, 'Interview generation');
   }
 
   static async evaluateAnswer(question: string, answer: string, context: any): Promise<GeminiResponse> {
     const prompt = PromptBuilder.buildInterviewEvaluationPrompt(question, answer, context);
     const response = await generateAIResponse(prompt, { model: getOptimalModelForTask('high') });
-    if (response.success && response.text) {
-      try {
-        const cleanedText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
-        const parsed = JSON.parse(cleanedText);
-        return { success: true, data: parsed, text: response.text };
-      } catch (e) {
-        console.error('Failed to parse Gemini Interview evaluate JSON', e);
-        return { success: true, data: null, text: response.text };
-      }
-    }
-    return response;
+    return parseGeminiResponse(response, 'Interview evaluate');
   }
 }

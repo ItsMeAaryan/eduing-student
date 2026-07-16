@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import Link from 'next/link';
 import { Sparkles, Check, AlertCircle, ChevronRight, Zap } from 'lucide-react';
 import { useStudentData } from '@/components/providers/StudentDataProvider';
@@ -81,7 +82,7 @@ export function DashboardRecommendationWidget() {
                 <div className="relative z-10 flex gap-3">
                   <div className="w-12 h-12 rounded-[14px] bg-gradient-to-br from-[#1E1E24] to-[#111114] border border-white/[0.08] flex items-center justify-center text-white font-display font-bold text-[18px] shrink-0 shadow-inner group-hover/card:border-amber-500/30 transition-colors overflow-hidden">
                     {rec.university.imageUrl ? (
-                      <img src={rec.university.imageUrl} alt="" className="w-full h-full object-cover opacity-80" />
+                      <Image src={rec.university.imageUrl} alt="" fill className="object-cover opacity-80" />
                     ) : (
                       (rec.university.name || 'U').charAt(0)
                     )}

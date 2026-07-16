@@ -8,7 +8,8 @@ import {
   Trash2, LogOut, Key, Mail, Fingerprint, ChevronRight, Save, Sparkles
 } from "lucide-react";
 import { useStudentData } from "@/components/providers/StudentDataProvider";
-import { useAuth } from "@/hooks/useAuth";
+import Image from 'next/image';
+import { useAuth } from '@/hooks/useAuth';
 
 const TABS = [
   { id: "profile", label: "Profile", icon: User },
@@ -120,7 +121,7 @@ export default function SettingsPage() {
                       <div className="relative group cursor-pointer">
                         <div className="w-24 h-24 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center overflow-hidden">
                           {profile?.profilePhotoURL ? (
-                            <img src={profile.profilePhotoURL} alt="Avatar" className="w-full h-full object-cover" />
+                            <Image src={profile.profilePhotoURL} alt="Avatar" fill className="object-cover" />
                           ) : (
                             <span className="text-3xl font-black text-white/50">{formData.name.charAt(0) || 'U'}</span>
                           )}

@@ -8,11 +8,13 @@ import {
   Clock, Flame, LineChart, Sparkles, Plus, Bookmark
 } from 'lucide-react'
 import { useStudentData } from '@/components/providers/StudentDataProvider'
-import { ProfileStrengthCard } from '@/components/dashboard/ProfileStrengthCard'
-import { AdmissionChecklistCard } from '@/components/dashboard/AdmissionChecklistCard'
-import { DashboardRecommendationWidget } from '@/components/dashboard/RecommendationWidget'
-import { ScholarshipWidget } from '@/components/dashboard/ScholarshipWidget'
-import { DeadlineWidget } from '@/components/dashboard/DeadlineWidget'
+import dynamic from 'next/dynamic'
+
+const ProfileStrengthCard = dynamic(() => import('@/components/dashboard/ProfileStrengthCard').then(mod => mod.ProfileStrengthCard), { ssr: false })
+const AdmissionChecklistCard = dynamic(() => import('@/components/dashboard/AdmissionChecklistCard').then(mod => mod.AdmissionChecklistCard), { ssr: false })
+const DashboardRecommendationWidget = dynamic(() => import('@/components/dashboard/RecommendationWidget').then(mod => mod.DashboardRecommendationWidget), { ssr: false })
+const ScholarshipWidget = dynamic(() => import('@/components/dashboard/ScholarshipWidget').then(mod => mod.ScholarshipWidget), { ssr: false })
+const DeadlineWidget = dynamic(() => import('@/components/dashboard/DeadlineWidget').then(mod => mod.DeadlineWidget), { ssr: false })
 
 // Animations
 const itemFade = {

@@ -4,10 +4,12 @@ import React, { useState, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStudentData } from '@/components/providers/StudentDataProvider';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { useAIGeneration } from '@/hooks/useAIGeneration';
 
 import { EmailService } from '@/lib/ai/gemini/services';
 
 import { Sparkles, Mail, CheckCircle2, AlertCircle, Wand2, Download, Copy, Save, LayoutTemplate, MessageSquareText, FileEdit } from 'lucide-react';
+import { AIWorkspaceLayout } from '@/components/ai/AIWorkspaceLayout';
 
 function EmailAssistantContent() {
   const { profile } = useStudentData();
@@ -17,52 +19,28 @@ function EmailAssistantContent() {
   const [generationIntent, setGenerationIntent] = useState('University Admission Inquiry');
   
   // Email State
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [isReviewing, setIsReviewing] = useState(false);
-  const [emailSubject, setEmailSubject] = useState('');
-  const [emailBody, setEmailBody] = useState('');
-  const [emailReview, setEmailReview] = useState<any>(null);
+  const { data: emailData, setData: setEmailData, isGenerating, generate: generateEmail, error: generationError } = useAIGeneration<any>();
+  const emailSubject = emailData?.subject || '';
+  const emailBody = emailData?.body || '';
+  const { data: emailReview, isGenerating: isReviewing, generate: generateReview, error: reviewError } = useAIGeneration<any>();
 
   const handleGenerate = async () => {
     if (!profile) return;
-    setIsGenerating(true);
-    setEmailReview(null);
-    try {
-      const aiContext = {
-        studentProfile: profile,
-        achievements: profile.achievements || [],
-        extracurriculars: profile.extracurriculars || [],
-        experience: profile.experience || [],
-        projects: profile.projects || [],
-      };
-
-      const res = await EmailService.generateEmail(aiContext, generationIntent);
-      if (res.success && res.data) {
-        setEmailSubject(res.data.subject || '');
-        setEmailBody(res.data.body || '');
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsGenerating(false);
-    }
+    const aiContext = {
+      studentProfile: profile,
+      achievements: profile.achievements || [],
+      extracurriculars: profile.extracurriculars || [],
+      experience: profile.experience || [],
+      projects: profile.projects || [],
+    };
+    await generateEmail(() => EmailService.generateEmail(aiContext, generationIntent));
   };
 
   const handleReview = async () => {
     if (!emailBody) return;
-    setIsReviewing(true);
     setActiveTab('review');
-    try {
-      const aiContext = { studentProfile: profile };
-      const res = await EmailService.reviewEmail(`Subject: ${emailSubject}\n\n${emailBody}`, aiContext);
-      if (res.success && res.data) {
-        setEmailReview(res.data);
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsReviewing(false);
-    }
+    const aiContext = { studentProfile: profile };
+    await generateReview(() => EmailService.reviewEmail(`Subject: ${emailSubject}\n\n${emailBody}`, aiContext));
   };
 
   const handleCopy = () => {
@@ -71,33 +49,21 @@ function EmailAssistantContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white font-sans flex flex-col h-screen overflow-hidden">
-      {/* Top Navbar */}
-      <div className="h-16 border-b border-white/5 flex items-center justify-between px-6 bg-[#0A0A0F] shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-indigo-500/10 rounded-lg flex items-center justify-center text-indigo-400">
-            <Mail size={16} />
-          </div>
-          <div>
-            <h1 className="text-sm font-black">AI Email Assistant</h1>
-            <div className="text-[10px] text-white/40 font-bold uppercase tracking-widest flex items-center gap-1">
-              <Sparkles size={10} className="text-indigo-400" /> Powered by Gemini
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
+    <AIWorkspaceLayout
+      title="AI Email Assistant"
+      icon={<Mail size={16} />}
+      headerActions={
+        <>
           <button onClick={handleCopy} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-bold transition-all flex items-center gap-2">
             <Copy size={14} /> Copy
           </button>
           <button className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-indigo-500/20">
             <Save size={14} /> Save Draft
           </button>
-        </div>
-      </div>
-
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left Panel - Controls */}
-        <div className="w-64 border-r border-white/5 bg-[#08080C] p-4 flex flex-col gap-6 overflow-y-auto shrink-0">
+        </>
+      }
+      leftPanel={
+        <>
           <div>
             <h3 className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-3">Email Templates</h3>
             <div className="space-y-2">
@@ -129,16 +95,22 @@ function EmailAssistantContent() {
             {isGenerating ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Wand2 size={16} />}
             {isGenerating ? 'Generating...' : 'Generate Email'}
           </button>
-        </div>
-
-        {/* Center Panel - Editor */}
-        <div className="flex-1 bg-[#050505] overflow-y-auto p-8 lg:p-12">
-          <div className="max-w-3xl mx-auto space-y-8">
-            {!emailBody && !isGenerating && (
+        </>
+      }
+      centerPanel={
+        <>
+            {!emailBody && !isGenerating && !generationError && (
               <div className="text-center py-24">
                 <LayoutTemplate size={48} className="text-white/10 mx-auto mb-4" />
                 <h2 className="text-xl font-black text-white/60 mb-2">Blank Canvas</h2>
                 <p className="text-white/40 text-sm max-w-sm mx-auto">Select a template on the left and click Generate to draft a personalized professional email.</p>
+              </div>
+            )}
+            {generationError && (
+              <div className="text-center py-24">
+                <AlertCircle size={48} className="text-rose-500 mx-auto mb-4" />
+                <h2 className="text-xl font-black text-white/60 mb-2">Generation Error</h2>
+                <p className="text-rose-400 text-sm max-w-sm mx-auto">{generationError}</p>
               </div>
             )}
             
@@ -151,37 +123,36 @@ function EmailAssistantContent() {
 
             {!isGenerating && emailBody && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 pb-24 h-full flex flex-col">
-                <div className="bg-[#111114] border border-white/5 rounded-2xl flex flex-col h-full overflow-hidden">
+                <div className="bg-[#111114] border border-white/5 rounded-2xl flex flex-col h-full overflow-hidden min-h-[500px]">
                   <div className="border-b border-white/5 p-4 flex gap-4 items-center">
                     <span className="text-xs font-black uppercase tracking-widest text-white/40">Subject</span>
                     <input 
                       type="text"
                       value={emailSubject}
-                      onChange={e => setEmailSubject(e.target.value)}
+                      onChange={e => setEmailData({ ...emailData, subject: e.target.value })}
                       className="flex-1 bg-transparent text-sm font-medium outline-none text-white/90"
                     />
                   </div>
                   <div className="flex-1 p-4">
                     <textarea 
                       value={emailBody}
-                      onChange={e => setEmailBody(e.target.value)}
-                      className="w-full h-full min-h-[400px] bg-transparent text-[15px] leading-relaxed text-white/80 outline-none resize-none"
+                      onChange={e => setEmailData({ ...emailData, body: e.target.value })}
+                      className="w-full h-full bg-transparent text-[15px] leading-relaxed text-white/80 outline-none resize-none"
                     />
                   </div>
                 </div>
               </motion.div>
             )}
-          </div>
-        </div>
-
-        {/* Right Panel - AI Review */}
-        <div className="w-80 border-l border-white/5 bg-[#08080C] flex flex-col shrink-0">
+        </>
+      }
+      rightPanel={
+        <>
           <div className="flex border-b border-white/5">
              <button onClick={() => setActiveTab('write')} className={`flex-1 py-4 text-xs font-black uppercase tracking-widest border-b-2 transition-all ${activeTab === 'write' ? 'border-indigo-500 text-indigo-400' : 'border-transparent text-white/40 hover:text-white'}`}>Assist</button>
              <button onClick={() => setActiveTab('review')} className={`flex-1 py-4 text-xs font-black uppercase tracking-widest border-b-2 transition-all ${activeTab === 'review' ? 'border-indigo-500 text-indigo-400' : 'border-transparent text-white/40 hover:text-white'}`}>Review</button>
           </div>
           
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
             {activeTab === 'write' && (
               <div className="space-y-6">
                 <button onClick={handleReview} disabled={isReviewing || !emailBody} className="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 disabled:opacity-50">
@@ -229,7 +200,7 @@ function EmailAssistantContent() {
                           <ul className="space-y-2">
                             {emailReview.alternativeSubjectLines.map((s: string, i: number) => (
                               <li key={i}>
-                                <button type="button" onClick={() => setEmailSubject(s)} className="w-full text-left text-[11px] text-white/70 bg-white/5 p-2 rounded-lg cursor-pointer hover:bg-white/10 transition-colors">
+                                <button type="button" onClick={() => setEmailData({ ...emailData, subject: s })} className="w-full text-left text-[11px] text-white/70 bg-white/5 p-2 rounded-lg cursor-pointer hover:bg-white/10 transition-colors">
                                   {s}
                                 </button>
                               </li>
@@ -254,9 +225,9 @@ function EmailAssistantContent() {
               </div>
             )}
           </div>
-        </div>
-      </div>
-    </div>
+        </>
+      }
+    />
   );
 }
 

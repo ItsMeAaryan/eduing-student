@@ -5,24 +5,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Send, User, ChevronRight, FileText, Target, Award, Calendar, RefreshCcw, Copy, Trash2, ArrowRight } from 'lucide-react';
 import { useStudentData } from '@/components/providers/StudentDataProvider';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { AIWorkspaceLayout } from '@/components/ai/AIWorkspaceLayout';
+import { AIContextCard } from '@/components/ai/AIContextCard';
 
 // Firebase & Engines
-import { listenUniversitiesFiltered } from '@/lib/firebase/universities';
-import { listenScholarships } from '@/lib/firebase/scholarships';
 import { calculateProfileStrength } from '@/lib/utils/profileStrength';
 import { generateAdmissionChecklist } from '@/lib/utils/checklistEngine';
 import { recommendUniversities } from '@/lib/utils/recommendationEngine';
 import { calculateScholarshipEligibility } from '@/lib/utils/scholarshipEngine';
 import { generateDeadlineInsights } from '@/lib/utils/deadlineEngine';
 import { CopilotService } from '@/lib/ai/gemini/services';
-
-interface ChatMessage {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
-  isStreaming?: boolean;
-}
+import { useAIChat, ChatMessage } from '@/hooks/useAIChat';
 
 const SUGGESTED_TOPICS = [
   "How can I improve my admission chances?",
@@ -32,20 +25,10 @@ const SUGGESTED_TOPICS = [
 ];
 
 export default function CopilotPage() {
-  const { profile, documents, uniqueApps, savedPrograms, deadlines } = useStudentData();
-  const [universities, setUniversities] = useState<any[]>([]);
-  const [scholarships, setScholarships] = useState<any[]>([]);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const { profile, documents, uniqueApps, savedPrograms, deadlines, universities, scholarships } = useStudentData();
+  const { messages, setMessages, isTyping, sendMessage, clearMessages } = useAIChat();
   const [input, setInput] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // Fetch collections
-  useEffect(() => {
-    const unsubU = listenUniversitiesFiltered({}, (data) => setUniversities(data), (err) => console.error(err));
-    const unsubS = listenScholarships((data) => setScholarships(data), (err) => console.error(err));
-    return () => { unsubU(); unsubS(); };
-  }, []);
 
   // Compute Engines
   const context = useMemo(() => {
@@ -75,7 +58,7 @@ export default function CopilotPage() {
         timestamp: new Date()
       }]);
     }
-  }, [profile, messages.length]);
+  }, [profile, messages.length, setMessages]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -88,19 +71,8 @@ export default function CopilotPage() {
   const handleSend = async (text: string) => {
     if (!text.trim() || !context) return;
     
-    const userMsg: ChatMessage = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: text,
-      timestamp: new Date()
-    };
-    
-    setMessages(prev => [...prev, userMsg]);
     setInput('');
-    setIsTyping(true);
-
-    try {
-      // Build stringified context
+    await sendMessage(text, async (msgText) => {
       const aiContext = {
         studentName: profile?.firstName,
         profileStrength: context.profileEngine.percentage,
@@ -110,28 +82,9 @@ export default function CopilotPage() {
         topScholarships: context.scholarshipsResults.slice(0, 2).map(s => s.scholarship.name),
         urgentDeadlines: context.deadlineInsights.criticalTasks.map(d => d.title)
       };
-
-      const response = await CopilotService.processChat(text, aiContext);
-      
-      const assistantMsg: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: response.success ? (response.text || 'No response provided.') : 'I encountered an error while processing your request.',
-        timestamp: new Date()
-      };
-
-      setMessages(prev => [...prev, assistantMsg]);
-    } catch (error) {
-      console.error(error);
-      setMessages(prev => [...prev, {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: 'I encountered an error connecting to the AI service. Please try again.',
-        timestamp: new Date()
-      }]);
-    } finally {
-      setIsTyping(false);
-    }
+      const response = await CopilotService.processChat(msgText, aiContext);
+      return response;
+    });
   };
 
   const formatMessageContent = (content: string) => {
@@ -157,18 +110,11 @@ export default function CopilotPage() {
 
   return (
     <ProtectedRoute allowedRoles={['student']}>
-      <div className="min-h-screen bg-[#050505] text-white font-sans flex h-screen overflow-hidden">
-        
-        {/* LEFT SIDEBAR */}
-        <div className="w-80 border-r border-white/5 bg-[#0a0a0f] flex flex-col hidden lg:flex">
-          <div className="p-6 border-b border-white/5">
-            <h2 className="text-xl font-black flex items-center gap-2">
-              <Sparkles className="text-indigo-400" /> AI Copilot
-            </h2>
-            <p className="text-[11px] text-white/40 font-medium mt-2">Powered by Gemini 2.5</p>
-          </div>
-          
-          <div className="flex-1 overflow-y-auto p-4 space-y-6">
+      <AIWorkspaceLayout
+        title="AI Copilot"
+        icon={<Sparkles size={16} />}
+        leftPanel={
+          <>
             <div>
               <h3 className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-3 px-2">Suggested Topics</h3>
               <div className="space-y-1">
@@ -195,24 +141,20 @@ export default function CopilotPage() {
                 </button>
               </div>
             </div>
-          </div>
 
-          <div className="p-4 border-t border-white/5">
-            <button 
-              onClick={() => setMessages([])}
-              className="w-full py-3 bg-white/5 hover:bg-white/10 rounded-xl text-xs font-bold text-white/40 hover:text-white transition-colors flex items-center justify-center gap-2"
-            >
-              <RefreshCcw size={14} /> Clear Conversation
-            </button>
-          </div>
-        </div>
-
-        {/* MAIN PANEL */}
-        <div className="flex-1 flex flex-col relative bg-[#08080c]">
-          <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-[#08080c] to-transparent z-10 pointer-events-none" />
-          
-          <div className="flex-1 overflow-y-auto px-4 md:px-12 py-10 pb-32">
-            <div className="max-w-3xl mx-auto space-y-8 mt-10">
+            <div className="pt-6 border-t border-white/5">
+              <button 
+                onClick={clearMessages}
+                className="w-full py-3 bg-white/5 hover:bg-white/10 rounded-xl text-xs font-bold text-white/40 hover:text-white transition-colors flex items-center justify-center gap-2"
+              >
+                <RefreshCcw size={14} /> Clear Conversation
+              </button>
+            </div>
+          </>
+        }
+        centerPanel={
+          <>
+            <div className="flex-1 w-full space-y-8 mt-10 pb-32">
               <AnimatePresence initial={false}>
                 {messages.map((msg) => (
                   <motion.div
@@ -258,52 +200,50 @@ export default function CopilotPage() {
               )}
               <div ref={messagesEndRef} />
             </div>
-          </div>
 
-          <div className="absolute bottom-0 inset-x-0 p-4 md:p-8 bg-gradient-to-t from-[#08080c] via-[#08080c] to-transparent">
-            <div className="max-w-3xl mx-auto relative">
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSend(input)}
-                placeholder="Ask about your admission journey..."
-                className="w-full bg-[#111114] border border-white/10 rounded-full pl-6 pr-14 py-4 text-sm focus:border-indigo-500/50 outline-none transition-all text-white placeholder:text-white/30 shadow-2xl"
+            <div className="absolute bottom-0 inset-x-0 p-4 md:p-8 bg-gradient-to-t from-[#050505] via-[#050505] to-transparent pointer-events-none">
+              <div className="max-w-3xl mx-auto relative pointer-events-auto">
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSend(input)}
+                  placeholder="Ask about your admission journey..."
+                  className="w-full bg-[#111114] border border-white/10 rounded-full pl-6 pr-14 py-4 text-sm focus:border-indigo-500/50 outline-none transition-all text-white placeholder:text-white/30 shadow-2xl"
+                />
+                <button 
+                  onClick={() => handleSend(input)}
+                  disabled={!input.trim() || isTyping}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-indigo-600 hover:bg-indigo-500 disabled:bg-white/5 disabled:text-white/20 rounded-full flex items-center justify-center transition-all text-white"
+                >
+                  <Send size={16} />
+                </button>
+              </div>
+            </div>
+          </>
+        }
+        rightPanel={
+          <>
+            <div className="p-6 border-b border-white/5">
+              <h2 className="text-sm font-black text-white/80">Active Context</h2>
+              <p className="text-[10px] text-white/40 mt-1 uppercase tracking-widest">Auto-synced with Engines</p>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-5 space-y-6 custom-scrollbar">
+              {/* Profile Strength */}
+              <AIContextCard
+                title="Profile"
+                icon={User}
+                value={`${context.profileEngine.percentage}%`}
+                progress={context.profileEngine.percentage}
               />
-              <button 
-                onClick={() => handleSend(input)}
-                disabled={!input.trim() || isTyping}
-                className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-indigo-600 hover:bg-indigo-500 disabled:bg-white/5 disabled:text-white/20 rounded-full flex items-center justify-center transition-all text-white"
+
+              {/* Top Checklist */}
+              <AIContextCard
+                title="Priorities"
+                icon={FileText}
+                valueColor="text-emerald-400"
               >
-                <Send size={16} />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* RIGHT CONTEXT PANEL */}
-        <div className="w-80 border-l border-white/5 bg-[#0a0a0f] flex flex-col hidden xl:flex">
-          <div className="p-6 border-b border-white/5">
-            <h2 className="text-sm font-black text-white/80">Active Context</h2>
-            <p className="text-[10px] text-white/40 mt-1 uppercase tracking-widest">Auto-synced with Engines</p>
-          </div>
-          
-          <div className="flex-1 overflow-y-auto p-5 space-y-6">
-            {/* Profile Strength */}
-            <div className="bg-[#14141A] border border-white/5 p-4 rounded-2xl">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-xs font-bold flex items-center gap-2"><User size={14} className="text-indigo-400" /> Profile</h3>
-                <span className="text-xs font-black text-indigo-400">{context.profileEngine.percentage}%</span>
-              </div>
-              <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
-                <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${context.profileEngine.percentage}%` }} />
-              </div>
-            </div>
-
-            {/* Top Checklist */}
-            <div className="bg-[#14141A] border border-white/5 p-4 rounded-2xl">
-              <h3 className="text-xs font-bold mb-3 flex items-center gap-2"><FileText size={14} className="text-emerald-400" /> Priorities</h3>
-              <div className="space-y-2">
                 {context.checklist.tasks.filter((t: any) => t.priority === 'Critical' || t.priority === 'High').slice(0, 3).map((t: any, i: number) => (
                   <div key={i} className="text-[11px] text-white/60 truncate flex items-center gap-2">
                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
@@ -311,38 +251,38 @@ export default function CopilotPage() {
                   </div>
                 ))}
                 {context.checklist.tasks.length === 0 && <div className="text-[11px] text-white/40">No critical tasks.</div>}
-              </div>
-            </div>
+              </AIContextCard>
 
-            {/* Top Recommendations */}
-            <div className="bg-[#14141A] border border-white/5 p-4 rounded-2xl">
-              <h3 className="text-xs font-bold mb-3 flex items-center gap-2"><Target size={14} className="text-amber-400" /> Matches</h3>
-              <div className="space-y-2">
+              {/* Top Recommendations */}
+              <AIContextCard
+                title="Matches"
+                icon={Target}
+                valueColor="text-amber-400"
+              >
                 {context.recommendations.slice(0, 3).map((r: any, i: number) => (
                   <div key={i} className="flex justify-between items-center">
                     <span className="text-[11px] text-white/60 truncate max-w-[150px]">{r.university.name}</span>
                     <span className="text-[10px] font-bold text-amber-400">{r.overallMatchScore}%</span>
                   </div>
                 ))}
-              </div>
-            </div>
+              </AIContextCard>
 
-            {/* Scholarships */}
-            <div className="bg-[#14141A] border border-white/5 p-4 rounded-2xl">
-              <h3 className="text-xs font-bold mb-3 flex items-center gap-2"><Award size={14} className="text-rose-400" /> Scholarships</h3>
-              <div className="space-y-2">
+              {/* Scholarships */}
+              <AIContextCard
+                title="Scholarships"
+                icon={Award}
+                valueColor="text-rose-400"
+              >
                 {context.scholarshipsResults.filter(s => s.eligibilityScore >= 60).slice(0, 2).map((s, i) => (
                   <div key={i} className="text-[11px] text-white/60 truncate">
                     {s.scholarship.name}
                   </div>
                 ))}
-              </div>
+              </AIContextCard>
             </div>
-            
-          </div>
-        </div>
-
-      </div>
+          </>
+        }
+      />
     </ProtectedRoute>
   );
 }
