@@ -27,6 +27,7 @@ export default function StudentSidebar({ studentName = "Student", studentPhoto }
     { label: "AI Copilot", href: "/student/copilot", icon: Sparkles, shortcut: "I" },
     { label: "Career Advisor", href: "/student/career", icon: Briefcase, shortcut: "W" },
     { label: "AI SOP Builder", href: "/student/sop", icon: FileText, shortcut: "S" },
+    { label: "Resume Builder", href: "/student/resume", icon: FileText, shortcut: "R" },
     { label: "Applications", href: "/student/applications", icon: FileText, shortcut: "A" },
     { label: "Discover", href: "/student/discover", icon: Search, shortcut: "F" },
     { label: "Universities", href: "/student/universities", icon: Building2, shortcut: "U" },

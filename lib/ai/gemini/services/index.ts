@@ -148,3 +148,37 @@ export class CopilotService {
     });
   }
 }
+
+export class ResumeService {
+  static async generateResume(context: any, mode: string = 'Professional Resume'): Promise<GeminiResponse> {
+    const prompt = PromptBuilder.buildResumePrompt(context, mode);
+    const response = await generateAIResponse(prompt, { model: getOptimalModelForTask('high') });
+    if (response.success && response.text) {
+      try {
+        const cleanedText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(cleanedText);
+        return { success: true, data: parsed, text: response.text };
+      } catch (e) {
+        console.error('Failed to parse Gemini Resume generation JSON', e);
+        return { success: true, data: null, text: response.text };
+      }
+    }
+    return response;
+  }
+
+  static async reviewResume(resumeContent: string, context: any): Promise<GeminiResponse> {
+    const prompt = PromptBuilder.buildResumeReviewPrompt(resumeContent, context);
+    const response = await generateAIResponse(prompt, { model: getOptimalModelForTask('high') });
+    if (response.success && response.text) {
+      try {
+        const cleanedText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(cleanedText);
+        return { success: true, data: parsed, text: response.text };
+      } catch (e) {
+        console.error('Failed to parse Gemini Resume review JSON', e);
+        return { success: true, data: null, text: response.text };
+      }
+    }
+    return response;
+  }
+}

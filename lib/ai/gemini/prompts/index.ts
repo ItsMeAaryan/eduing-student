@@ -25,12 +25,6 @@ Query: ${query}
 Context: ${JSON.stringify(context)}`;
   }
 
-  static buildResumePrompt(context: any): string {
-    return `You are an expert Resume Writer.
-Generate a resume structure based on the provided student data.
-Context: ${JSON.stringify(context)}`;
-  }
-
   static buildSOPPrompt(context: any, mode: string): string {
     return `You are an expert Statement of Purpose (SOP) Editor.
 Draft a professional, compelling SOP using the student's background. Do NOT invent achievements or fabricate facts. If information is missing, leave [Placeholders] for the student to fill in.
@@ -114,7 +108,7 @@ Return your analysis as a valid JSON object matching this schema:
   ]
 }
 Make sure the response contains ONLY the valid JSON and no markdown formatting or backticks around it.`;
-}
+  }
 
   static buildNaturalLanguageSearchPrompt(query: string): string {
     return `You are a search intent parser for an educational platform.
@@ -169,6 +163,55 @@ Return ONLY a JSON object matching this exact schema:
     { "step": "Career", "description": "Entry into the field" }
   ],
   "nextSteps": ["Actionable step 1", "Actionable step 2"]
+}
+Ensure no markdown formatting or backticks around the JSON.`;
+  }
+
+
+  static buildResumePrompt(context: any, mode: string): string {
+    return `You are an expert Resume Writer and ATS Specialist.
+Draft a professional, compelling Resume using the student's background. Do NOT invent achievements or fabricate facts. If information is missing, leave [Placeholders] for the student to fill in.
+
+Tone/Focus Mode: ${mode}
+
+Context Provided:
+${JSON.stringify(context, null, 2)}
+
+Return ONLY a JSON object matching this schema:
+{
+  "sections": [
+    { "heading": "Professional Summary", "content": "..." },
+    { "heading": "Education", "content": "..." },
+    { "heading": "Experience", "content": "..." },
+    { "heading": "Projects", "content": "..." },
+    { "heading": "Technical Skills", "content": "..." },
+    { "heading": "Achievements", "content": "..." }
+  ]
+}
+Ensure no markdown formatting or backticks around the JSON.`;
+  }
+
+  static buildResumeReviewPrompt(resumeContent: string, context: any): string {
+    return `You are an expert Recruiter and ATS Reviewer.
+Provide constructive feedback on the following Resume.
+
+Resume Content:
+${resumeContent}
+
+Student Context (for alignment check):
+${JSON.stringify(context, null, 2)}
+
+Return ONLY a JSON object matching this schema:
+{
+  "overallScore": number (1-100),
+  "atsScore": number (1-100),
+  "strengths": ["Strength 1"],
+  "weaknesses": ["Weakness 1"],
+  "grammarSuggestions": ["Suggestion 1"],
+  "missingSections": ["Missing 1"],
+  "weakBulletPoints": ["Weak 1"],
+  "strongBulletPoints": ["Strong 1"],
+  "actionableSuggestions": ["Action 1"]
 }
 Ensure no markdown formatting or backticks around the JSON.`;
   }
