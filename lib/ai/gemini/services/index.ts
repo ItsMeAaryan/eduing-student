@@ -182,3 +182,37 @@ export class ResumeService {
     return response;
   }
 }
+
+export class EmailService {
+  static async generateEmail(context: any, intent: string): Promise<GeminiResponse> {
+    const prompt = PromptBuilder.buildEmailPrompt(context, intent);
+    const response = await generateAIResponse(prompt, { model: getOptimalModelForTask('high') });
+    if (response.success && response.text) {
+      try {
+        const cleanedText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(cleanedText);
+        return { success: true, data: parsed, text: response.text };
+      } catch (e) {
+        console.error('Failed to parse Gemini Email generation JSON', e);
+        return { success: true, data: null, text: response.text };
+      }
+    }
+    return response;
+  }
+
+  static async reviewEmail(emailContent: string, context: any): Promise<GeminiResponse> {
+    const prompt = PromptBuilder.buildEmailReviewPrompt(emailContent, context);
+    const response = await generateAIResponse(prompt, { model: getOptimalModelForTask('high') });
+    if (response.success && response.text) {
+      try {
+        const cleanedText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(cleanedText);
+        return { success: true, data: parsed, text: response.text };
+      } catch (e) {
+        console.error('Failed to parse Gemini Email review JSON', e);
+        return { success: true, data: null, text: response.text };
+      }
+    }
+    return response;
+  }
+}

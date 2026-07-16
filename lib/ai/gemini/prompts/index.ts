@@ -82,10 +82,42 @@ Context: ${JSON.stringify(context)}`;
   }
 
   static buildEmailPrompt(context: any, intent: string): string {
-    return `You are a professional Email Generator.
-Write a professional email for a student to a university admission office.
-Intent: ${intent}
-Context: ${JSON.stringify(context)}`;
+    return `You are an expert Professional Email Writer for students.
+Write a professional email for a student for the following intent: ${intent}
+Do NOT invent facts, achievements, or professor names. Use [Placeholders] for missing information.
+
+Context Provided:
+${JSON.stringify(context, null, 2)}
+
+Return ONLY a JSON object matching this schema:
+{
+  "subject": "Professional and concise subject line",
+  "body": "The complete email body, including greeting and signature placeholders"
+}
+Ensure no markdown formatting or backticks around the JSON.`;
+  }
+
+  static buildEmailReviewPrompt(emailContent: string, context: any): string {
+    return `You are an expert Business Communication Coach.
+Review the following email written by a student.
+
+Email Content:
+${emailContent}
+
+Context:
+${JSON.stringify(context, null, 2)}
+
+Return ONLY a JSON object matching this schema:
+{
+  "professionalismScore": number (1-100),
+  "grammarScore": number (1-100),
+  "toneScore": number (1-100),
+  "readability": "Description of readability (e.g. 'Clear and concise' or 'Too wordy')",
+  "missingContext": ["Missing 1"],
+  "suggestedImprovements": ["Suggestion 1"],
+  "alternativeSubjectLines": ["Alt 1", "Alt 2"]
+}
+Ensure no markdown formatting or backticks around the JSON.`;
   }
 
   static buildUniversityComparisonPrompt(context: any): string {

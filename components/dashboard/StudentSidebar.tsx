@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { 
   LayoutDashboard, Search, FileText, Building2, Calendar, 
   Bookmark, Settings, LogOut, GraduationCap,
-  Command, Sparkles, Briefcase
+  Command, Sparkles, Briefcase, Mail
 } from "lucide-react";
 import { logoutUser } from "@/lib/firebase/auth";
 import { motion, AnimatePresence } from "framer-motion";
@@ -28,6 +28,7 @@ export default function StudentSidebar({ studentName = "Student", studentPhoto }
     { label: "Career Advisor", href: "/student/career", icon: Briefcase, shortcut: "W" },
     { label: "AI SOP Builder", href: "/student/sop", icon: FileText, shortcut: "S" },
     { label: "Resume Builder", href: "/student/resume", icon: FileText, shortcut: "R" },
+    { label: "AI Email Assistant", href: "/student/email", icon: Mail, shortcut: "E" },
     { label: "Applications", href: "/student/applications", icon: FileText, shortcut: "A" },
     { label: "Discover", href: "/student/discover", icon: Search, shortcut: "F" },
     { label: "Universities", href: "/student/universities", icon: Building2, shortcut: "U" },
