@@ -16,7 +16,6 @@ export function listenUniversitiesFiltered(
   callback: (unis: University[]) => void,
   onError?: (error: any) => void
 ) {
-  console.log('[FIRESTORE] Syncing universities with filters:', filters)
   
   let q = query(collection(db, 'universities'))
 
@@ -34,7 +33,6 @@ export function listenUniversitiesFiltered(
     q = query(q, orderBy('name', 'asc'))
 
     return onSnapshot(q, (snap) => {
-      console.log("UNIVERSITIES:", snap.docs.length)
       const unis = snap.docs.map(d => ({
         id: d.id, ...d.data()
       })) as University[]

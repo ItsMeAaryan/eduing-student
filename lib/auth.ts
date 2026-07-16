@@ -16,7 +16,6 @@ export interface StudentProfile extends BaseProfile {
 
 // Mock Auth logic
 export const logoutUser = async () => {
-  console.log("Mock logout called");
 };
 
 export const getStudentProfile = async (uid: string): Promise<StudentProfile | null> => {

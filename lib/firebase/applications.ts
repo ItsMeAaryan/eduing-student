@@ -13,7 +13,6 @@ export async function submitApplication(
   universityName: string,
   program: string
 ) {
-  console.log("UID:", userId)
   const app = await addDoc(
     collection(db, 'applications'),
     {
@@ -28,7 +27,6 @@ export async function submitApplication(
     }
   )
   
-  console.log("Application Submitted:", app.id)
   return app.id
 }
 
@@ -38,7 +36,6 @@ export function listenStudentApplications(
   callback: (apps: Application[]) => void,
   errorCallback?: (error: any) => void
 ) {
-  console.log("[SYNC] Listening to apps for UID:", userId)
   
   // Dual query for cross-platform compatibility
   const q1 = query(

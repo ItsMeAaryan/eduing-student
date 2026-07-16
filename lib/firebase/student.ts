@@ -52,17 +52,14 @@ export async function uploadProfilePhoto(
   file: File
 ) {
   try {
-    console.log(`[STORAGE] Compressing photo for user: ${uid}`)
     const compressed = await compressImage(file)
     
     const path = `student_profiles/${uid}/profile_photo`
     const storageRef = ref(storage, path)
     
-    console.log(`[STORAGE] Uploading to: ${path}`)
     await uploadBytes(storageRef, compressed)
     
     const url = await getDownloadURL(storageRef)
-    console.log(`[STORAGE] Upload success: ${url}`)
     
     await updateDoc(
       doc(db, 'student_profiles', uid),
@@ -91,17 +88,14 @@ export async function uploadUserDocument(
   docId: '10th_marksheet' | '12th_marksheet' | 'id_proof' | 'passport_photo'
 ) {
   try {
-    console.log(`[STORAGE] Processing document ${docId} for user: ${uid}`)
     const compressed = await compressImage(file, 1200, 1200, 0.8) // Higher quality for docs
     
     const path = `users/${uid}/documents/${docId}`
     const storageRef = ref(storage, path)
     
-    console.log(`[STORAGE] Uploading document to: ${path}`)
     await uploadBytes(storageRef, compressed)
     
     const url = await getDownloadURL(storageRef)
-    console.log(`[STORAGE] Doc upload success: ${url}`)
     
     await setDoc(
       doc(db, 'users', uid, 'documents', docId),

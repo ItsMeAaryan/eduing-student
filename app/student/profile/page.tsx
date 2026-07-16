@@ -96,7 +96,6 @@ export default function AccountPage() {
         
         // Only update if there is a real change to avoid infinite loops
         if (Math.abs((completion || 0) - (fullProfile.profileCompletion || 0)) > 0.5) {
-          console.log(`[PROFILE] Updating completion status: ${completion}%`);
           updateUserProfile(fullProfile.uid, { profileCompletion: completion })
             .catch(err => console.error("[PROFILE] Failed to update completion:", err));
         }

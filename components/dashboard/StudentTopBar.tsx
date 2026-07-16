@@ -63,10 +63,10 @@ export default function StudentTopBar() {
 
         {/* Notification Icons */}
         <div className="flex items-center gap-1">
-          <button className="w-10 h-10 rounded-xl flex items-center justify-center text-white/40 hover:bg-white/[0.05] hover:text-white transition-all relative group">
+          <button aria-label="Messages" className="w-10 h-10 rounded-xl flex items-center justify-center text-white/40 hover:bg-white/[0.05] hover:text-white transition-all relative group">
             <MessageSquare size={18} strokeWidth={2} className="group-hover:scale-110 transition-transform" />
           </button>
-          <button className="w-10 h-10 rounded-xl flex items-center justify-center text-white/40 hover:bg-white/[0.05] hover:text-white transition-all relative group">
+          <button aria-label="Notifications" className="w-10 h-10 rounded-xl flex items-center justify-center text-white/40 hover:bg-white/[0.05] hover:text-white transition-all relative group">
             <Bell size={18} strokeWidth={2} className="group-hover:scale-110 transition-transform" />
             <motion.div 
               initial={{ scale: 0 }}
