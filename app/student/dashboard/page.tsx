@@ -66,7 +66,7 @@ export default function StudentDashboard() {
   )
 
   const metrics = [
-    { label: 'Applications', value: Array.isArray(applications) ? applications.length : 0, sub: 'Total submitted', icon: FileText, gradient: 'from-[#4F46E5] to-[#7C3AED]', trendColor: 'text-brand-indigoLight' },
+    { label: 'Applications', value: uniqueApps ? uniqueApps.length : 0, sub: 'Total submitted', icon: FileText, gradient: 'from-[#4F46E5] to-[#7C3AED]', trendColor: 'text-brand-indigoLight' },
     { label: 'Offers', value: selectedOffers.length, sub: 'Received', icon: ShieldCheck, gradient: 'from-[#059669] to-[#10B981]', trendColor: 'text-emerald-400' },
     { label: 'Deadlines', value: deadlines.length, sub: 'Upcoming', icon: Calendar, gradient: 'from-[#D97706] to-[#F59E0B]', trendColor: 'text-amber-400' },
     { label: 'Documents', value: documents.length, sub: 'Uploaded', icon: FileCheck2, gradient: 'from-[#4338CA] to-[#6366F1]', trendColor: 'text-[#818CF8]' },
@@ -131,7 +131,7 @@ export default function StudentDashboard() {
       <motion.div variants={itemFade} className="bg-[#111114] border border-white/[0.06] hover:border-brand-indigo/30 transition-colors duration-500 rounded-[24px] p-5 md:p-6 relative overflow-hidden mb-5 flex flex-col md:flex-row items-center justify-between gap-6 group">
         <div className="absolute top-1/2 left-[20%] w-[300px] h-[300px] bg-brand-indigo/10 blur-[100px] rounded-full mix-blend-screen -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
         
-        {Array.isArray(applications) && applications.length > 0 && activeApp ? (
+        {uniqueApps && uniqueApps.length > 0 && activeApp ? (
           <>
             <div className="flex items-center gap-5 z-10 w-full md:w-auto">
               <div className="w-14 h-14 rounded-[16px] bg-gradient-to-br from-[#1E1E24] to-[#111114] border border-white/[0.08] flex items-center justify-center text-white font-display font-bold text-[20px] shadow-inner shrink-0 group-hover:border-brand-indigo/30 transition-colors">
@@ -200,8 +200,6 @@ export default function StudentDashboard() {
           
           <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar pb-2">
             {(() => {
-              const uniqueApps = Array.isArray(applications) ? applications.filter((v, i, a) => a.findIndex(t => t.id === v.id) === i) : [];
-              
               if (uniqueApps.length === 0) {
                 return (
                   <div className="h-full flex flex-col items-center justify-center bg-white/[0.02] border border-white/[0.04] rounded-[20px] p-8 text-center group hover:bg-white/[0.03] transition-colors">
@@ -219,7 +217,7 @@ export default function StudentDashboard() {
 
               return (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {uniqueApps.slice(0, 4).map(app => {
+                  {uniqueApps.slice(0, 4).map((app: any) => {
                     const s = STATUS[app.status] || STATUS.submitted;
                     const date = app.appliedAt?.toDate ? app.appliedAt.toDate().toLocaleDateString('en-US', { day: 'numeric', month: 'short' }) : 'Recently';
                     const deadline = app.deadline || 'Rolling';
@@ -535,7 +533,7 @@ export default function StudentDashboard() {
             Latest Offers
           </h3>
           <div className="flex-1 flex flex-col justify-start custom-scrollbar overflow-y-auto">
-            {(Array.isArray(applications) ? applications.filter(a => a?.status === 'selected') : []).length === 0 ? (
+            {(uniqueApps.filter((a: any) => a?.status === 'selected')).length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center bg-white/[0.02] border border-white/[0.04] rounded-[20px] p-4 text-center group hover:bg-white/[0.03] transition-colors">
                 <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-400 mb-3 group-hover:scale-110 transition-transform duration-500">
                   <ShieldCheck size={24} />
@@ -548,7 +546,7 @@ export default function StudentDashboard() {
               </div>
             ) : (
               <div className="space-y-3">
-                {(Array.isArray(applications) ? applications.filter(a => a?.status === 'selected') : []).map((app: any, i: number) => (
+                {(uniqueApps.filter((a: any) => a?.status === 'selected')).map((app: any, i: number) => (
                   <div key={i} className="flex items-center gap-3 p-2 bg-[#14141A] rounded-[12px] border border-white/[0.04]">
                     <div className="w-10 h-10 rounded-[10px] bg-[#1E1E24] flex items-center justify-center text-white font-bold text-[14px]">{(app.universityName || 'U').charAt(0)}</div>
                     <div>
@@ -569,7 +567,7 @@ export default function StudentDashboard() {
             Saved Programs
           </h3>
           <div className="flex-1 flex flex-col justify-start custom-scrollbar overflow-y-auto">
-            {(!profile?.savedPrograms || profile.savedPrograms.length === 0) ? (
+            {(!savedPrograms || savedPrograms.length === 0) ? (
               <div className="h-full flex flex-col items-center justify-center bg-white/[0.02] border border-white/[0.04] rounded-[20px] p-4 text-center group hover:bg-white/[0.03] transition-colors">
                 <div className="w-12 h-12 rounded-full bg-[#818CF8]/10 flex items-center justify-center text-[#818CF8] mb-3 group-hover:scale-110 transition-transform duration-500">
                   <Bookmark size={24} />
