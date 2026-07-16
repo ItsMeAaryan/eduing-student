@@ -40,6 +40,7 @@ import {
 } from 'lucide-react'
 
 import { useAuth } from '@/hooks/useAuth'
+import { ProbabilityCard } from '@/components/universities/ProbabilityCard'
 
 export default function PremiumUniversityDetailPage() {
   const params = useParams()
@@ -295,6 +296,10 @@ export default function PremiumUniversityDetailPage() {
             {/* RIGHT COLUMN: ADMISSION SUMMARY */}
             <aside className="space-y-12">
               <div className="sticky top-24 space-y-8">
+                
+                {/* AI Probability Card */}
+                <ProbabilityCard university={university} />
+
                 <div className="bg-[#111114] border border-white/10 rounded-[40px] p-10 relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-[60px]" />
                   
