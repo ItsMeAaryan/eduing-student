@@ -87,17 +87,54 @@ export default function CopilotPage() {
     });
   };
 
+  const formatInlineText = (text: string) => {
+    const parts = text.split(/(\*\*.*?\*\*)/g);
+    return parts.map((part, i) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={i} className="text-white">{part.slice(2, -2)}</strong>;
+      }
+      return <React.Fragment key={i}>{part}</React.Fragment>;
+    });
+  };
+
   const formatMessageContent = (content: string) => {
-    // Basic markdown handling for bold and newlines
-    const formatted = content
-      .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>')
-      .replace(/\n/g, '<br />')
-      .replace(/•(.*?)<br \/>/g, '<li class="ml-4 mb-1">$1</li>');
-      
-    if (formatted.includes('</li>')) {
-      return `<ul class="list-disc my-2">${formatted}</ul>`;
-    }
-    return formatted;
+    let inList = false;
+    const elements: React.ReactNode[] = [];
+    let listItems: React.ReactNode[] = [];
+
+    const flushList = (key: number) => {
+      if (listItems.length > 0) {
+        elements.push(<ul key={`ul-${key}`} className="list-disc my-2">{listItems}</ul>);
+        listItems = [];
+      }
+    };
+
+    content.split('\n').forEach((line, i) => {
+      const trimmed = line.trim();
+      if (trimmed.startsWith('•') || trimmed.startsWith('- ')) {
+        const itemText = trimmed.replace(/^[•-]\s*/, '');
+        listItems.push(
+          <li key={`li-${i}`} className="ml-4 mb-1">
+            {formatInlineText(itemText)}
+          </li>
+        );
+      } else {
+        flushList(i);
+        if (trimmed) {
+          elements.push(
+            <div key={`p-${i}`} className={elements.length > 0 ? "mt-2" : ""}>
+              {formatInlineText(line)}
+            </div>
+          );
+        } else {
+          // Empty line, could just push a spacer if needed
+          elements.push(<div key={`br-${i}`} className="h-2" />);
+        }
+      }
+    });
+    
+    flushList(content.length);
+    return elements;
   };
 
   if (!context) {
@@ -173,10 +210,9 @@ export default function CopilotPage() {
                           <Sparkles size={14} /> Copilot
                         </div>
                       )}
-                      <div 
-                        className="text-[14px] leading-relaxed font-medium"
-                        dangerouslySetInnerHTML={{ __html: formatMessageContent(msg.content) }}
-                      />
+                      <div className="text-[14px] leading-relaxed font-medium">
+                        {formatMessageContent(msg.content)}
+                      </div>
                       
                       {msg.role === 'assistant' && (
                         <div className="flex items-center gap-3 mt-4 pt-3 border-t border-white/5">
