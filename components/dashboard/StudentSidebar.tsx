@@ -1,243 +1,168 @@
 "use client";
-
-import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { 
-  Home, BookOpen, Building2, Sparkles, User,
-  FileText, GraduationCap, Award, Calendar,
-  Search, Bookmark, BarChart2,
-  Briefcase, Mic, PenTool, Mail,
-  ChevronDown, ChevronRight, LogOut
+import { useState, useRef, useEffect } from "react";
+import {
+  LayoutDashboard, FileText, Building2, GraduationCap,
+  Award, Calendar, Sparkles, User, Settings,
+  BookOpen, PanelLeftClose, ChevronsUpDown, LogOut, ChevronRight
 } from "lucide-react";
 import { logoutUser } from "@/lib/firebase/auth";
-import { motion, AnimatePresence } from "framer-motion";
+import { useStudentData } from "@/components/providers/StudentDataProvider";
+import Image from "next/image";
 
-interface Props {
-  studentName?: string;
-  studentPhoto?: string;
-  isCollapsed: boolean;
-  setIsCollapsed: (val: boolean) => void;
-}
+const NAV = {
+  "MAIN MENU": [
+    { label: "Dashboard",    href: "/student/dashboard",    icon: LayoutDashboard },
+    { label: "Applications", href: "/student/applications", icon: FileText        },
+    { label: "Universities", href: "/student/universities", icon: Building2       },
+    { label: "Documents",    href: "/student/documents",    icon: GraduationCap   },
+    { label: "Scholarships", href: "/student/scholarships", icon: Award           },
+    { label: "Planner",      href: "/student/calendar",     icon: Calendar        },
+  ],
+  "AI TOOLS": [
+    { label: "AI Copilot",   href: "/student/copilot",  icon: Sparkles },
+    { label: "Resume",       href: "/student/resume",   icon: BookOpen },
+  ],
+  "PREFERENCES": [
+    { label: "Settings",     href: "/student/settings", icon: Settings },
+  ],
+};
 
-export default function StudentSidebar({ isCollapsed, setIsCollapsed }: Props) {
+export default function StudentSidebar({ isCollapsed, setIsCollapsed }: { isCollapsed: boolean; setIsCollapsed: (v: boolean) => void }) {
   const pathname = usePathname();
-  const router = useRouter();
-  const [mounted, setMounted] = useState(false);
-  
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
-    'Admissions': false,
-    'Universities': false,
-    'AI': false,
-    'Account': false,
-  });
-
-  const toggleGroup = (title: string) => {
-    setExpandedGroups(prev => ({
-      ...prev,
-      [title]: !prev[title]
-    }));
-  };
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const NAVIGATION = [
-    {
-      title: "Home",
-      href: "/student/dashboard",
-      icon: Home,
-      type: "link"
-    },
-    {
-      title: "Admissions",
-      icon: BookOpen,
-      type: "group",
-      items: [
-        { label: "Applications", href: "/student/applications", icon: FileText },
-        { label: "Documents", href: "/student/documents", icon: GraduationCap },
-        { label: "Scholarships", href: "/student/scholarships", icon: Award },
-        { label: "Calendar", href: "/student/calendar", icon: Calendar },
-      ]
-    },
-    {
-      title: "Universities",
-      icon: Building2,
-      type: "group",
-      items: [
-        { label: "Discover", href: "/student/discover", icon: Search },
-        { label: "Saved", href: "/student/saved", icon: Bookmark },
-        { label: "Compare", href: "/student/compare", icon: BarChart2 },
-      ]
-    },
-    {
-      title: "AI",
-      icon: Sparkles,
-      type: "group",
-      items: [
-        { label: "Copilot", href: "/student/copilot", icon: Sparkles },
-        { label: "Career Advisor", href: "/student/career", icon: Briefcase },
-        { label: "Interview Coach", href: "/student/interview", icon: Mic },
-        { 
-          label: "Writing Tools", 
-          type: "subgroup",
-          items: [
-            { label: "Resume Builder", href: "/student/resume", icon: PenTool },
-            { label: "SOP Builder", href: "/student/sop", icon: FileText },
-            { label: "Email Assistant", href: "/student/email", icon: Mail },
-          ]
-        }
-      ]
-    },
-    {
-      title: "Account",
-      icon: User,
-      type: "group",
-      items: [
-        { label: "Profile", href: "/student/profile", icon: User },
-        { label: "Settings", href: "/student/settings", icon: LogOut }, // Simplified
-      ]
-    }
-  ];
+  const router   = useRouter();
+  const { profile } = useStudentData();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const handleLogout = async () => {
-    try {
-      await logoutUser();
-      router.push("/auth/login");
-    } catch (error) {
-      console.error("Logout failed", error);
+    try { await logoutUser(); router.push("/auth/login"); }
+    catch {}
+  };
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
     }
-  };
-
-  const NavItem = ({ item, isSub = false }: { item: any, isSub?: boolean }) => {
-    const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
-    const Icon = item.icon;
-
-    return (
-      <Link 
-        href={item.href || '#'}
-        className={`relative flex items-center h-10 px-3 my-1 rounded-xl transition-all duration-200 group ${
-          isActive ? 'bg-white/[0.04]' : 'hover:bg-white/[0.02]'
-        } ${isSub ? 'ml-6 h-9' : ''}`}
-      >
-        <div className={`flex items-center justify-center transition-colors duration-200 ${
-          isActive ? 'text-[#6D5DF6]' : 'text-gray-400 group-hover:text-white'
-        } mr-3`}>
-          {Icon && <Icon size={16} strokeWidth={isActive ? 2.5 : 2} />}
-        </div>
-        <div className={`flex-1 truncate text-sm transition-colors duration-200 ${
-          isActive ? 'text-white font-medium' : 'text-gray-400 group-hover:text-white'
-        }`}>
-          {item.label || item.title}
-        </div>
-      </Link>
-    );
-  };
+    if (menuOpen) document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [menuOpen]);
 
   return (
-    <>
-      <div className="hidden lg:flex flex-col fixed top-0 left-0 bottom-0 z-50 bg-[#09090B] border-r border-white/5 w-[260px]">
-        {/* Header / Logo */}
-        <div className="h-20 flex items-center px-6 shrink-0">
-          <Link 
-            href="/student/dashboard"
-            className="flex items-center cursor-pointer"
-          >
-            <div className="w-8 h-8 bg-[#6D5DF6] rounded-xl flex items-center justify-center shrink-0">
-              <span className="text-white font-bold text-sm">E</span>
+    <aside className="hidden lg:flex flex-col fixed inset-y-0 left-0 z-50 w-[240px] bg-white border-r border-[#EAECF0]">
+
+      {/* ── LOGO ── h-[72px] matches header */}
+      <div className="h-[72px] flex items-center justify-between px-[20px] shrink-0 border-b border-[#EAECF0]">
+        <Link href="/student/dashboard" className="flex items-center gap-[10px]">
+          <div className="w-[28px] h-[28px] bg-[#111827] rounded-[7px] flex items-center justify-center shrink-0">
+            <span className="text-white font-bold text-[13px] leading-none">E</span>
+          </div>
+          <span className="text-[16px] font-semibold text-[#111827] tracking-tight">EDUING</span>
+        </Link>
+        <button className="w-[24px] h-[24px] flex items-center justify-center text-[#9CA3AF] hover:text-[#111827] transition-colors rounded-[4px] hover:bg-[#F3F4F6]">
+          <PanelLeftClose size={15} strokeWidth={1.8} />
+        </button>
+      </div>
+
+      {/* ── NAV ── */}
+      <div className="flex-1 overflow-y-auto py-[4px] px-[8px]">
+        {Object.entries(NAV).map(([section, items], sectionIdx) => (
+          <div key={section}>
+            <div className={`text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-[0.08em] px-[12px] mb-[4px] ${sectionIdx === 0 ? 'mt-[16px]' : 'mt-[24px]'}`}>
+              {section}
             </div>
-            <span className="ml-3 text-white font-medium tracking-wide text-sm">
-              EDUING
-            </span>
-          </Link>
-        </div>
-
-        {/* Navigation */}
-        <div className="flex-1 overflow-y-auto no-scrollbar px-3 py-2">
-          {NAVIGATION.map((navItem, idx) => {
-            if (navItem.type === 'link') {
-              return <NavItem key={idx} item={navItem} />;
-            }
-            
-            const isExpanded = expandedGroups[navItem.title];
-            const GroupIcon = navItem.icon;
-
-            return (
-              <div key={idx} className="mb-1">
-                <button 
-                  onClick={() => toggleGroup(navItem.title)}
-                  className={`w-full flex items-center justify-between px-3 h-10 rounded-xl transition-all duration-200 group hover:bg-white/[0.02] ${
-                    isExpanded ? 'bg-white/[0.02]' : ''
+            {items.map(item => {
+              const active = pathname === item.href || pathname.startsWith(item.href + "/");
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-[10px] h-[36px] px-[12px] mb-[1px] rounded-[8px] text-[13.5px] font-medium transition-colors ${
+                    active
+                      ? "bg-[#111827] text-white"
+                      : "text-[#6B7280] hover:text-[#111827] hover:bg-[#F3F4F6]"
                   }`}
                 >
-                  <div className="flex items-center">
-                    <div className={`flex items-center justify-center mr-3 transition-colors duration-200 ${
-                      isExpanded ? 'text-white' : 'text-gray-400 group-hover:text-white'
-                    }`}>
-                      <GroupIcon size={16} strokeWidth={2} />
-                    </div>
-                    <span className={`text-sm transition-colors duration-200 ${
-                      isExpanded ? 'text-white font-medium' : 'text-gray-400 group-hover:text-white'
-                    }`}>
-                      {navItem.title}
-                    </span>
-                  </div>
-                  <ChevronDown 
-                    size={14} 
-                    className={`text-gray-500 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} 
-                  />
-                </button>
-                
-                <AnimatePresence initial={false}>
-                  {isExpanded && (
-                    <motion.div 
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="flex flex-col overflow-hidden"
-                    >
-                      {navItem.items?.map((subItem, subIdx) => {
-                        if (subItem.type === 'subgroup') {
-                          return (
-                            <div key={subIdx} className="ml-9 mt-1 mb-1">
-                              <div className="text-xs font-medium text-gray-500 mb-1 px-3 uppercase tracking-wider">
-                                {subItem.label}
-                              </div>
-                              {subItem.items?.map((nestedItem, nestedIdx) => (
-                                <NavItem key={nestedIdx} item={nestedItem} isSub={true} />
-                              ))}
-                            </div>
-                          );
-                        }
-                        return <NavItem key={subIdx} item={subItem} isSub={true} />;
-                      })}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            );
-          })}
-        </div>
+                  <Icon size={15} strokeWidth={active ? 2 : 1.7} className="shrink-0" />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+        ))}
+      </div>
 
-        {/* Footer */}
-        <div className="p-4 border-t border-white/5 shrink-0">
-          <button 
-            onClick={handleLogout}
-            className="w-full flex items-center px-3 h-10 rounded-xl transition-all duration-200 group hover:bg-white/[0.02]"
-          >
-            <div className="flex items-center justify-center mr-3 text-gray-400 group-hover:text-red-400 transition-colors">
-              <LogOut size={16} strokeWidth={2} />
-            </div>
-            <div className="text-sm text-gray-400 group-hover:text-red-400 transition-colors">
+      {/* ── ACCOUNT SECTION ── */}
+      <div className="px-[12px] pb-[20px] shrink-0 relative" ref={menuRef}>
+
+        {/* Dropdown menu — appears above the account card */}
+        {menuOpen && (
+          <div className="absolute bottom-[calc(100%-8px)] left-[12px] right-[12px] bg-white border border-[#EAECF0] rounded-[12px] shadow-[0_8px_24px_rgba(0,0,0,0.08)] overflow-hidden z-50 mb-[8px]">
+            <Link
+              href="/student/profile"
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center gap-[10px] px-[14px] h-[40px] text-[13.5px] font-medium text-[#374151] hover:bg-[#F9FAFB] transition-colors"
+            >
+              <User size={14} strokeWidth={1.8} className="text-[#6B7280]" />
+              My Profile
+            </Link>
+            <Link
+              href="/student/settings"
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center gap-[10px] px-[14px] h-[40px] text-[13.5px] font-medium text-[#374151] hover:bg-[#F9FAFB] transition-colors"
+            >
+              <Settings size={14} strokeWidth={1.8} className="text-[#6B7280]" />
+              Settings
+            </Link>
+            <div className="h-px bg-[#F3F4F6] mx-[10px]" />
+            <button
+              onClick={() => { setMenuOpen(false); handleLogout(); }}
+              className="w-full flex items-center gap-[10px] px-[14px] h-[40px] text-[13.5px] font-medium text-[#EF4444] hover:bg-[#FEF2F2] transition-colors text-left"
+            >
+              <LogOut size={14} strokeWidth={1.8} />
               Log Out
+            </button>
+          </div>
+        )}
+
+        {/* Account card — clicking opens Profile, arrow toggles dropdown */}
+        <div className="flex items-center gap-[10px] p-[10px] rounded-[10px] border border-[#EAECF0] bg-white hover:bg-[#F9FAFB] transition-colors cursor-pointer group">
+          {/* Avatar — clicking goes to profile */}
+          <Link href="/student/profile" className="shrink-0" onClick={() => setMenuOpen(false)}>
+            <div className="w-[34px] h-[34px] rounded-full bg-[#EEF2FF] flex items-center justify-center overflow-hidden relative">
+              {profile?.profilePhotoURL
+                ? <Image src={profile.profilePhotoURL} alt="Avatar" fill className="object-cover" />
+                : <User size={15} strokeWidth={1.8} className="text-[#4F6BFF]" />
+              }
             </div>
+          </Link>
+
+          {/* Name + email — clicking goes to profile */}
+          <Link href="/student/profile" className="flex-1 min-w-0 flex flex-col justify-center" onClick={() => setMenuOpen(false)}>
+            <div className="text-[13px] font-semibold text-[#111827] truncate leading-snug">
+              {profile?.fullName || profile?.firstName || "Student"}
+            </div>
+            <div className="text-[11px] text-[#9CA3AF] truncate leading-snug">
+              {(profile as any)?.email ?? "student@eduing.in"}
+            </div>
+          </Link>
+
+          {/* Dropdown arrow — toggles menu */}
+          <button
+            onClick={(e) => { e.stopPropagation(); setMenuOpen(prev => !prev); }}
+            className="shrink-0 text-[#9CA3AF] hover:text-[#374151] transition-colors p-[2px]"
+            aria-label="Account menu"
+          >
+            <ChevronsUpDown size={14} strokeWidth={1.8} />
           </button>
         </div>
+
       </div>
-      
-      {/* Mobile Nav - hidden for simplicity as per requirements to simplify completely, but keeping minimal version if needed. Since sidebar MUST NEVER scroll and fit inside viewport, we are keeping the Desktop version extremely clean. */}
-    </>
+    </aside>
   );
 }
