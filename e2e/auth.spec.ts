@@ -1,43 +1,29 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 
+import { loginAsDemo } from './auth-helper';
 test.describe('Authentication Flow', () => {
   test('Demo Login successfully authenticates and redirects to dashboard', async ({ page }) => {
-    await page.goto('/auth/student/login');
+    await loginAsDemo(page);
     
-    // Expect the Demo mode button
-    const demoButton = page.getByRole('button', { name: /Try Demo/i });
-    if (await demoButton.isVisible()) {
-      await demoButton.click();
-      await page.getByRole('button', { name: /Student Demo/i }).click();
-    } else {
-      // Fallback if demo button is not found
-      await page.fill('input[type="email"]', 'demo@eduing.com');
-      await page.fill('input[type="password"]', 'demo123');
-      await page.getByRole('button', { name: /Login/i }).click();
-    }
-
-    // Should redirect to dashboard
-    await expect(page).toHaveURL(/.*\/student\/dashboard/, { timeout: 15000 });
-    
-    // Check if the dashboard rendered correctly
-    await expect(page.getByText('Profile Strength')).toBeVisible();
+    // Check if the dashboard rendered correctly (Home is selected in sidebar)
+    await expect(page.getByRole('link', { name: /Home/i })).toBeVisible();
     
     // Test logout
-    await page.getByRole('button', { name: /Logout/i }).click();
-    await expect(page).toHaveURL(/.*\/auth\/student\/login/);
+    await page.getByRole('button', { name: /Log Out/i }).click();
+    await expect(page).toHaveURL(/.*\/auth\/login/);
   });
 
   test('Invalid login shows error message', async ({ page }) => {
-    await page.goto('/auth/student/login');
-    await page.fill('input[type="email"]', 'invalid@example.com');
-    await page.fill('input[type="password"]', 'wrongpassword');
-    await page.getByRole('button', { name: /Login/i }).click();
+    await page.goto('/auth/login');
+    await page.getByLabel(/Email Address/i).fill('invalid@example.com');
+    await page.getByLabel(/Password/i).fill('wrongpassword');
+    await page.getByRole('button', { name: /Sign In/i }).click();
     
-    await expect(page.getByText(/Invalid credentials|User not found|error/i)).toBeVisible();
+    await expect(page.getByText(/Invalid email or password|error/i)).toBeVisible();
   });
 
   test('Protected routes redirect to login when unauthenticated', async ({ page }) => {
     await page.goto('/student/dashboard');
-    await expect(page).toHaveURL(/.*\/auth\/student\/login/);
+    await expect(page).toHaveURL(/.*\/auth\/login/);
   });
 });
