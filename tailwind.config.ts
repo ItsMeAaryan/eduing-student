@@ -10,45 +10,76 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['var(--font-inter)', 'sans-serif'],
-        display: ['var(--font-outfit)', 'sans-serif'],
+        sans: ['var(--font-poppins)', 'sans-serif'],
+      },
+      fontWeight: {
+        light: "300",
+        normal: "400",
+        medium: "500",
+        semibold: "600",
+      },
+      fontSize: {
+        'display': ['50px', { lineHeight: '1.2', letterSpacing: '-0.02em' }],
+        'h1': ['50px', { lineHeight: '1.2', letterSpacing: '-0.02em' }],
+        'h2': ['20px', { lineHeight: '1.4', letterSpacing: '-0.01em' }],
+        'h3': ['20px', { lineHeight: '1.4', letterSpacing: '-0.01em' }],
+        'h4': ['16px', { lineHeight: '1.5' }],
+        'body-lg': ['16px', { lineHeight: '1.5' }],
+        'body': ['16px', { lineHeight: '1.5' }],
+        'small': ['14px', { lineHeight: '1.5' }],
+        'caption': ['12px', { lineHeight: '1.5' }],
       },
       colors: {
-        brand: {
-          indigo: '#4F46E5',
-          indigoLight: '#818CF8', 
-          indigoDeep: '#3730A3',
-          gold: '#F59E0B',
-          goldLight: '#FBBF24',
-          goldDeep: '#B45309',
-        },
         background: {
-          primary: 'var(--bg-primary)',
-          secondary: '#101018',
-          card: '#141420',
+          DEFAULT: '#FAFAFC',
+          sidebar: '#FFFFFF',
+          card: '#FFFFFF',
         },
         text: {
-          primary: 'var(--text-primary)',
-          secondary: 'rgba(250,250,250,0.6)',
-          muted: 'rgba(250,250,250,0.46)',
+          primary: '#141414',
+          secondary: '#666666',
         },
         border: {
-          default: 'rgba(79,70,229,0.15)',
-          hover: 'rgba(79,70,229,0.4)',
-        }
+          DEFAULT: '#ECECEC',
+        },
+        primary: {
+          DEFAULT: '#4F6BFF',
+        },
+        success: {
+          DEFAULT: '#0ABE52',
+        },
+        danger: {
+          DEFAULT: '#DE3B34',
+        },
+        warning: {
+          DEFAULT: '#EE8248',
+        },
+        purple: {
+          DEFAULT: '#B57AF1',
+        },
+        hover: {
+          DEFAULT: '#F5F7FF',
+        },
       },
       borderRadius: {
-        DEFAULT: "16px",
-        sm: "8px",
-        md: "12px",
-        lg: "16px",
-        xl: "24px",
-        "2xl": "32px",
-        "3xl": "48px",
+        card: "18px",
+        button: "14px",
+        input: "14px",
+        badge: "999px",
       },
-      transitionTimingFunction: {
-        snappy: "cubic-bezier(0.16, 1, 0.3, 1)",
+      spacing: {
+        8: "8px",
+        12: "12px",
+        16: "16px",
+        24: "24px",
+        32: "32px",
+        40: "40px",
+        48: "48px",
+        64: "64px",
       },
+      boxShadow: {
+        subtle: "0 2px 12px rgba(0,0,0,0.04)",
+      }
     },
   },
   plugins: [],
