@@ -22,6 +22,7 @@ import {
 import { listenApplication } from '@/lib/firebase/applications'
 import { listenUserDocuments } from '@/lib/firebase/student'
 import { Application, UserDocument } from '@/types/firebase'
+import { Card, Button, Badge, H2, H3, H4, Body, Small, Caption, MetricCard } from '@/components/ui/design-system'
 
 export default function ApplicationDetailsPage() {
   const params = useParams()
@@ -54,26 +55,26 @@ export default function ApplicationDetailsPage() {
   }, [id])
 
   if (loading) return (
-    <div className="min-h-screen bg-[#0A0A0F] flex items-center justify-center">
-      <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }} className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full" />
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }} className="w-[48px] h-[48px] border-4 border-primary border-t-transparent rounded-full" />
     </div>
   )
 
   if (!application) return (
-    <div className="min-h-screen bg-[#0A0A0F] flex flex-col items-center justify-center text-white">
-      <AlertCircle size={48} className="text-red-500 mb-4" />
-      <h2 className="text-2xl font-black mb-4">Application Dossier Not Found</h2>
-      <button onClick={() => router.back()} className="text-indigo-400 font-bold uppercase tracking-widest text-sm flex items-center gap-2">
-        <ChevronLeft size={18} /> Return to Dashboard
-      </button>
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center text-text-primary">
+      <AlertCircle size={48} strokeWidth={1.8} className="text-danger mb-16" />
+      <H2 className="mb-16">Application Dossier Not Found</H2>
+      <Button onClick={() => router.back()} variant="secondary" className="flex items-center gap-8">
+        <ChevronLeft size={18} strokeWidth={1.8} /> Return to Dashboard
+      </Button>
     </div>
   )
 
   const statusConfig: any = {
-    submitted: { color: 'indigo', icon: Clock, label: 'Submitted' },
-    under_review: { color: 'amber', icon: AlertCircle, label: 'Under Review' },
-    selected: { color: 'green', icon: CheckCircle2, label: 'Accepted' },
-    rejected: { color: 'red', icon: XCircle, label: 'Rejected' }
+    submitted: { color: 'primary', icon: Clock, label: 'Submitted' },
+    under_review: { color: 'warning', icon: AlertCircle, label: 'Under Review' },
+    selected: { color: 'success', icon: CheckCircle2, label: 'Accepted' },
+    rejected: { color: 'danger', icon: XCircle, label: 'Rejected' }
   }
   const status = normalizeStatus(application.status)
   const config = statusConfig[status] || statusConfig.submitted
@@ -94,47 +95,47 @@ export default function ApplicationDetailsPage() {
 
   return (
     <ProtectedRoute allowedRoles={['student']}>
-      <div className="min-h-screen bg-[#0A0A0F] text-white selection:bg-indigo-500/30 font-sans pb-20">
+      <div className="min-h-screen bg-background text-text-primary pb-64">
         
         {/* HEADER */}
-        <div className="max-w-6xl mx-auto px-6 pt-12 mb-12">
-          <button onClick={() => router.back()} className="group mb-8 flex items-center gap-2 text-white/40 hover:text-white transition-all">
-            <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-indigo-500/20 group-hover:border-indigo-500/30">
-              <ChevronLeft size={20} />
+        <div className="max-w-6xl mx-auto px-24 pt-48 mb-48">
+          <button onClick={() => router.back()} className="group mb-32 flex items-center gap-8 text-text-secondary hover:text-text-primary transition-all">
+            <div className="w-[40px] h-[40px] rounded-full bg-hover border border-border flex items-center justify-center group-hover:bg-primary/20 group-hover:border-primary/30">
+              <ChevronLeft size={20} strokeWidth={1.8} />
             </div>
-            <span className="text-xs font-black uppercase tracking-widest">Back to Dossier</span>
+            <Caption className="font-bold uppercase tracking-widest">Back to Dossier</Caption>
           </button>
 
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-24">
             <div>
-              <div className="text-indigo-400 text-[10px] font-black uppercase tracking-[0.3em] mb-4">Application Reference: #{application.id.slice(0, 8)}</div>
-              <h1 className="text-4xl md:text-5xl font-black mb-2 tracking-tight">University Admission Dossier</h1>
-              <div className="flex items-center gap-3 text-white/46 text-sm font-bold">
-                 <Building2 size={16} /> {application.universityId}
+              <Caption className="text-primary font-bold uppercase tracking-[0.3em] mb-16">Application Reference: #{application.id.slice(0, 8)}</Caption>
+              <H2 className="mb-8 tracking-tight">University Admission Dossier</H2>
+              <div className="flex items-center gap-12 text-text-secondary text-sm font-bold">
+                 <Building2 size={16} strokeWidth={1.8} /> {application.universityId}
                  <span>•</span>
-                 <span className="text-indigo-400">{application.programId}</span>
+                 <span className="text-primary">{application.programId}</span>
               </div>
             </div>
-            <div className={`px-8 py-4 rounded-3xl border flex items-center gap-3 ${config.color === 'indigo' ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400' : config.color === 'green' ? 'bg-green-500/10 border-green-500/20 text-green-500' : 'bg-amber-500/10 border-amber-500/20 text-amber-500'}`}>
-               <config.icon size={24} />
+            <div className={`px-32 py-16 rounded-[24px] border flex items-center gap-12 ${config.color === 'primary' ? 'bg-primary/10 border-primary/20 text-primary' : config.color === 'success' ? 'bg-success/10 border-success/20 text-success' : 'bg-warning/10 border-warning/20 text-warning'}`}>
+               <config.icon size={24} strokeWidth={1.8} />
                <span className="text-lg font-black uppercase tracking-widest">{config.label}</span>
             </div>
           </div>
         </div>
 
         {/* MAIN CONTENT GRID */}
-        <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-12">
+        <div className="max-w-6xl mx-auto px-24 grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-48">
           
-          <div className="space-y-12">
+          <div className="space-y-48">
             {/* PROGRESS TIMELINE */}
-            <section className="bg-[#111114] border border-white/5 rounded-[40px] p-10 shadow-2xl relative overflow-hidden">
-               <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/5 blur-[100px]" />
-               <h3 className="text-xs font-black text-white/40 uppercase tracking-[0.3em] mb-12 flex items-center gap-3">
-                 <History size={16} /> Journey Progression
-               </h3>
+            <Card className="!p-40 relative overflow-hidden shadow-sm">
+               <div className="absolute top-0 right-0 w-[256px] h-[256px] bg-primary/5 blur-[100px]" />
+               <Caption className="font-bold text-text-secondary uppercase tracking-[0.3em] mb-48 flex items-center gap-12">
+                 <History size={16} strokeWidth={1.8} /> Journey Progression
+               </Caption>
 
-               <div className="relative space-y-12 pl-12">
-                 <div className="absolute left-[23px] top-2 bottom-2 w-[1px] bg-white/5" />
+               <div className="relative space-y-48 pl-48">
+                 <div className="absolute left-[23px] top-8 bottom-8 w-[1px] bg-border" />
                  {timeline.map((step, i) => {
                    const isCompleted = step.completed
                    return (
@@ -145,111 +146,111 @@ export default function ApplicationDetailsPage() {
                        transition={{ delay: i * 0.1 }}
                        className="relative"
                      >
-                       <div className={`absolute -left-12 w-12 h-12 rounded-full border-4 border-[#111114] flex items-center justify-center z-10 ${isCompleted ? 'bg-indigo-500 text-white shadow-[0_0_20px_rgba(99,102,241,0.4)]' : 'bg-[#111114] border-white/10 text-white/40'}`}>
-                          {isCompleted ? <CheckCircle2 size={24} /> : <div className="w-3 h-3 rounded-full bg-current" />}
+                       <div className={`absolute -left-48 w-[48px] h-[48px] rounded-full border-4 border-background flex items-center justify-center z-10 ${isCompleted ? 'bg-primary text-white shadow-[0_0_20px_rgba(77,107,254,0.4)]' : 'bg-background border-border text-text-secondary'}`}>
+                          {isCompleted ? <CheckCircle2 size={24} strokeWidth={1.8} /> : <div className="w-12 h-12 rounded-full bg-current" />}
                        </div>
                        <div>
-                         <div className={`text-xl font-black ${isCompleted ? 'text-white' : 'text-white/40'}`}>{step.label}</div>
-                         <div className="text-[10px] font-black uppercase tracking-widest text-white/46 mt-1">{step.date || 'Pending Evaluation'}</div>
+                         <H4 className={`${isCompleted ? 'text-text-primary' : 'text-text-secondary'}`}>{step.label}</H4>
+                         <Caption className="font-bold uppercase tracking-widest text-text-secondary mt-4">{step.date || 'Pending Evaluation'}</Caption>
                        </div>
                      </motion.div>
                    )
                  })}
                </div>
-            </section>
+            </Card>
 
             {/* DIGITAL VAULT PREVIEW */}
-            <section className="space-y-6">
-              <h3 className="text-xs font-black text-white/40 uppercase tracking-[0.3em] flex items-center gap-3">
-                <ShieldCheck size={16} className="text-indigo-400" /> Linked Digital Vault
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-24">
+              <Caption className="font-bold text-text-secondary uppercase tracking-[0.3em] flex items-center gap-12">
+                <ShieldCheck size={16} strokeWidth={1.8} className="text-primary" /> Linked Digital Vault
+              </Caption>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
                 {docTypes.map(docType => {
                   const doc = documents[docType.id]
                   return (
-                    <div key={docType.id} className="bg-white/5 border border-white/5 rounded-2xl p-5 flex items-center justify-between">
-                       <div className="flex items-center gap-4">
-                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${doc ? 'bg-green-500/10 text-green-500' : 'bg-white/5 text-white/40'}`}>
-                           <FileText size={20} />
+                    <div key={docType.id} className="bg-hover border border-border rounded-card p-20 flex items-center justify-between shadow-sm">
+                       <div className="flex items-center gap-16">
+                         <div className={`w-[40px] h-[40px] rounded-[12px] flex items-center justify-center ${doc ? 'bg-success/10 text-success' : 'bg-background border border-border text-text-secondary'}`}>
+                           <FileText size={20} strokeWidth={1.8} />
                          </div>
                          <div>
-                           <div className="text-xs font-black uppercase tracking-widest">{docType.label}</div>
-                           <div className={`text-[9px] font-bold uppercase mt-1 ${doc?.status === 'verified' ? 'text-green-500' : 'text-white/40'}`}>
+                           <Caption className="font-bold uppercase tracking-widest">{docType.label}</Caption>
+                           <div className={`text-[9px] font-bold uppercase mt-4 ${doc?.status === 'verified' ? 'text-success' : 'text-text-secondary'}`}>
                              {doc ? (doc.status === 'verified' ? 'Verified ✅' : 'Uploaded') : 'Not Uploaded'}
                            </div>
                          </div>
                        </div>
-                       {doc && <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white/40 hover:bg-white/10 transition-all"><ExternalLink size={14} /></a>}
+                       {doc && <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="w-[32px] h-[32px] rounded-lg bg-background border border-border flex items-center justify-center text-text-secondary hover:bg-hover hover:text-text-primary transition-all"><ExternalLink size={14} strokeWidth={1.8} /></a>}
                     </div>
                   )
                 })}
               </div>
-            </section>
+            </div>
 
             {/* DOCUMENT & PAYMENT STATUS */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-               <div className="bg-[#111114] border border-white/5 rounded-3xl p-8 flex flex-col justify-between">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-32">
+               <Card className="!p-32 flex flex-col justify-between shadow-sm">
                   <div>
-                    <h4 className="text-xs font-black text-white/40 uppercase trackingwidest mb-6 flex items-center gap-2">
-                      <ShieldCheck size={16} className="text-indigo-400" /> Security Clearance
-                    </h4>
-                    <div className="text-2xl font-black mb-2">{application.documentsVerified ? 'Verified' : 'Pending'}</div>
-                    <p className="text-white/46 text-xs leading-relaxed">System-wide verification of all academic credentials submitted for this application.</p>
+                    <Caption className="font-bold text-text-secondary uppercase tracking-[0.3em] mb-24 flex items-center gap-8">
+                      <ShieldCheck size={16} strokeWidth={1.8} className="text-primary" /> Security Clearance
+                    </Caption>
+                    <div className="text-2xl font-black mb-8 text-text-primary">{application.documentsVerified ? 'Verified' : 'Pending'}</div>
+                    <Small className="text-text-secondary leading-relaxed">System-wide verification of all academic credentials submitted for this application.</Small>
                   </div>
-                  <div className="mt-8 pt-8 border-t border-white/5 flex items-center justify-between">
-                     <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Sync Status</span>
-                     <span className="text-[10px] font-black uppercase tracking-widest text-green-500">Live</span>
+                  <div className="mt-32 pt-32 border-t border-border flex items-center justify-between">
+                     <Caption className="font-bold uppercase tracking-widest text-text-secondary">Sync Status</Caption>
+                     <Caption className="font-bold uppercase tracking-widest text-success">Live</Caption>
                   </div>
-               </div>
+               </Card>
 
-               <div className="bg-[#111114] border border-white/5 rounded-3xl p-8 flex flex-col justify-between">
+               <Card className="!p-32 flex flex-col justify-between shadow-sm">
                   <div>
-                    <h4 className="text-xs font-black text-white/40 uppercase tracking-widest mb-6 flex items-center gap-2">
-                      <CreditCard size={16} className="text-indigo-400" /> Financial Settlement
-                    </h4>
-                    <div className={`text-2xl font-black mb-2 uppercase ${application.paymentStatus === 'paid' ? 'text-green-500' : 'text-amber-500'}`}>{application.paymentStatus}</div>
-                    <p className="text-white/46 text-xs leading-relaxed">Processing of application and registration fees via encrypted gateway.</p>
+                    <Caption className="font-bold text-text-secondary uppercase tracking-[0.3em] mb-24 flex items-center gap-8">
+                      <CreditCard size={16} strokeWidth={1.8} className="text-primary" /> Financial Settlement
+                    </Caption>
+                    <div className={`text-2xl font-black mb-8 uppercase ${application.paymentStatus === 'paid' ? 'text-success' : 'text-warning'}`}>{application.paymentStatus}</div>
+                    <Small className="text-text-secondary leading-relaxed">Processing of application and registration fees via encrypted gateway.</Small>
                   </div>
-                  <div className="mt-8 pt-8 border-t border-white/5">
-                     <button className="text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:text-white transition-all flex items-center gap-2">
-                       View Invoice <ExternalLink size={12} />
+                  <div className="mt-32 pt-32 border-t border-border">
+                     <button className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary/80 transition-all flex items-center gap-8">
+                       View Invoice <ExternalLink size={12} strokeWidth={1.8} />
                      </button>
                   </div>
-               </div>
+               </Card>
             </div>
           </div>
 
           {/* SIDEBAR METADATA */}
-          <aside className="space-y-8">
-            <div className="bg-indigo-600 rounded-3xl p-8 text-center shadow-2xl shadow-indigo-600/20 relative overflow-hidden group">
-               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rotate-45 translate-x-16 -translate-y-16 transition-transform group-hover:scale-110" />
-               <Download size={40} className="mx-auto mb-6 text-white" />
-               <h4 className="text-lg font-black mb-2">Admission Receipt</h4>
-               <p className="text-white/60 text-[10px] font-black uppercase tracking-widest mb-8">Official PDF Confirmation</p>
-               <button className="w-full bg-white text-[#0A0A0F] py-4 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-indigo-50 transition-all">
+          <aside className="space-y-32">
+            <div className="bg-primary rounded-card p-32 text-center shadow-sm relative overflow-hidden group">
+               <div className="absolute top-0 right-0 w-[128px] h-[128px] bg-white/10 rotate-45 translate-x-[64px] -translate-y-[64px] transition-transform group-hover:scale-110" />
+               <Download size={40} strokeWidth={1.5} className="mx-auto mb-24 text-white" />
+               <H4 className="mb-8 text-white">Admission Receipt</H4>
+               <Caption className="text-white/60 font-bold uppercase tracking-widest mb-32">Official PDF Confirmation</Caption>
+               <Button variant="secondary" className="w-full !bg-white !text-black !border-transparent hover:!bg-white/90 uppercase tracking-widest text-[10px]">
                  Download Dossier
-               </button>
+               </Button>
             </div>
 
-            <div className="bg-white/5 border border-white/5 rounded-3xl p-8 space-y-8">
+            <Card className="!p-32 space-y-32 shadow-sm">
                <div>
-                 <div className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-4 flex items-center gap-2">
-                   <Calendar size={14} /> Dossier Creation
-                 </div>
-                 <div className="text-sm font-bold">{application.appliedAt?.toDate?.().toLocaleString('en-IN', { dateStyle: 'long', timeStyle: 'short' }) || 'Recent'}</div>
+                 <Caption className="font-black text-text-secondary uppercase tracking-widest mb-16 flex items-center gap-8">
+                   <Calendar size={14} strokeWidth={1.8} /> Dossier Creation
+                 </Caption>
+                 <Body className="font-bold">{application.appliedAt?.toDate?.().toLocaleString('en-IN', { dateStyle: 'long', timeStyle: 'short' }) || 'Recent'}</Body>
                </div>
                
                <div>
-                 <div className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-4">Metadata ID</div>
-                 <div className="text-[10px] font-mono text-white/40 break-all">{application.id}</div>
+                 <Caption className="font-black text-text-secondary uppercase tracking-widest mb-16">Metadata ID</Caption>
+                 <div className="text-[10px] font-mono text-text-secondary break-all">{application.id}</div>
                </div>
 
-               <div className="pt-8 border-t border-white/5">
-                 <p className="text-[10px] font-bold text-white/40 leading-relaxed italic">
+               <div className="pt-32 border-t border-border">
+                 <Small className="font-bold text-text-secondary leading-relaxed italic">
                    &quot;This dossier represents a legally binding admission request submitted to {application.universityId} via the EDUING Gateway.&quot;
-                 </p>
+                 </Small>
                </div>
-            </div>
+            </Card>
           </aside>
         </div>
       </div>

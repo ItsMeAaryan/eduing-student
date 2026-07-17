@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useStudentData } from "@/components/providers/StudentDataProvider";
 import { useRouter } from "next/navigation";
+import { Card, Button, Badge, Body, Small, Caption, MetricCard } from '@/components/ui/design-system';
 
 export default function SavedPage() {
   const router = useRouter();
@@ -40,200 +41,170 @@ export default function SavedPage() {
 
   if (loading) {
     return (
-      <div className="flex-1 w-full flex items-center justify-center p-8 min-h-[60vh]">
-        <div className="w-8 h-8 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" />
+      <div className="flex-1 w-full flex items-center justify-center p-32 min-h-[60vh] bg-background">
+        <div className="w-48 h-48 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="flex-1 w-full max-w-7xl mx-auto flex flex-col p-4 md:p-8 font-sans pb-24">
+    <div className="w-full max-w-[1440px] mx-auto p-24 animate-in fade-in duration-500 font-sans">
       {/* Header */}
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12"
-      >
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-2 text-indigo-400 text-[10px] font-black uppercase tracking-[0.3em]">
-            <Bookmark size={14} /> Personal Wishlist
-          </div>
-          <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight">Saved Programs</h1>
-          <p className="text-[16px] text-white/50 max-w-xl font-medium">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-16 mb-24">
+        <div className="flex flex-col gap-8">
+          <Caption className="text-primary font-bold uppercase tracking-[0.3em] flex items-center gap-8">
+            <Bookmark size={14} strokeWidth={1.8} /> Personal Wishlist
+          </Caption>
+          <h1 className="text-[24px] font-semibold text-text-primary tracking-tight">Saved Programs</h1>
+          <Body className="text-text-secondary max-w-xl font-medium">
             Universities and specific programs you&apos;ve bookmarked for future applications.
-          </p>
+          </Body>
         </div>
 
-        <div className="flex items-center gap-3 w-full md:w-auto">
-          <div className="relative flex-1 md:w-64 group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-indigo-400 transition-colors" size={16} />
+        <div className="flex items-center gap-12 w-full md:w-auto">
+          <div className="relative flex-1 md:w-[280px] group">
+            <Search className="absolute left-16 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within:text-primary transition-colors" size={16} strokeWidth={1.8} />
             <input 
               type="text" 
               placeholder="Search programs..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#111114] border border-white/[0.06] rounded-2xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-white/30 focus:border-indigo-500/30 focus:bg-white/[0.03] outline-none transition-all shadow-sm"
+              className="w-full bg-white border border-border rounded-[8px] pl-48 pr-16 h-[40px] text-[13px] text-text-primary placeholder:text-text-secondary focus:border-primary outline-none transition-all shadow-sm"
             />
           </div>
-          <button className="h-11 px-4 bg-[#111114] border border-white/[0.06] rounded-2xl flex items-center justify-center text-white/40 hover:text-white hover:border-white/20 transition-all">
-            <SlidersHorizontal size={18} />
+          <button className="w-40 h-40 flex items-center justify-center rounded-[8px] bg-white border border-border shadow-sm text-text-secondary hover:text-text-primary hover:bg-[#F5F7FF] transition-colors">
+            <SlidersHorizontal size={18} strokeWidth={1.8} />
           </button>
-          <div className="h-11 flex items-center bg-[#111114] border border-white/[0.06] rounded-2xl p-1 shrink-0 hidden md:flex">
+          <div className="h-40 flex items-center bg-white border border-border rounded-[8px] p-4 shrink-0 hidden md:flex shadow-sm">
             <button 
               onClick={() => setViewMode("grid")}
-              className={`w-9 h-9 flex items-center justify-center rounded-xl transition-all ${viewMode === 'grid' ? 'bg-white/10 text-white' : 'text-white/30 hover:text-white/60'}`}
+              className={`w-[32px] h-[32px] flex items-center justify-center rounded-[6px] transition-all ${viewMode === 'grid' ? 'bg-[#F5F7FF] text-text-primary' : 'text-text-secondary hover:text-text-primary'}`}
             >
-              <LayoutGrid size={16} />
+              <LayoutGrid size={16} strokeWidth={1.8} />
             </button>
             <button 
               onClick={() => setViewMode("list")}
-              className={`w-9 h-9 flex items-center justify-center rounded-xl transition-all ${viewMode === 'list' ? 'bg-white/10 text-white' : 'text-white/30 hover:text-white/60'}`}
+              className={`w-[32px] h-[32px] flex items-center justify-center rounded-[6px] transition-all ${viewMode === 'list' ? 'bg-[#F5F7FF] text-text-primary' : 'text-text-secondary hover:text-text-primary'}`}
             >
-              <List size={16} />
+              <List size={16} strokeWidth={1.8} />
             </button>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Statistics */}
       {savedPrograms.length > 0 && (
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12"
-        >
-          <div className="bg-[#111114] border border-white/[0.04] p-5 rounded-3xl flex flex-col justify-center">
-            <div className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">Total Saved</div>
-            <div className="text-2xl font-black text-white">{totalSaved}</div>
-          </div>
-          <div className="bg-[#111114] border border-white/[0.04] p-5 rounded-3xl flex flex-col justify-center">
-            <div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1">High AI Match</div>
-            <div className="text-2xl font-black text-white">{highMatchCount}</div>
-          </div>
-          <div className="bg-[#111114] border border-white/[0.04] p-5 rounded-3xl flex flex-col justify-center">
-            <div className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-1">Scholarships</div>
-            <div className="text-2xl font-black text-white">{scholarshipsCount}</div>
-          </div>
-          <div className="bg-[#111114] border border-white/[0.04] p-5 rounded-3xl flex flex-col justify-center">
-            <div className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">Recently Added</div>
-            <div className="text-2xl font-black text-white">{recentCount}</div>
-          </div>
-        </motion.div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-20 mb-24">
+          <MetricCard label="Total Saved" value={totalSaved} icon={Bookmark} color="primary" description="+2 this week" />
+          <MetricCard label="High AI Match" value={highMatchCount} icon={Sparkles} color="success" description="Top recommendations" />
+          <MetricCard label="Scholarships" value={scholarshipsCount} icon={GraduationCap} color="purple" description="Financial aid available" />
+          <MetricCard label="Recently Added" value={recentCount} icon={Clock} color="warning" description="Last 7 days" />
+        </div>
       )}
 
       {/* Content */}
       <AnimatePresence mode="wait">
         {filteredPrograms.length === 0 ? (
-          <motion.div 
+          <div 
             key="empty"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="w-full flex flex-col items-center justify-center py-24 bg-[#111114] border border-white/[0.04] rounded-[40px] relative overflow-hidden"
+            className="w-full flex flex-col items-center justify-center py-64 bg-white border border-border rounded-[12px] relative overflow-hidden shadow-none"
           >
-            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-[100px] pointer-events-none" />
-            <div className="w-20 h-20 bg-indigo-500/10 text-indigo-400 rounded-3xl flex items-center justify-center mb-6 shadow-inner">
-              <Bookmark size={32} />
+            <div className="absolute top-0 right-0 w-[256px] h-[256px] bg-primary/5 blur-[100px] pointer-events-none" />
+            <div className="w-[64px] h-[64px] bg-primary/10 text-primary rounded-[12px] flex items-center justify-center mb-20 border border-primary/20">
+              <Bookmark size={24} strokeWidth={1.5} />
             </div>
-            <h2 className="text-2xl font-black text-white mb-3">No saved universities yet.</h2>
-            <p className="text-white/40 text-[15px] mb-8 max-w-sm text-center">
+            <h3 className="text-[16px] font-semibold mb-8">No saved universities yet.</h3>
+            <Body className="text-text-secondary mb-24 max-w-sm text-center">
               Explore programs and bookmark them here to compare your options and apply later.
-            </p>
-            <button 
+            </Body>
+            <Button 
               onClick={() => router.push('/student/universities')}
-              className="px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-xl shadow-indigo-600/20 transition-all"
+              variant="primary"
+              className="shadow-sm rounded-[8px]"
             >
               Explore Universities
-            </button>
-          </motion.div>
+            </Button>
+          </div>
         ) : (
-          <motion.div 
+          <div 
             key="list"
-            className={viewMode === 'grid' ? "grid grid-cols-1 lg:grid-cols-2 gap-6" : "flex flex-col gap-4"}
+            className={viewMode === 'grid' ? "grid grid-cols-1 lg:grid-cols-2 gap-20" : "flex flex-col gap-16"}
           >
             {filteredPrograms.map((prog: any, i: number) => (
-              <motion.div
+              <div
                 key={prog.id || i}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-                onHoverStart={() => setIsHovered(prog.id || i.toString())}
-                onHoverEnd={() => setIsHovered(null)}
-                className={`group bg-[#111114] border border-white/[0.05] rounded-[32px] p-6 hover:border-indigo-500/30 transition-all duration-300 relative overflow-hidden flex ${viewMode === 'list' ? 'flex-col md:flex-row items-start md:items-center gap-6' : 'flex-col gap-6'} cursor-pointer`}
-                style={{
-                  transform: isHovered === (prog.id || i.toString()) ? 'translateY(-4px)' : 'translateY(0)',
-                  boxShadow: isHovered === (prog.id || i.toString()) ? '0 20px 40px -20px rgba(99, 102, 241, 0.15)' : 'none'
-                }}
+                onMouseEnter={() => setIsHovered(prog.id || i.toString())}
+                onMouseLeave={() => setIsHovered(null)}
+                className={`group bg-white border border-border rounded-[12px] p-20 hover:border-primary/50 transition-colors relative overflow-hidden flex ${viewMode === 'list' ? 'flex-col md:flex-row items-start md:items-center gap-20' : 'flex-col gap-20'} cursor-pointer shadow-none`}
               >
-                <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-indigo-500/10 to-transparent blur-[40px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                <div className="absolute top-0 right-0 w-[160px] h-[160px] bg-gradient-to-br from-primary/10 to-transparent blur-[40px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                 
                 {/* Header (Logo + Title) */}
-                <div className={`flex items-start gap-4 ${viewMode === 'list' ? 'md:w-1/3' : 'w-full'}`}>
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 flex items-center justify-center shrink-0 shadow-inner">
-                     <span className="text-xl font-black text-white/80">{prog.universityName?.charAt(0) || 'U'}</span>
+                <div className={`flex items-start gap-12 ${viewMode === 'list' ? 'md:w-1/3' : 'w-full'}`}>
+                  <div className="w-40 h-40 rounded-[8px] bg-[#FAFAFC] border border-border flex items-center justify-center shrink-0 shadow-none">
+                     <span className="text-[16px] font-bold text-text-primary">{prog.universityName?.charAt(0) || 'U'}</span>
                   </div>
                   <div>
-                    <h3 className="text-[17px] font-black text-white group-hover:text-indigo-400 transition-colors leading-tight mb-1.5">{prog.universityName || 'University Name'}</h3>
-                    <div className="flex items-center gap-3 text-[11px] font-bold text-white/40 uppercase tracking-wider">
-                      <span className="flex items-center gap-1"><MapPin size={12} /> {prog.location || 'Location'}</span>
+                    <h4 className="text-[16px] font-semibold text-text-primary group-hover:text-primary transition-colors leading-tight mb-4">{prog.universityName || 'University Name'}</h4>
+                    <div className="flex items-center gap-8 text-[12px] font-medium text-text-secondary tracking-wide">
+                      <span className="flex items-center gap-4"><MapPin size={12} strokeWidth={1.8} /> {prog.location || 'Location'}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Body (Details) */}
-                <div className={`flex flex-col gap-4 ${viewMode === 'list' ? 'flex-1 md:border-l md:border-white/5 md:pl-6' : 'w-full'}`}>
-                  <div className="flex items-center gap-2">
-                    <GraduationCap size={16} className="text-indigo-400" />
-                    <span className="text-[15px] font-bold text-white/90">{prog.program || 'Program Name'}</span>
+                <div className={`flex flex-col gap-12 ${viewMode === 'list' ? 'flex-1 md:border-l md:border-border md:pl-20' : 'w-full'}`}>
+                  <div className="flex items-center gap-8">
+                    <GraduationCap size={16} strokeWidth={1.8} className="text-primary" />
+                    <Body className="font-semibold text-text-primary">{prog.program || 'Program Name'}</Body>
                   </div>
                   
-                  <div className="flex flex-wrap gap-x-6 gap-y-3">
-                    <div className="flex flex-col gap-1">
-                      <span className="text-[10px] font-black text-white/30 uppercase tracking-widest">Duration</span>
-                      <span className="text-[13px] font-semibold text-white/70 flex items-center gap-1.5"><Clock size={14} /> {prog.duration || '4 Years'}</span>
+                  <div className="flex flex-wrap gap-x-20 gap-y-12">
+                    <div className="flex flex-col gap-2">
+                      <Caption className="font-medium text-text-secondary tracking-wide">Duration</Caption>
+                      <Small className="font-semibold text-text-primary flex items-center gap-4"><Clock size={12} strokeWidth={1.8} /> {prog.duration || '4 Years'}</Small>
                     </div>
-                    <div className="flex flex-col gap-1">
-                      <span className="text-[10px] font-black text-white/30 uppercase tracking-widest">Annual Fees</span>
-                      <span className="text-[13px] font-semibold text-white/70 flex items-center gap-1"><IndianRupee size={12} /> {prog.annualFees || 'N/A'}</span>
+                    <div className="flex flex-col gap-2">
+                      <Caption className="font-medium text-text-secondary tracking-wide">Annual Fees</Caption>
+                      <Small className="font-semibold text-text-primary flex items-center gap-4"><IndianRupee size={12} strokeWidth={1.8} /> {prog.annualFees || 'N/A'}</Small>
                     </div>
-                    <div className="flex flex-col gap-1">
-                      <span className="text-[10px] font-black text-white/30 uppercase tracking-widest">Deadline</span>
-                      <span className="text-[13px] font-semibold text-white/70 flex items-center gap-1.5"><Calendar size={14} /> {prog.deadline || 'Ongoing'}</span>
+                    <div className="flex flex-col gap-2">
+                      <Caption className="font-medium text-text-secondary tracking-wide">Deadline</Caption>
+                      <Small className="font-semibold text-text-primary flex items-center gap-4"><Calendar size={12} strokeWidth={1.8} /> {prog.deadline || 'Ongoing'}</Small>
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2 mt-1">
+                  <div className="flex flex-wrap items-center gap-8 mt-4">
                     {prog.aiMatch && (
-                      <div className="px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center gap-1.5 text-indigo-400">
-                        <Sparkles size={12} />
-                        <span className="text-[10px] font-black uppercase tracking-widest">{prog.aiMatch}% Match</span>
-                      </div>
+                      <Badge variant="purple" className="bg-primary/10 text-primary border-primary/20 flex items-center gap-4 px-8 py-4">
+                        <Sparkles size={12} strokeWidth={1.8} />
+                        {prog.aiMatch}% Match
+                      </Badge>
                     )}
                     {prog.scholarshipAvailable && (
-                      <div className="px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-1.5 text-emerald-400">
-                        <CheckCircle2 size={12} />
-                        <span className="text-[10px] font-black uppercase tracking-widest">Scholarship</span>
-                      </div>
+                      <Badge variant="success" className="bg-success/10 text-success border-success/20 flex items-center gap-4 px-8 py-4">
+                        <CheckCircle2 size={12} strokeWidth={1.8} />
+                        Scholarship
+                      </Badge>
                     )}
                   </div>
                 </div>
 
                 {/* Actions */}
-                <div className={`flex items-center gap-2 ${viewMode === 'list' ? 'w-full md:w-auto md:flex-col' : 'w-full mt-2'}`}>
-                  <button className="flex-1 md:flex-none px-6 py-3.5 bg-white/5 hover:bg-white/10 text-white rounded-xl text-[11px] font-black uppercase tracking-widest transition-all">
+                <div className={`flex items-center gap-8 ${viewMode === 'list' ? 'w-full md:w-auto md:flex-col' : 'w-full mt-4'}`}>
+                  <Button variant="secondary" className="flex-1 md:flex-none">
                     Apply Now
-                  </button>
-                  <button className="p-3.5 bg-white/5 hover:bg-red-500/10 hover:text-red-400 text-white/40 rounded-xl transition-all group/btn" title="Remove from saved">
-                    <Trash2 size={18} />
-                  </button>
-                  <button className="p-3.5 bg-white/5 hover:bg-white/10 text-white/40 hover:text-white rounded-xl transition-all" title="View details">
-                    <ExternalLink size={18} />
-                  </button>
+                  </Button>
+                  <Button variant="secondary" className="!w-36 !h-36 !p-0 flex items-center justify-center hover:!bg-danger/10 hover:!text-danger hover:!border-danger/20" title="Remove from saved">
+                    <Trash2 size={16} strokeWidth={1.8} />
+                  </Button>
+                  <Button variant="secondary" className="!w-36 !h-36 !p-0 flex items-center justify-center" title="View details">
+                    <ExternalLink size={16} strokeWidth={1.8} />
+                  </Button>
                 </div>
-              </motion.div>
+              </div>
             ))}
-          </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>

@@ -1,15 +1,16 @@
-'use client';
+'use client'
+import React, { useState, useRef, useMemo } from 'react'
+import {
+  Search, Shield, GraduationCap, PenTool, Award, Briefcase, FileText,
+  Upload, Trash2, CheckCircle2, ChevronDown, MoreHorizontal, SlidersHorizontal, Download, X, AlertCircle, Clock
+} from 'lucide-react'
+import { useStudentData } from '@/components/providers/StudentDataProvider'
+import ProtectedRoute from '@/components/ProtectedRoute'
+import { AnimatePresence, motion } from 'framer-motion'
+import { uploadUserDocument, deleteUserDocument } from '@/lib/firebase/student'
+import { useAuth } from '@/hooks/useAuth'
+import SegmentedTabs from '@/components/ui/SegmentedTabs'
 
-import React, { useState, useMemo, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import ProtectedRoute from '@/components/ProtectedRoute';
-import { useAuth } from '@/hooks/useAuth';
-import { useStudentData } from '@/components/providers/StudentDataProvider';
-import { uploadUserDocument, deleteUserDocument } from '@/lib/firebase/student';
-import { 
-  FileText, Upload, Download, Trash2, CheckCircle2, Clock, 
-  Eye, Plus, Loader2, X, Search, AlertCircle, RefreshCcw, File, Shield, GraduationCap, PenTool, Award, Briefcase, Info, HardDrive, Image as ImageIcon
-} from 'lucide-react';
 
 const CATEGORIES = [
   {
@@ -69,346 +70,300 @@ const CATEGORIES = [
       { id: 'lor', label: 'LOR' },
     ]
   }
-];
+]
 
-const REQUIRED_DOCS = ['10th_marksheet', '12th_marksheet', 'aadhaar_card', 'passport_photo'];
+const REQUIRED_DOCS = ['10th_marksheet', '12th_marksheet', 'aadhaar_card', 'passport_photo']
+const TABS = ['All', 'Identity', 'Academic', 'Entrance Exams', 'Certificates', 'Portfolio']
 
 export default function AcademicLockerPage() {
-  const { user } = useAuth();
-  const { profile } = useStudentData();
-  const uploadedDocs = profile?.documents || {};
+  const { user } = useAuth()
+  const { profile } = useStudentData()
+  const uploadedDocs = profile?.documents || {}
 
-  const [activeCategory, setActiveCategory] = useState<string>('personal');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [uploadingDocs, setUploadingDocs] = useState<Record<string, boolean>>({});
-  const [docToDelete, setDocToDelete] = useState<string | null>(null);
-  const [previewDoc, setPreviewDoc] = useState<{ id: string, doc: any, info: any } | null>(null);
+  const [activeTab, setActiveTab] = useState('All')
+  const [search, setSearch] = useState('')
+  const [selectedDoc, setSelectedDoc] = useState<any | null>(null)
   
-  const globalUploadRef = useRef<HTMLInputElement>(null);
-  const [globalUploadTarget, setGlobalUploadTarget] = useState<string | null>(null);
+  const [uploadingDocs, setUploadingDocs] = useState<Record<string, boolean>>({})
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [uploadTargetId, setUploadTargetId] = useState<string | null>(null)
 
-  const docValues = Object.values(uploadedDocs) as any[];
-  const validDocs = docValues.filter(d => !!d?.fileUrl);
-  const totalDocs = validDocs.length;
-  const verifiedDocs = validDocs.filter(d => d.status === 'verified').length;
-  const pendingDocs = validDocs.filter(d => d.status === 'uploaded' || d.status === 'pending').length;
-  const missingRequired = REQUIRED_DOCS.filter(id => !uploadedDocs[id]?.fileUrl).length;
+  const docValues = Object.values(uploadedDocs) as any[]
+  const validDocs = docValues.filter(d => !!d?.fileUrl)
+  const verifiedDocs = validDocs.filter(d => d.status === 'verified').length
+  const pendingDocs = validDocs.filter(d => d.status === 'uploaded' || d.status === 'pending').length
+  const missingRequired = REQUIRED_DOCS.filter(id => !uploadedDocs[id]?.fileUrl).length
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, docId: string) => {
-    if (!user) return;
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 10 * 1024 * 1024) return alert('File must be under 10MB');
+  // Flatten documents list for table
+  const allDocs = useMemo(() => {
+    let list: any[] = []
+    CATEGORIES.forEach(cat => {
+      cat.documents.forEach(doc => {
+        const uDoc = uploadedDocs[doc.id]
+        list.push({
+          ...doc,
+          category: cat.title,
+          categoryIcon: cat.icon,
+          catId: cat.id,
+          uploaded: !!uDoc?.fileUrl,
+          status: uDoc?.status || 'missing',
+          updatedAt: uDoc?.updatedAt,
+          fileUrl: uDoc?.fileUrl,
+          fileType: uDoc?.fileType,
+          fileName: uDoc?.fileName,
+          isRequired: REQUIRED_DOCS.includes(doc.id)
+        })
+      })
+    })
+    return list
+  }, [uploadedDocs])
 
-    setUploadingDocs(prev => ({ ...prev, [docId]: true }));
+  const filteredDocs = useMemo(() => {
+    return allDocs.filter(d => {
+      const matchSearch = !search || d.label.toLowerCase().includes(search.toLowerCase())
+      const matchTab = activeTab === 'All' || d.category === activeTab
+      return matchSearch && matchTab
+    })
+  }, [allDocs, search, activeTab])
+
+  const triggerUpload = (docId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setUploadTargetId(docId)
+    fileInputRef.current?.click()
+  }
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !user?.uid || !uploadTargetId) return
+
+    setUploadingDocs(prev => ({ ...prev, [uploadTargetId]: true }))
     try {
-      await uploadUserDocument(user.uid, file, docId as any);
-    } catch (err) {
-      alert('Upload failed. Please try again.');
+      await uploadUserDocument(user.uid, file, uploadTargetId as Parameters<typeof uploadUserDocument>[2])
+    } catch (error) {
+      console.error("Upload error:", error)
+      alert("Failed to upload document. Please try again.")
     } finally {
-      setUploadingDocs(prev => ({ ...prev, [docId]: false }));
-      if (globalUploadRef.current) globalUploadRef.current.value = '';
+      setUploadingDocs(prev => ({ ...prev, [uploadTargetId]: false }))
+      setUploadTargetId(null)
+      if (fileInputRef.current) fileInputRef.current.value = ''
     }
-  };
+  }
 
-  const handleDelete = async () => {
-    if (!docToDelete || !user) return;
+  const handleDelete = async (docId: string) => {
+    if (!user?.uid || !confirm('Are you sure you want to delete this document?')) return
+    setUploadingDocs(prev => ({ ...prev, [docId]: true }))
     try {
-      await deleteUserDocument(user.uid, docToDelete);
-      setDocToDelete(null);
-      setPreviewDoc(null);
-    } catch (err) {
-      alert('Failed to delete document');
+      await deleteUserDocument(user.uid, docId)
+      setSelectedDoc(null)
+    } catch (error) {
+      console.error("Delete error:", error)
+      alert("Failed to delete document.")
+    } finally {
+      setUploadingDocs(prev => ({ ...prev, [docId]: false }))
     }
-  };
-
-  const handleGlobalUploadClick = (docId: string) => {
-    setGlobalUploadTarget(docId);
-    setTimeout(() => { globalUploadRef.current?.click(); }, 50);
-  };
-
-  const activeCategoryData = CATEGORIES.find(c => c.id === activeCategory);
-  const displayDocs = activeCategoryData?.documents.filter(d => d.label.toLowerCase().includes(searchQuery.toLowerCase())) || [];
+  }
 
   return (
     <ProtectedRoute allowedRoles={['student']}>
-      <div className="min-h-screen bg-[#09090B] text-white selection:bg-[#6D5DF6]/30 font-sans pb-32">
-        
-        <input type="file" ref={globalUploadRef} className="hidden" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => { if (globalUploadTarget) handleUpload(e, globalUploadTarget); }} />
+      <div className="font-sans flex flex-col gap-[16px]">
 
-        {/* HEADER */}
-        <section className="pt-24 pb-12 px-8 max-w-[1600px] mx-auto">
-          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-12">
-            <div>
-              <h1 className="text-[48px] font-medium tracking-tight mb-2">Academic Locker</h1>
-              <p className="text-[16px] text-gray-400 max-w-xl">Securely manage every document required for your admission journey.</p>
+        {/* Hidden File Input */}
+        <input 
+          type="file" 
+          ref={fileInputRef} 
+          className="hidden" 
+          onChange={handleFileChange}
+          accept=".pdf,.jpg,.jpeg,.png"
+        />
+
+        {/* ── SUB-NAV: category filter tabs only ────────── */}
+        <SegmentedTabs tabs={TABS} active={activeTab} onChange={setActiveTab} />
+
+        {/* ── STAT CARDS ────────────────────────────────── */}
+        <div className="grid grid-cols-4 gap-[16px]">
+          {[
+            { label: 'Total Uploaded', value: validDocs.length, sub: 'Out of ' + allDocs.length },
+            { label: 'Verified',       value: verifiedDocs,     sub: 'Ready to use', color: '#059669' },
+            { label: 'Under Review',   value: pendingDocs,      sub: 'Pending verification', color: '#D97706' },
+            { label: 'Missing Required',value: missingRequired, sub: 'Needs action', color: missingRequired > 0 ? '#EF4444' : '#059669' },
+          ].map((c, i) => (
+            <div key={i} className="bg-white border border-[#E5E7EB] rounded-[12px] p-[20px]">
+              <div className="flex items-start justify-between mb-[10px]">
+                <span className="text-[14px] text-[#6B7280]">{c.label}</span>
+                <MoreHorizontal size={16} strokeWidth={1.5} className="text-[#D1D5DB]" />
+              </div>
+              <div className="text-[28px] font-bold text-[#111827] leading-none mb-[6px]" style={{ color: c.color || '#111827' }}>{c.value}</div>
+              <span className="text-[12px] text-[#9CA3AF]">{c.sub}</span>
             </div>
-            <div className="flex items-center gap-4 w-full lg:w-auto">
-              <div className="relative flex-1 md:w-64 group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#6D5DF6] transition-colors" size={18} />
-                <input 
-                  type="text" 
-                  placeholder="Quick Search"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-[#151519] border border-white/5 rounded-full pl-12 pr-4 py-3.5 text-[14px] text-white placeholder:text-gray-500 focus:border-[#6D5DF6]/50 focus:bg-[#1A1A20] outline-none transition-all shadow-sm"
-                />
+          ))}
+        </div>
+
+        {/* ── TABLE CARD ────────────────────────────────── */}
+        <div className="bg-white border border-[#E5E7EB] rounded-[12px] overflow-hidden">
+          <div className="flex items-center justify-between px-[20px] py-[14px] border-b border-[#E5E7EB]">
+            <span className="text-[15px] font-semibold text-[#111827]">Document Vault</span>
+            <div className="flex items-center gap-[8px]">
+              <div className="relative">
+                <Search size={13} className="absolute left-[10px] top-1/2 -translate-y-1/2 text-[#9CA3AF]" strokeWidth={1.8} />
+                <input type="text" placeholder="Search documents"
+                  value={search} onChange={e => setSearch(e.target.value)}
+                  className="w-[200px] h-[32px] pl-[28px] pr-[10px] bg-[#F9FAFB] border border-[#E5E7EB] rounded-[8px] text-[13px] placeholder:text-[#9CA3AF] focus:outline-none focus:border-[#4F6BFF] transition-colors" />
               </div>
-              <div className="hidden md:flex items-center gap-3 px-4 py-3.5 bg-[#151519] border border-white/5 rounded-full">
-                <HardDrive size={16} className="text-gray-400" />
-                <span className="text-[14px] font-medium text-gray-300">{(totalDocs * 1.2).toFixed(1)} MB</span>
-              </div>
+              <button className="flex items-center gap-[5px] px-[12px] h-[32px] rounded-[8px] border border-[#E5E7EB] text-[12px] font-medium text-[#374151] bg-white hover:bg-[#F3F4F6] transition-colors">
+                <SlidersHorizontal size={12} strokeWidth={1.8} />Sort by<ChevronDown size={11} />
+              </button>
+              <MoreHorizontal size={16} strokeWidth={1.5} className="text-[#D1D5DB]" />
             </div>
           </div>
 
-          {/* SECTION 1: OVERVIEW CARDS */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <OverviewCard label="Uploaded" value={totalDocs} color="text-white" bg="bg-[#151519]" />
-            <OverviewCard label="Verified" value={verifiedDocs} color="text-emerald-400" bg="bg-emerald-400/5" border="border-emerald-400/10" />
-            <OverviewCard label="Pending" value={pendingDocs} color="text-amber-400" bg="bg-amber-400/5" border="border-amber-400/10" />
-            <OverviewCard label="Missing" value={missingRequired} color="text-rose-400" bg="bg-rose-400/5" border="border-rose-400/10" />
-          </div>
-        </section>
-
-        {/* SECTION 2: ATTENTION REQUIRED */}
-        {missingRequired > 0 && (
-          <section className="px-8 max-w-[1600px] mx-auto mb-12">
-            <div className="bg-rose-500/10 border border-rose-500/20 rounded-[24px] p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-rose-500/20 flex items-center justify-center text-rose-400">
-                  <AlertCircle size={24} />
-                </div>
-                <div>
-                  <h3 className="text-[18px] font-medium text-rose-400 mb-1">Attention Required</h3>
-                  <p className="text-[14px] text-rose-400/70">You have {missingRequired} missing core documents required for applications.</p>
-                </div>
-              </div>
-              <button 
-                onClick={() => {
-                  const firstMissing = REQUIRED_DOCS.find(id => !uploadedDocs[id]?.fileUrl);
-                  if (firstMissing) handleGlobalUploadClick(firstMissing);
-                }}
-                className="px-6 py-3 bg-rose-500 text-white rounded-full text-[14px] font-medium hover:bg-rose-600 transition-colors"
-              >
-                Upload Missing
-              </button>
-            </div>
-          </section>
-        )}
-
-        <section className="px-8 max-w-[1600px] mx-auto flex flex-col lg:flex-row gap-12">
-          
-          {/* SECTION 3: CATEGORIES */}
-          <aside className="w-full lg:w-64 shrink-0 flex flex-row lg:flex-col gap-2 overflow-x-auto no-scrollbar">
-            {CATEGORIES.map(cat => (
-              <button 
-                key={cat.id}
-                onClick={() => { setActiveCategory(cat.id); setSearchQuery(''); }}
-                className={`flex items-center gap-4 px-6 py-4 rounded-[20px] text-[14px] font-medium transition-all whitespace-nowrap lg:whitespace-normal ${
-                  activeCategory === cat.id ? 'bg-[#151519] text-white border border-white/5' : 'bg-transparent text-gray-500 hover:text-white border border-transparent'
-                }`}
-              >
-                <cat.icon size={18} className={activeCategory === cat.id ? 'text-[#6D5DF6]' : ''} /> {cat.title}
-              </button>
-            ))}
-          </aside>
-
-          {/* DOCUMENTS GRID */}
-          <div className="flex-1">
-            {displayDocs.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-24 bg-[#111113] border border-white/5 rounded-[32px]">
-                <FileText size={48} className="text-gray-600 mb-6" />
-                <h3 className="text-[20px] font-medium mb-2">No documents found</h3>
-                <p className="text-[14px] text-gray-400">Try selecting a different category.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {displayDocs.map(docInfo => {
-                  const serverDoc = uploadedDocs[docInfo.id];
-                  const isUploading = uploadingDocs[docInfo.id];
-                  const hasFile = !!serverDoc?.fileUrl;
-
-                  return (
-                    <div key={docInfo.id} className="bg-[#111113] border border-white/5 rounded-[24px] overflow-hidden flex flex-col group hover:border-white/10 hover:shadow-xl transition-all relative">
-                      
-                      {/* Document Preview Header / Upload Zone */}
-                      <div className="h-32 bg-[#151519] border-b border-white/5 relative flex items-center justify-center">
-                        {hasFile ? (
-                           serverDoc.fileUrl.includes('.pdf') ? (
-                             <FileText size={32} className="text-gray-600" />
-                           ) : (
-                             <ImageIcon size={32} className="text-gray-600" />
-                           )
-                        ) : (
-                           <div className="flex flex-col items-center gap-2">
-                             <Upload size={24} className="text-gray-600" />
-                             <span className="text-[12px] font-medium text-gray-500">Drag & Drop to Upload</span>
-                           </div>
-                        )}
-
-                        {/* Status Badge */}
-                        <div className="absolute top-4 left-4">
-                          {isUploading ? (
-                            <div className="px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-[10px] font-medium text-white flex items-center gap-1.5">
-                              <Loader2 size={10} className="animate-spin" /> Uploading
-                            </div>
-                          ) : hasFile ? (
-                            serverDoc.status === 'verified' ? (
-                              <div className="px-3 py-1 rounded-full bg-emerald-500/20 backdrop-blur-md text-[10px] font-medium text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5">
-                                <CheckCircle2 size={10} /> Verified
-                              </div>
-                            ) : (
-                              <div className="px-3 py-1 rounded-full bg-amber-500/20 backdrop-blur-md text-[10px] font-medium text-amber-400 border border-amber-500/20 flex items-center gap-1.5">
-                                <Clock size={10} /> Pending
-                              </div>
-                            )
-                          ) : (
-                            <div className="px-3 py-1 rounded-full bg-white/5 backdrop-blur-md text-[10px] font-medium text-gray-500 border border-white/5">
-                              Missing
-                            </div>
-                          )}
+          <table className="w-full text-left">
+            <thead>
+              <tr className="bg-[#F9FAFB] border-b border-[#E5E7EB]">
+                <th className="px-[20px] py-[12px] w-[40px]"><input type="checkbox" className="w-[14px] h-[14px] rounded-[3px]" /></th>
+                {['Document','Category','Requirement','Status','Last Updated','Action'].map(h => (
+                  <th key={h} className="px-[16px] py-[12px] text-[12px] font-semibold text-[#6B7280] uppercase tracking-[0.05em] whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filteredDocs.length === 0 ? (
+                <tr><td colSpan={7} className="py-[48px] text-center text-[14px] text-[#9CA3AF]">No documents found.</td></tr>
+              ) : filteredDocs.map((doc: any, i: number) => {
+                const Icon = doc.categoryIcon
+                return (
+                  <tr key={i} onClick={() => setSelectedDoc(doc)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={e => { if (e.key === 'Enter') setSelectedDoc(doc) }}
+                    className="border-b border-[#F3F4F6] hover:bg-[#F9FAFB] transition-colors group cursor-pointer">
+                    <td className="px-[20px] py-[14px]" onClick={e => e.stopPropagation()}>
+                      <input type="checkbox" className="w-[14px] h-[14px] rounded-[3px]" />
+                    </td>
+                    <td className="px-[16px] py-[14px]">
+                      <div className="flex items-center gap-[12px]">
+                        <div className={`w-[32px] h-[32px] rounded-full flex items-center justify-center shrink-0 border border-[#E5E7EB] ${doc.uploaded ? 'bg-[#EEF2FF]' : 'bg-[#F9FAFB]'}`}>
+                          <Icon size={14} className={doc.uploaded ? 'text-[#4F6BFF]' : 'text-[#9CA3AF]'} strokeWidth={1.8} />
+                        </div>
+                        <div>
+                          <span className="text-[14px] font-medium text-[#111827] truncate max-w-[180px] block">{doc.label}</span>
+                          {doc.fileName && <span className="text-[11px] text-[#9CA3AF] truncate max-w-[150px] block">{doc.fileName}</span>}
                         </div>
                       </div>
-
-                      {/* Content & Actions */}
-                      <div className="p-6 flex flex-col flex-1">
-                        <h3 className="text-[16px] font-medium mb-1 truncate">{docInfo.label}</h3>
-                        <p className="text-[12px] text-gray-500 mb-6">
-                          {hasFile ? (serverDoc.uploadedAt?.toDate ? serverDoc.uploadedAt.toDate().toLocaleDateString() : 'Recently') : 'Not uploaded yet'}
-                          {hasFile && ' • 1.2 MB'}
-                        </p>
-
-                        <div className="flex items-center gap-3 mt-auto">
-                          {hasFile ? (
-                            <>
-                              <button 
-                                onClick={() => setPreviewDoc({ id: docInfo.id, doc: serverDoc, info: docInfo })}
-                                className="flex-1 py-3 bg-[#151519] hover:bg-white/5 border border-white/5 rounded-[12px] text-[12px] font-medium transition-colors"
-                              >
-                                Preview
-                              </button>
-                              <button onClick={() => handleGlobalUploadClick(docInfo.id)} className="w-10 h-10 bg-[#151519] hover:bg-white/5 border border-white/5 rounded-[12px] flex items-center justify-center text-gray-400 hover:text-white transition-colors" title="Replace">
-                                <RefreshCcw size={14} />
-                              </button>
-                              <button onClick={() => setDocToDelete(docInfo.id)} className="w-10 h-10 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 rounded-[12px] flex items-center justify-center transition-colors" title="Delete">
-                                <Trash2 size={14} />
-                              </button>
-                            </>
-                          ) : (
-                            <button 
-                              onClick={() => handleGlobalUploadClick(docInfo.id)}
-                              disabled={isUploading}
-                              className="w-full py-3 bg-[#6D5DF6] hover:bg-[#6D5DF6]/90 text-white rounded-[12px] text-[12px] font-medium transition-colors"
-                            >
-                              {isUploading ? 'Processing...' : 'Select File'}
-                            </button>
-                          )}
+                    </td>
+                    <td className="px-[16px] py-[14px]">
+                      <span className="text-[13px] text-[#6B7280]">{doc.category}</span>
+                    </td>
+                    <td className="px-[16px] py-[14px]">
+                      {doc.isRequired 
+                        ? <span className="text-[12px] font-semibold text-[#EF4444] bg-[#FEE2E2] px-[8px] py-[2px] rounded-full">Required</span>
+                        : <span className="text-[12px] font-medium text-[#6B7280] bg-[#F3F4F6] px-[8px] py-[2px] rounded-full">Optional</span>}
+                    </td>
+                    <td className="px-[16px] py-[14px]">
+                      {doc.status === 'verified' && <span className="text-[13px] text-[#059669] flex items-center gap-[4px]"><CheckCircle2 size={14} strokeWidth={2}/>Verified</span>}
+                      {doc.status === 'uploaded' && <span className="text-[13px] text-[#D97706] flex items-center gap-[4px]"><Clock size={14} strokeWidth={2}/>Pending</span>}
+                      {doc.status === 'missing' && <span className="text-[13px] text-[#9CA3AF] flex items-center gap-[4px]"><AlertCircle size={14} strokeWidth={1.8}/>Missing</span>}
+                    </td>
+                    <td className="px-[16px] py-[14px]">
+                      <span className="text-[13px] text-[#6B7280]">
+                        {doc.updatedAt ? new Date(doc.updatedAt).toLocaleDateString() : '—'}
+                      </span>
+                    </td>
+                    <td className="px-[16px] py-[14px]">
+                      {uploadingDocs[doc.id] ? (
+                        <div className="w-[14px] h-[14px] border-2 border-[#E5E7EB] border-t-[#4F6BFF] rounded-full animate-spin" />
+                      ) : doc.uploaded ? (
+                        <div className="flex items-center gap-[8px] opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button className="text-[#6B7280] hover:text-[#4F6BFF]" onClick={e => { e.stopPropagation(); window.open(doc.fileUrl) }}>
+                            <Download size={14} strokeWidth={2} />
+                          </button>
+                          <button className="text-[#6B7280] hover:text-[#EF4444]" onClick={e => { e.stopPropagation(); handleDelete(doc.id) }}>
+                            <Trash2 size={14} strokeWidth={2} />
+                          </button>
                         </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </section>
+                      ) : (
+                        <button className="text-[12px] font-medium text-[#4F6BFF] hover:underline" onClick={e => triggerUpload(doc.id, e)}>
+                          Upload
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
 
-        {/* SIDE DRAWER PREVIEW */}
+        {/* ── DRAWER ───────────────────────────────────── */}
         <AnimatePresence>
-          {previewDoc && (
-            <motion.div 
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm"
-              onClick={() => setPreviewDoc(null)}
-            >
-              <motion.div 
-                initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                className="w-full md:w-[500px] h-full bg-[#111113] border-l border-white/5 shadow-2xl flex flex-col"
-                onClick={e => e.stopPropagation()}
+          {selectedDoc && (
+            <>
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                onClick={() => setSelectedDoc(null)} className="fixed inset-0 bg-black/30 z-50" />
+              <motion.div
+                initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
+                transition={{ type: 'spring', damping: 28, stiffness: 220 }}
+                className="fixed top-0 right-0 bottom-0 w-full max-w-[520px] bg-white border-l border-[#E5E7EB] z-50 flex flex-col shadow-xl overflow-y-auto"
               >
-                <div className="flex items-center justify-between p-6 border-b border-white/5">
-                  <h3 className="text-[18px] font-medium">{previewDoc.info.label}</h3>
-                  <button onClick={() => setPreviewDoc(null)} className="w-10 h-10 rounded-full bg-[#151519] flex items-center justify-center text-gray-400 hover:text-white">
-                    <X size={18} />
+                <div className="sticky top-0 bg-white border-b border-[#E5E7EB] px-[24px] py-[20px] flex items-center justify-between shrink-0">
+                  <div className="flex items-center gap-[14px]">
+                    <div className={`w-[44px] h-[44px] rounded-[10px] flex items-center justify-center border border-[#E5E7EB] ${selectedDoc.uploaded ? 'bg-[#EEF2FF] text-[#4F6BFF]' : 'bg-[#F9FAFB] text-[#9CA3AF]'}`}>
+                      <selectedDoc.categoryIcon size={20} strokeWidth={1.8} />
+                    </div>
+                    <div>
+                      <p className="text-[15px] font-semibold text-[#111827]">{selectedDoc.label}</p>
+                      <p className="text-[13px] text-[#9CA3AF]">{selectedDoc.category}</p>
+                    </div>
+                  </div>
+                  <button onClick={() => setSelectedDoc(null)} className="w-[32px] h-[32px] flex items-center justify-center rounded-[8px] border border-[#E5E7EB] text-[#9CA3AF] hover:bg-[#F3F4F6] transition-colors">
+                    <X size={16} strokeWidth={1.8} />
                   </button>
+                </div>
+                <div className="flex-1 p-[24px] flex flex-col gap-[16px]">
+                  
+                  <div className="grid grid-cols-2 gap-[12px]">
+                    {[
+                      { label: 'Requirement', value: selectedDoc.isRequired ? 'Required' : 'Optional' },
+                      { label: 'Status', value: selectedDoc.status === 'verified' ? 'Verified' : selectedDoc.status === 'uploaded' ? 'Pending Review' : 'Missing' },
+                      { label: 'Last Updated', value: selectedDoc.updatedAt ? new Date(selectedDoc.updatedAt).toLocaleDateString() : 'N/A' },
+                      { label: 'File Type', value: selectedDoc.fileType?.split('/')[1]?.toUpperCase() || 'N/A' },
+                    ].map(({ label, value }) => (
+                      <div key={label} className="bg-[#F9FAFB] border border-[#E5E7EB] rounded-[8px] p-[14px]">
+                        <p className="text-[11px] text-[#9CA3AF] uppercase tracking-[0.06em] mb-[4px]">{label}</p>
+                        <p className="text-[14px] font-semibold text-[#111827]">{value}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="bg-white border border-[#E5E7EB] rounded-[12px] p-[20px] flex flex-col gap-[12px]">
+                    <p className="text-[14px] font-semibold text-[#111827]">Guidelines</p>
+                    <ul className="text-[13px] text-[#6B7280] flex flex-col gap-[8px] list-disc pl-[16px]">
+                      <li>Ensure the document is clear and readable.</li>
+                      <li>File size must be under 5MB.</li>
+                      <li>Accepted formats: PDF, JPG, PNG.</li>
+                      {selectedDoc.isRequired && <li className="text-[#EF4444]">This document is required for all university applications.</li>}
+                    </ul>
+                  </div>
                 </div>
                 
-                <div className="flex-1 overflow-y-auto p-6 space-y-8">
-                  {/* File Preview Area */}
-                  <div className="w-full aspect-[3/4] bg-[#151519] border border-white/5 rounded-[24px] overflow-hidden flex items-center justify-center">
-                    {previewDoc.doc.fileUrl.includes('.pdf') ? (
-                      <div className="flex flex-col items-center gap-4">
-                        <FileText size={64} className="text-[#6D5DF6]" />
-                        <a href={previewDoc.doc.fileUrl} target="_blank" rel="noreferrer" className="px-6 py-2 bg-white/10 rounded-full text-[12px] font-medium hover:bg-white/20 transition-colors">Open PDF in new tab</a>
-                      </div>
-                    ) : (
-                      <img src={previewDoc.doc.fileUrl} alt={previewDoc.info.label} className="w-full h-full object-contain" />
-                    )}
-                  </div>
-
-                  {/* Metadata */}
-                  <div className="space-y-4">
-                    <h4 className="text-[14px] font-medium text-white flex items-center gap-2"><Info size={16} /> Metadata</h4>
-                    <div className="bg-[#151519] border border-white/5 rounded-[16px] p-4 flex flex-col gap-3">
-                      <div className="flex justify-between items-center text-[12px]">
-                        <span className="text-gray-500">Status</span>
-                        <span className={`font-medium ${previewDoc.doc.status === 'verified' ? 'text-emerald-400' : 'text-amber-400'}`}>{previewDoc.doc.status === 'verified' ? 'Verified' : 'Pending Review'}</span>
-                      </div>
-                      <div className="flex justify-between items-center text-[12px]">
-                        <span className="text-gray-500">Uploaded</span>
-                        <span className="text-white">{previewDoc.doc.uploadedAt?.toDate ? previewDoc.doc.uploadedAt.toDate().toLocaleString() : 'Just now'}</span>
-                      </div>
-                      <div className="flex justify-between items-center text-[12px]">
-                        <span className="text-gray-500">Size</span>
-                        <span className="text-white">1.2 MB</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-6 border-t border-white/5 grid grid-cols-2 gap-4">
-                  <button onClick={() => window.open(previewDoc.doc.fileUrl, '_blank')} className="py-4 bg-[#151519] hover:bg-white/5 rounded-[16px] text-[14px] font-medium transition-colors flex items-center justify-center gap-2">
-                    <Download size={16} /> Download
-                  </button>
-                  <button onClick={() => { handleGlobalUploadClick(previewDoc.id); }} className="py-4 bg-[#6D5DF6] hover:bg-[#6D5DF6]/90 rounded-[16px] text-[14px] font-medium transition-colors flex items-center justify-center gap-2">
-                    <RefreshCcw size={16} /> Replace
-                  </button>
+                <div className="sticky bottom-0 bg-white border-t border-[#E5E7EB] p-[20px] flex gap-[10px]">
+                  {selectedDoc.uploaded ? (
+                    <>
+                      <button onClick={() => window.open(selectedDoc.fileUrl)} className="flex-1 h-[38px] bg-[#F9FAFB] border border-[#E5E7EB] text-[#111827] rounded-[8px] text-[13px] font-semibold flex items-center justify-center gap-[6px] hover:bg-[#F3F4F6] transition-colors">
+                        <Download size={14} strokeWidth={2} /> Download
+                      </button>
+                      <button onClick={() => handleDelete(selectedDoc.id)} className="h-[38px] px-[16px] border border-[#EF4444]/20 bg-[#FEF2F2] text-[#EF4444] rounded-[8px] text-[13px] font-medium hover:bg-[#FEE2E2] transition-colors">Delete</button>
+                    </>
+                  ) : (
+                    <button onClick={(e) => triggerUpload(selectedDoc.id, e as any)} className="flex-1 h-[38px] bg-[#4F6BFF] text-white rounded-[8px] text-[13px] font-semibold flex items-center justify-center gap-[6px] hover:bg-[#3D56E0] transition-colors">
+                      <Upload size={14} strokeWidth={2} /> Upload Document
+                    </button>
+                  )}
                 </div>
               </motion.div>
-            </motion.div>
+            </>
           )}
         </AnimatePresence>
-
-        {/* DELETE CONFIRMATION */}
-        <AnimatePresence>
-          {docToDelete && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-              <div className="bg-[#111113] border border-white/10 rounded-[32px] p-8 max-w-sm w-full shadow-2xl text-center relative">
-                <button onClick={() => setDocToDelete(null)} className="absolute top-6 right-6 text-gray-500 hover:text-white"><X size={20} /></button>
-                <div className="w-16 h-16 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center mb-6 mx-auto">
-                  <Trash2 size={24} />
-                </div>
-                <h3 className="text-[20px] font-medium text-white mb-2">Delete Document?</h3>
-                <p className="text-[14px] text-gray-400 mb-8">This action cannot be undone. The document will be permanently removed from your vault.</p>
-                <div className="flex gap-4">
-                  <button onClick={() => setDocToDelete(null)} className="flex-1 py-3 bg-[#151519] border border-white/5 hover:bg-white/5 rounded-[16px] text-[14px] font-medium transition-all">Cancel</button>
-                  <button onClick={handleDelete} className="flex-1 py-3 bg-rose-500 hover:bg-rose-600 rounded-[16px] text-[14px] font-medium text-white transition-all">Delete</button>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
       </div>
     </ProtectedRoute>
-  );
-}
-
-function OverviewCard({ label, value, color, bg = 'bg-[#151519]', border = 'border-white/5' }: { label: string, value: number, color: string, bg?: string, border?: string }) {
-  return (
-    <div className={`${bg} border ${border} rounded-[24px] p-6 flex flex-col gap-2`}>
-      <span className="text-[14px] font-medium text-gray-400">{label}</span>
-      <span className={`text-[32px] font-medium ${color}`}>{value}</span>
-    </div>
   )
 }

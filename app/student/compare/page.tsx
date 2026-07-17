@@ -17,6 +17,7 @@ import { Sparkles, ArrowRight, ShieldCheck, Target, GraduationCap, X, CheckCircl
 import { AIWorkspaceLayout } from '@/components/ai/AIWorkspaceLayout';
 import { AILoadingState } from '@/components/ai/AILoadingState';
 import { AIEmptyState } from '@/components/ai/AIEmptyState';
+import { Card, Button, Badge, H2, H3, H4, Body, Small, Caption, MetricCard } from '@/components/ui/design-system';
 
 function CompareContent() {
   const router = useRouter();
@@ -92,16 +93,16 @@ function CompareContent() {
   };
 
   const getRingColor = (score: number) => {
-    if (score >= 80) return 'stroke-emerald-400';
-    if (score >= 60) return 'stroke-amber-400';
-    return 'stroke-rose-400';
+    if (score >= 80) return 'stroke-success';
+    if (score >= 60) return 'stroke-warning';
+    return 'stroke-danger';
   };
 
   if (selectedIds.length === 0) {
     return (
       <AIWorkspaceLayout
         title="AI University Comparison"
-        icon={<LayoutDashboard size={16} />}
+        icon={<LayoutDashboard size={16} strokeWidth={1.8} />}
         leftPanel={<></>}
         centerPanel={
           <AIEmptyState
@@ -109,9 +110,9 @@ function CompareContent() {
             title="Select Universities to Compare"
             description="Go to Discover or your Saved Programs to select 2 to 5 universities to compare them using EDUING AI."
             actionButton={
-              <button onClick={() => router.push('/student/discover')} className="px-8 py-4 bg-indigo-600 rounded-2xl font-black text-xs uppercase tracking-widest text-white hover:bg-indigo-500 transition-all">
+              <Button onClick={() => router.push('/student/discover')} variant="primary" className="!bg-primary hover:!bg-primary/90 !border-primary">
                 Explore Programs
-              </button>
+              </Button>
             }
           />
         }
@@ -124,7 +125,7 @@ function CompareContent() {
     return (
       <AIWorkspaceLayout
         title="AI University Comparison"
-        icon={<LayoutDashboard size={16} />}
+        icon={<LayoutDashboard size={16} strokeWidth={1.8} />}
         leftPanel={<></>}
         centerPanel={
           <AILoadingState
@@ -140,58 +141,58 @@ function CompareContent() {
   return (
     <AIWorkspaceLayout
       title="AI University Comparison"
-      icon={<LayoutDashboard size={16} />}
+      icon={<LayoutDashboard size={16} strokeWidth={1.8} />}
       headerActions={
         <>
-          <button onClick={() => router.push('/student/discover')} className="hidden md:flex items-center gap-2 px-4 py-1.5 bg-white/5 hover:bg-white/10 rounded-xl text-xs font-bold transition-colors border border-white/5">
-            <Plus size={14} /> Add University
-          </button>
+          <Button onClick={() => router.push('/student/discover')} variant="secondary" size="sm" className="hidden md:flex items-center gap-8">
+            <Plus size={14} strokeWidth={1.8} /> Add University
+          </Button>
         </>
       }
       leftPanel={
         <>
-          <div className="p-4 border-b border-white/5">
-             <h3 className="text-[10px] font-black uppercase tracking-widest text-white/40">Selected Programs</h3>
+          <div className="p-16 border-b border-border">
+             <Caption className="font-bold uppercase tracking-widest text-text-secondary">Selected Programs</Caption>
           </div>
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto p-16 flex flex-col gap-12 custom-scrollbar">
             {comparisonData.universities.map(item => (
-              <div key={item.university.id} className="bg-[#111114] border border-white/5 p-3 rounded-xl flex items-center justify-between group">
-                 <div className="truncate pr-3">
-                   <div className="text-xs font-bold text-white truncate">{item.university.name}</div>
-                   <div className="text-[10px] text-white/40 truncate">{item.university.location}</div>
+              <Card key={item.university.id} className="!p-12 flex items-center justify-between group hover:border-text-secondary/30 transition-colors shadow-sm">
+                 <div className="truncate pr-12">
+                   <Small className="font-bold text-text-primary truncate">{item.university.name}</Small>
+                   <Caption className="text-text-secondary truncate">{item.university.location}</Caption>
                  </div>
-                 <button onClick={() => removeUniversity(item.university.id)} className="w-6 h-6 shrink-0 bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white rounded-full flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100">
-                   <X size={12} />
+                 <button onClick={() => removeUniversity(item.university.id)} className="w-[24px] h-[24px] shrink-0 bg-danger/10 text-danger hover:bg-danger hover:text-white rounded-full flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100">
+                   <X size={12} strokeWidth={1.8} />
                  </button>
-              </div>
+              </Card>
             ))}
           </div>
-          <div className="p-4 border-t border-white/5">
-            <button onClick={() => router.push('/student/discover')} className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs font-bold transition-all text-white flex justify-center items-center gap-2 shadow-lg shadow-indigo-500/20">
-              <Plus size={14} /> Compare Another
-            </button>
+          <div className="p-16 border-t border-border">
+            <Button onClick={() => router.push('/student/discover')} variant="primary" className="w-full flex justify-center items-center gap-8">
+              <Plus size={14} strokeWidth={1.8} /> Compare Another
+            </Button>
           </div>
         </>
       }
       centerPanel={
         <>
-          <div className="flex overflow-x-auto gap-6 pb-8 custom-scrollbar">
+          <div className="flex overflow-x-auto gap-24 pb-32 custom-scrollbar">
             {comparisonData.universities.map((item, idx) => (
-              <div key={item.university.id} className="min-w-[320px] max-w-[400px] shrink-0 bg-[#111114] border border-white/5 rounded-[32px] flex flex-col relative group hover:border-white/10 transition-colors">
+              <Card key={item.university.id} className="min-w-[320px] max-w-[400px] shrink-0 !p-0 flex flex-col relative group hover:border-text-secondary/30 transition-colors shadow-sm">
                 
-                <div className="p-6 border-b border-white/5 relative overflow-hidden rounded-t-[32px]">
-                  <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
-                  <h3 className="text-xl font-black mb-1 relative z-10">{item.university.name}</h3>
-                  <div className="text-[11px] text-white/40 font-medium flex items-center gap-2 mb-6 relative z-10">
+                <div className="p-24 border-b border-border relative overflow-hidden rounded-t-[24px]">
+                  <div className="absolute inset-0 bg-gradient-to-b from-hover to-transparent pointer-events-none" />
+                  <H3 className="mb-4 relative z-10">{item.university.name}</H3>
+                  <Small className="text-text-secondary font-medium flex items-center gap-8 mb-24 relative z-10">
                      {item.university.location} • {item.university.type}
-                  </div>
+                  </Small>
 
-                  <div className="flex gap-4 relative z-10">
+                  <div className="flex gap-16 relative z-10">
                      {/* Recommendation Score Ring */}
-                     <div className="flex flex-col items-center bg-[#1A1A24] rounded-2xl p-3 flex-1 border border-white/5 shadow-inner">
-                        <div className="relative w-12 h-12 mb-2">
+                     <div className="flex flex-col items-center bg-background rounded-card p-12 flex-1 border border-border shadow-sm">
+                        <div className="relative w-[48px] h-[48px] mb-8">
                           <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                            <circle cx="18" cy="18" r="16" className="stroke-white/5" strokeWidth="3" fill="none" />
+                            <circle cx="18" cy="18" r="16" className="stroke-border" strokeWidth="3" fill="none" />
                             <circle 
                               cx="18" cy="18" r="16" 
                               className={getRingColor(item.recommendation.overallMatchScore)} 
@@ -199,16 +200,16 @@ function CompareContent() {
                               strokeDasharray="100" strokeDashoffset={100 - item.recommendation.overallMatchScore}
                             />
                           </svg>
-                          <div className="absolute inset-0 flex items-center justify-center text-xs font-black">{item.recommendation.overallMatchScore}</div>
+                          <div className="absolute inset-0 flex items-center justify-center text-small font-black">{item.recommendation.overallMatchScore}</div>
                         </div>
-                        <div className="text-[9px] uppercase tracking-widest text-white/40 font-bold text-center">Match</div>
+                        <Caption className="uppercase tracking-widest text-text-secondary font-bold text-center">Match</Caption>
                      </div>
 
                      {/* Probability Score Ring */}
-                     <div className="flex flex-col items-center bg-[#1A1A24] rounded-2xl p-3 flex-1 border border-white/5 shadow-inner">
-                        <div className="relative w-12 h-12 mb-2">
+                     <div className="flex flex-col items-center bg-background rounded-card p-12 flex-1 border border-border shadow-sm">
+                        <div className="relative w-[48px] h-[48px] mb-8">
                           <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                            <circle cx="18" cy="18" r="16" className="stroke-white/5" strokeWidth="3" fill="none" />
+                            <circle cx="18" cy="18" r="16" className="stroke-border" strokeWidth="3" fill="none" />
                             <circle 
                               cx="18" cy="18" r="16" 
                               className={getRingColor(item.probability.overallProbability)} 
@@ -216,39 +217,39 @@ function CompareContent() {
                               strokeDasharray="100" strokeDashoffset={100 - item.probability.overallProbability}
                             />
                           </svg>
-                          <div className="absolute inset-0 flex items-center justify-center text-xs font-black">{item.probability.overallProbability}%</div>
+                          <div className="absolute inset-0 flex items-center justify-center text-small font-black">{item.probability.overallProbability}%</div>
                         </div>
-                        <div className="text-[9px] uppercase tracking-widest text-white/40 font-bold text-center">Prob</div>
+                        <Caption className="uppercase tracking-widest text-text-secondary font-bold text-center">Prob</Caption>
                      </div>
                   </div>
                 </div>
 
-                <div className="p-6 space-y-6 flex-1 bg-[#111114] rounded-b-[32px]">
+                <div className="p-24 flex flex-col gap-24 flex-1 bg-background rounded-b-[24px]">
                   {/* Profile Alignment */}
                   <div>
-                    <div className="text-[10px] uppercase tracking-widest text-white/40 font-black mb-3">Profile Alignment</div>
-                    <div className="space-y-2">
+                    <Caption className="uppercase tracking-widest text-text-secondary font-bold mb-12">Profile Alignment</Caption>
+                    <div className="flex flex-col gap-8">
                       {item.recommendation.matchReasons.map((reason: string, i: number) => (
-                        <div key={i} className="flex items-center gap-2 text-xs font-medium text-emerald-400">
-                          <CheckCircle2 size={12} className="shrink-0" /> {reason}
+                        <div key={i} className="flex items-center gap-8 text-small font-medium text-success">
+                          <CheckCircle2 size={12} strokeWidth={1.8} className="shrink-0" /> {reason}
                         </div>
                       ))}
-                      {item.recommendation.matchReasons.length === 0 && <div className="text-xs text-white/30">Limited alignment points.</div>}
+                      {item.recommendation.matchReasons.length === 0 && <Small className="text-text-secondary/70">Limited alignment points.</Small>}
                     </div>
                   </div>
 
                   {/* Admission Check */}
                   <div>
-                    <div className="text-[10px] uppercase tracking-widest text-white/40 font-black mb-3">Admission Status</div>
-                    <div className="bg-[#1A1A24] p-3 rounded-2xl border border-white/5">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-xs text-white/60 font-medium">Risk Level</span>
-                        <span className={`text-[11px] uppercase tracking-widest font-black ${item.probability.probabilityLabel === 'Very Low' || item.probability.probabilityLabel === 'Low' ? 'text-rose-400' : item.probability.probabilityLabel === 'Moderate' ? 'text-amber-400' : 'text-emerald-400'}`}>{item.probability.probabilityLabel}</span>
+                    <Caption className="uppercase tracking-widest text-text-secondary font-bold mb-12">Admission Status</Caption>
+                    <div className="bg-hover p-12 rounded-card border border-border">
+                      <div className="flex justify-between items-center mb-4">
+                        <Small className="text-text-secondary font-medium">Risk Level</Small>
+                        <Caption className={`uppercase tracking-widest font-bold ${item.probability.probabilityLabel === 'Very Low' || item.probability.probabilityLabel === 'Low' ? 'text-danger' : item.probability.probabilityLabel === 'Moderate' ? 'text-warning' : 'text-success'}`}>{item.probability.probabilityLabel}</Caption>
                       </div>
                       {item.recommendation.missingRequirements.length > 0 && (
-                        <div className="pt-2 mt-2 border-t border-white/5">
-                          <span className="text-[9px] uppercase tracking-widest text-amber-400 font-bold block mb-1">Needs Attention:</span>
-                          <span className="text-xs text-white/80">{item.recommendation.missingRequirements.join(', ')}</span>
+                        <div className="pt-8 mt-8 border-t border-border">
+                          <Caption className="uppercase tracking-widest text-warning font-bold block mb-4">Needs Attention:</Caption>
+                          <Small className="text-text-primary">{item.recommendation.missingRequirements.join(', ')}</Small>
                         </div>
                       )}
                     </div>
@@ -256,38 +257,38 @@ function CompareContent() {
 
                   {/* Scholarship Info */}
                   <div>
-                    <div className="text-[10px] uppercase tracking-widest text-white/40 font-black mb-3">Financial Aid</div>
+                    <Caption className="uppercase tracking-widest text-text-secondary font-bold mb-12">Financial Aid</Caption>
                     {item.bestScholarship ? (
-                      <div className="bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-2xl">
-                        <div className="text-xs font-bold text-emerald-400 mb-1 truncate">{item.bestScholarship.scholarship.name}</div>
-                        <div className="text-[10px] text-emerald-400/70 font-medium">Eligibility: {item.bestScholarship.eligibilityScore}% Match</div>
+                      <div className="bg-success/10 border border-success/20 p-12 rounded-card">
+                        <Small className="font-bold text-success mb-4 truncate">{item.bestScholarship.scholarship.name}</Small>
+                        <Caption className="text-success/70 font-medium">Eligibility: {item.bestScholarship.eligibilityScore}% Match</Caption>
                       </div>
                     ) : (
-                      <div className="bg-white/5 p-3 rounded-2xl border border-white/5 text-[11px] text-white/40 font-medium">
+                      <div className="bg-hover p-12 rounded-card border border-border text-[11px] text-text-secondary font-medium">
                         No matching scholarships found.
                       </div>
                     )}
                   </div>
 
-                  <div className="pt-2">
-                    <button onClick={() => router.push(`/student/universities/${item.university.id}`)} className="w-full py-3 bg-white hover:bg-white/90 text-black rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-xl">
+                  <div className="pt-8 mt-auto">
+                    <Button onClick={() => router.push(`/student/universities/${item.university.id}`)} variant="primary" className="w-full flex justify-center items-center !bg-background !border-border !text-text-primary hover:!bg-hover shadow-sm uppercase tracking-widest text-[10px]">
                       View Full Details
-                    </button>
+                    </Button>
                   </div>
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
         </>
       }
       rightPanel={
         <>
-          <div className="p-4 border-b border-white/5 flex items-center gap-2">
-            <Sparkles size={14} className="text-indigo-400" />
-            <h2 className="text-xs font-black uppercase tracking-widest text-indigo-400">Copilot Verdict</h2>
+          <div className="p-16 border-b border-border flex items-center gap-8">
+            <Sparkles size={14} strokeWidth={1.8} className="text-primary" />
+            <Caption className="font-bold uppercase tracking-widest text-primary">Copilot Verdict</Caption>
           </div>
           
-          <div className="flex-1 overflow-y-auto p-5 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto p-20 custom-scrollbar">
             {error && (
               <AIEmptyState 
                 icon={Target} 
@@ -302,33 +303,33 @@ function CompareContent() {
               />
             )}
             {aiAnalysis && !loadingAI && (
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col gap-24">
                 
-                <p className="text-white/80 leading-relaxed text-xs font-medium bg-indigo-500/10 border border-indigo-500/20 p-4 rounded-2xl">{aiAnalysis.summary}</p>
+                <Small className="text-text-primary leading-relaxed font-medium bg-primary/10 border border-primary/20 p-16 rounded-card">{aiAnalysis.summary}</Small>
                 
-                <div className="space-y-3">
-                  <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-4">
-                    <div className="text-[9px] uppercase tracking-widest text-emerald-400 font-black mb-1">Best Overall Match</div>
-                    <div className="font-bold text-sm text-emerald-400">{aiAnalysis.bestOverallChoice}</div>
+                <div className="flex flex-col gap-12">
+                  <div className="bg-success/10 border border-success/20 rounded-card p-16">
+                    <Caption className="uppercase tracking-widest text-success font-bold mb-4">Best Overall Match</Caption>
+                    <Body className="font-bold text-success">{aiAnalysis.bestOverallChoice}</Body>
                   </div>
-                  <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4">
-                    <div className="text-[9px] uppercase tracking-widest text-blue-400 font-black mb-1">Safest Option</div>
-                    <div className="font-bold text-sm text-blue-400">{aiAnalysis.safestOption}</div>
+                  <div className="bg-primary/10 border border-primary/20 rounded-card p-16">
+                    <Caption className="uppercase tracking-widest text-primary font-bold mb-4">Safest Option</Caption>
+                    <Body className="font-bold text-primary">{aiAnalysis.safestOption}</Body>
                   </div>
-                  <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4">
-                    <div className="text-[9px] uppercase tracking-widest text-amber-400 font-black mb-1">Most Ambitious</div>
-                    <div className="font-bold text-sm text-amber-400">{aiAnalysis.mostAmbitiousChoice}</div>
+                  <div className="bg-warning/10 border border-warning/20 rounded-card p-16">
+                    <Caption className="uppercase tracking-widest text-warning font-bold mb-4">Most Ambitious</Caption>
+                    <Body className="font-bold text-warning">{aiAnalysis.mostAmbitiousChoice}</Body>
                   </div>
                 </div>
 
                 {aiAnalysis.actionableAdvice && aiAnalysis.actionableAdvice.length > 0 && (
                   <div>
-                    <div className="text-[10px] uppercase tracking-widest text-white/40 font-black mb-3">Actionable Advice</div>
-                    <div className="space-y-2">
+                    <Caption className="uppercase tracking-widest text-text-secondary font-bold mb-12">Actionable Advice</Caption>
+                    <div className="flex flex-col gap-8">
                       {aiAnalysis.actionableAdvice.map((advice: string, idx: number) => (
-                        <div key={idx} className="flex items-start gap-2 bg-[#14141A] p-3 rounded-xl border border-white/5">
-                          <ArrowRight className="text-indigo-400 shrink-0 mt-0.5" size={12} />
-                          <div className="text-[11px] font-medium text-white/80 leading-relaxed">{advice}</div>
+                        <div key={idx} className="flex items-start gap-8 bg-hover p-12 rounded-card border border-border">
+                          <ArrowRight className="text-primary shrink-0 mt-4" size={12} strokeWidth={1.8} />
+                          <Small className="font-medium text-text-primary leading-relaxed">{advice}</Small>
                         </div>
                       ))}
                     </div>
@@ -346,7 +347,7 @@ function CompareContent() {
 export default function ComparePage() {
   return (
     <ProtectedRoute allowedRoles={['student']}>
-      <Suspense fallback={<div className="min-h-screen bg-[#0A0A0F]" />}>
+      <Suspense fallback={<div className="min-h-screen bg-background" />}>
         <CompareContent />
       </Suspense>
     </ProtectedRoute>

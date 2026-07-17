@@ -10,6 +10,7 @@ import { EmailService } from '@/lib/ai/gemini/services';
 
 import { Sparkles, Mail, CheckCircle2, AlertCircle, Wand2, Download, Copy, Save, LayoutTemplate, MessageSquareText, FileEdit, FileText } from 'lucide-react';
 import { AIWorkspaceLayout } from '@/components/ai/AIWorkspaceLayout';
+import { Card, Button, Badge, H2, H3, H4, Body, Small, Caption, MetricCard } from '@/components/ui/design-system';
 
 function EmailAssistantContent() {
   const { profile } = useStudentData();
@@ -51,46 +52,48 @@ function EmailAssistantContent() {
   return (
     <AIWorkspaceLayout
       title="Communication Hub"
-      icon={<Mail size={16} />}
+      icon={<Mail size={16} strokeWidth={1.8} />}
       themeColor="emerald"
       headerActions={
         <>
-          <button className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-full text-xs font-bold transition-all flex items-center gap-2">
-            <Save size={14} /> Drafts
-          </button>
-          <button 
+          <Button variant="secondary" size="sm" className="flex items-center gap-8">
+            <Save size={14} strokeWidth={1.8} /> Drafts
+          </Button>
+          <Button 
             onClick={handleGenerate}
             disabled={isGenerating}
-            className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full text-xs font-bold transition-all flex items-center gap-2 shadow-[0_4px_20px_rgba(16,185,129,0.3)] disabled:opacity-50"
+            variant="primary"
+            size="sm"
+            className="!bg-emerald-500 hover:!bg-emerald-600 !border-emerald-500 flex items-center gap-8 disabled:!bg-background disabled:!border-border disabled:!text-text-secondary"
           >
-            {isGenerating ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Wand2 size={14} />}
+            {isGenerating ? <div className="w-16 h-16 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <Wand2 size={14} strokeWidth={1.8} />}
             {isGenerating ? 'Drafting...' : 'Auto-Draft'}
-          </button>
+          </Button>
         </>
       }
     >
-      <div className="flex flex-1 h-full overflow-hidden bg-[#0A0A0F]">
+      <div className="flex flex-1 h-full overflow-hidden bg-background">
         
         {/* Left Sidebar (Folders / Templates) */}
-        <div className="w-64 border-r border-white/5 bg-[#050505] flex flex-col z-10 shrink-0">
-          <div className="p-4">
-            <h3 className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-4 px-2">Smart Templates</h3>
-            <div className="space-y-1">
+        <div className="w-[280px] border-r border-border bg-background flex flex-col z-10 shrink-0">
+          <div className="p-24">
+            <Small className="font-medium uppercase tracking-wider text-text-secondary mb-12">Smart Templates</Small>
+            <div className="flex flex-col gap-4">
               {[
-                { name: 'University Admission Inquiry', icon: <Mail size={14} /> },
-                { name: 'Application Follow-up', icon: <CheckCircle2 size={14} /> },
-                { name: 'Scholarship Inquiry', icon: <Sparkles size={14} /> },
-                { name: 'Professor Contact', icon: <MessageSquareText size={14} /> },
-                { name: 'Recommendation Letter Request', icon: <FileText size={14} /> },
-                { name: 'Interview Thank You', icon: <AlertCircle size={14} /> },
-                { name: 'Fee Waiver Request', icon: <LayoutTemplate size={14} /> }
+                { name: 'University Admission Inquiry', icon: <Mail size={16} strokeWidth={1.8} /> },
+                { name: 'Application Follow-up', icon: <CheckCircle2 size={16} strokeWidth={1.8} /> },
+                { name: 'Scholarship Inquiry', icon: <Sparkles size={16} strokeWidth={1.8} /> },
+                { name: 'Professor Contact', icon: <MessageSquareText size={16} strokeWidth={1.8} /> },
+                { name: 'Recommendation Letter Request', icon: <FileText size={16} strokeWidth={1.8} /> },
+                { name: 'Interview Thank You', icon: <AlertCircle size={16} strokeWidth={1.8} /> },
+                { name: 'Fee Waiver Request', icon: <LayoutTemplate size={16} strokeWidth={1.8} /> }
               ].map(intent => (
                 <button 
                   key={intent.name} 
                   onClick={() => setGenerationIntent(intent.name)}
-                  className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-3 ${generationIntent === intent.name ? 'bg-emerald-500/10 text-emerald-400' : 'text-white/50 hover:bg-white/5 hover:text-white/80'}`}
+                  className={`w-full text-left px-12 py-8 rounded-card text-body font-medium transition-all flex items-center gap-12 ${generationIntent === intent.name ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'text-text-secondary hover:bg-hover hover:text-text-primary border border-transparent'}`}
                 >
-                  <span className={generationIntent === intent.name ? "text-emerald-400" : "text-white/30"}>{intent.icon}</span>
+                  <span className={generationIntent === intent.name ? "text-emerald-500" : "text-text-secondary"}>{intent.icon}</span>
                   <span className="truncate">{intent.name}</span>
                 </button>
               ))}
@@ -103,157 +106,157 @@ function EmailAssistantContent() {
             
             {/* Blank State overlay if empty */}
             {!emailBody && !isGenerating && !generationError && (
-              <div className="absolute inset-0 bg-[#0A0A0F] z-20 flex items-center justify-center flex-col text-white/20">
-                <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6">
-                  <Mail size={32} />
+              <div className="absolute inset-0 bg-background z-20 flex items-center justify-center flex-col text-text-secondary">
+                <div className="w-[64px] h-[64px] bg-background border border-border rounded-full flex items-center justify-center mb-24">
+                  <Mail size={32} strokeWidth={1.8} />
                 </div>
-                <h2 className="text-xl font-bold mb-2 text-white/60">New Message</h2>
-                <p className="text-sm font-medium">Select a template and Auto-Draft to begin.</p>
+                <H2 className="mb-8">New Message</H2>
+                <Body>Select a template and Auto-Draft to begin.</Body>
               </div>
             )}
 
             {/* Error State overlay */}
             {generationError && (
-              <div className="absolute inset-0 bg-[#0A0A0F] z-20 flex items-center justify-center flex-col text-red-500/80">
-                <AlertCircle size={48} className="mb-4 opacity-50" />
-                <h2 className="text-xl font-bold mb-2">Generation Failed</h2>
-                <p className="text-sm">{generationError}</p>
+              <div className="absolute inset-0 bg-background z-20 flex items-center justify-center flex-col text-danger">
+                <AlertCircle size={48} strokeWidth={1.8} className="mb-16 opacity-50" />
+                <H2 className="mb-8 text-danger">Generation Failed</H2>
+                <Body className="text-danger/80">{generationError}</Body>
               </div>
             )}
             
             {/* Loading State overlay */}
             {isGenerating && (
-              <div className="absolute inset-0 bg-[#0A0A0F] z-20 flex items-center justify-center flex-col backdrop-blur-md bg-opacity-80">
-                 <div className="w-16 h-16 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mb-6 shadow-[0_0_20px_rgba(16,185,129,0.3)]" />
-                 <p className="text-emerald-400 font-bold animate-pulse text-lg">Composing draft...</p>
+              <div className="absolute inset-0 bg-background/80 z-20 flex items-center justify-center flex-col backdrop-blur-md">
+                 <div className="w-48 h-48 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mb-24 shadow-sm" />
+                 <H3 className="text-emerald-500 animate-pulse">Composing draft...</H3>
               </div>
             )}
 
             {/* Composer View */}
-            <div className="flex-1 flex flex-col bg-white/[0.02]">
+            <div className="flex-1 flex flex-col bg-background">
               {/* Composer Headers */}
-              <div className="flex flex-col border-b border-white/5 bg-[#050505]">
-                <div className="flex items-center px-6 py-3 border-b border-white/5">
-                  <span className="text-xs font-bold text-white/40 w-16">To:</span>
-                  <input type="text" placeholder="university@admissions.edu" className="flex-1 bg-transparent text-sm text-white/90 outline-none placeholder:text-white/20" />
-                  <span className="text-[10px] font-bold text-white/30 cursor-pointer hover:text-white/60">Cc/Bcc</span>
+              <div className="flex flex-col border-b border-border bg-background">
+                <div className="flex items-center px-24 py-12 border-b border-border">
+                  <Small className="font-medium text-text-secondary w-[80px]">To:</Small>
+                  <input type="text" placeholder="university@admissions.edu" className="flex-1 bg-transparent text-body text-text-primary outline-none placeholder:text-text-secondary" />
+                  <Caption className="font-bold text-text-secondary cursor-pointer hover:text-text-primary">Cc/Bcc</Caption>
                 </div>
-                <div className="flex items-center px-6 py-3">
-                  <span className="text-xs font-bold text-white/40 w-16">Subject:</span>
+                <div className="flex items-center px-24 py-12">
+                  <Small className="font-medium text-text-secondary w-[80px]">Subject:</Small>
                   <input 
                     type="text" 
                     value={emailSubject}
                     onChange={e => setEmailData({ ...emailData, subject: e.target.value })}
                     placeholder="Enter subject..."
-                    className="flex-1 bg-transparent text-sm font-bold text-white outline-none placeholder:text-white/20" 
+                    className="flex-1 bg-transparent text-body font-medium text-text-primary outline-none placeholder:text-text-secondary" 
                   />
                 </div>
               </div>
 
               {/* Composer Body */}
-              <div className="flex-1 p-6 relative">
+              <div className="flex-1 p-24 relative">
                 <textarea 
                   value={emailBody}
                   onChange={e => setEmailData({ ...emailData, body: e.target.value })}
-                  className="w-full h-full bg-transparent text-[15px] leading-[1.8] text-white/80 outline-none resize-none custom-scrollbar"
+                  className="w-full h-full bg-transparent text-[15px] leading-[1.8] text-text-primary outline-none resize-none custom-scrollbar"
                   placeholder="Compose your email..."
                 />
               </div>
 
               {/* Composer Action Bar */}
-              <div className="p-4 bg-[#050505] border-t border-white/5 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <button onClick={handleCopy} className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-bold transition-all shadow-lg shadow-emerald-500/20">
+              <div className="p-16 bg-background border-t border-border flex items-center justify-between">
+                <div className="flex items-center gap-8">
+                  <Button onClick={handleCopy} variant="primary" className="!bg-emerald-500 hover:!bg-emerald-600 !border-emerald-500 shadow-sm">
                     Copy to Send
-                  </button>
-                  <button className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/5 text-white/40 hover:text-white transition-colors">
-                    <LayoutTemplate size={16} />
-                  </button>
-                  <button className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/5 text-white/40 hover:text-white transition-colors">
-                    <FileEdit size={16} />
-                  </button>
+                  </Button>
+                  <Button variant="secondary" className="!p-8 !w-auto !h-auto">
+                    <LayoutTemplate size={16} strokeWidth={1.8} />
+                  </Button>
+                  <Button variant="secondary" className="!p-8 !w-auto !h-auto">
+                    <FileEdit size={16} strokeWidth={1.8} />
+                  </Button>
                 </div>
-                <div className="flex items-center gap-4 text-xs font-medium text-white/40">
-                  <span>Saved to Drafts</span>
+                <div className="flex items-center gap-16">
+                  <Caption className="text-text-secondary">Saved to Drafts</Caption>
                 </div>
               </div>
             </div>
         </div>
 
         {/* Right Assistant Panel */}
-        <div className="w-80 border-l border-white/5 bg-[#050505] flex flex-col shrink-0 z-10">
-          <div className="flex border-b border-white/5">
-             <button onClick={() => setActiveTab('write')} className={`flex-1 py-5 text-[11px] font-black uppercase tracking-widest transition-all relative ${activeTab === 'write' ? 'text-emerald-400' : 'text-white/40 hover:text-white'}`}>
+        <div className="w-[320px] border-l border-border bg-background flex flex-col shrink-0 z-10">
+          <div className="flex border-b border-border">
+             <button onClick={() => setActiveTab('write')} className={`flex-1 py-16 text-caption font-bold uppercase tracking-widest transition-all relative ${activeTab === 'write' ? 'text-emerald-500' : 'text-text-secondary hover:text-text-primary'}`}>
                Assistant
-               {activeTab === 'write' && <div className="absolute bottom-0 inset-x-0 h-0.5 bg-emerald-500" />}
+               {activeTab === 'write' && <div className="absolute bottom-0 inset-x-0 h-[2px] bg-emerald-500" />}
              </button>
-             <button onClick={() => setActiveTab('review')} className={`flex-1 py-5 text-[11px] font-black uppercase tracking-widest transition-all relative ${activeTab === 'review' ? 'text-emerald-400' : 'text-white/40 hover:text-white'}`}>
+             <button onClick={() => setActiveTab('review')} className={`flex-1 py-16 text-caption font-bold uppercase tracking-widest transition-all relative ${activeTab === 'review' ? 'text-emerald-500' : 'text-text-secondary hover:text-text-primary'}`}>
                Tone Check
-               {activeTab === 'review' && <div className="absolute bottom-0 inset-x-0 h-0.5 bg-emerald-500" />}
+               {activeTab === 'review' && <div className="absolute bottom-0 inset-x-0 h-[2px] bg-emerald-500" />}
              </button>
           </div>
           
-          <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto p-24 custom-scrollbar">
             {activeTab === 'write' && (
-              <div className="space-y-6">
-                <div className="bg-emerald-500/5 border border-emerald-500/10 p-5 rounded-2xl">
-                  <h4 className="text-xs font-bold text-emerald-400 mb-2 flex items-center gap-2"><Sparkles size={14}/> Context Aware</h4>
-                  <p className="text-[11px] text-white/60 leading-relaxed">Your drafts automatically include your academic achievements and extracurriculars from your EDUING profile to provide context.</p>
-                </div>
+              <div className="flex flex-col gap-24">
+                <Card className="!p-20 bg-emerald-500/5 border-emerald-500/20 shadow-sm">
+                  <Caption className="font-bold text-emerald-500 mb-8 flex items-center gap-8"><Sparkles size={16} strokeWidth={1.8}/> Context Aware</Caption>
+                  <Small className="text-text-secondary leading-relaxed">Your drafts automatically include your academic achievements and extracurriculars from your EDUING profile to provide context.</Small>
+                </Card>
 
-                <button onClick={handleReview} disabled={isReviewing || !emailBody} className="w-full py-4 bg-[#111114] hover:bg-[#1A1A24] border border-white/5 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-3 disabled:opacity-50 shadow-lg">
-                  {isReviewing ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <MessageSquareText size={16} />}
+                <Button onClick={handleReview} disabled={isReviewing || !emailBody} variant="secondary" className="w-full flex items-center justify-center gap-12 disabled:!bg-background disabled:!border-border disabled:!text-text-secondary shadow-sm">
+                  {isReviewing ? <div className="w-16 h-16 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <MessageSquareText size={16} strokeWidth={1.8} />}
                   Run Tone Check
-                </button>
+                </Button>
               </div>
             )}
 
             {activeTab === 'review' && (
-              <div className="space-y-6">
+              <div className="flex flex-col gap-24">
                 {!emailReview && !isReviewing && (
-                  <div className="text-center py-12">
-                    <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 text-white/20">
-                      <MessageSquareText size={24} />
+                  <div className="text-center py-48">
+                    <div className="w-[64px] h-[64px] bg-background border border-border rounded-full flex items-center justify-center mx-auto mb-16 text-text-secondary">
+                      <MessageSquareText size={24} strokeWidth={1.8} />
                     </div>
-                    <p className="text-xs text-white/40">Run Tone Check from the Assistant tab.</p>
+                    <Small className="text-text-secondary">Run Tone Check from the Assistant tab.</Small>
                   </div>
                 )}
                 
                 {isReviewing && (
-                  <div className="text-center py-12">
-                     <div className="w-12 h-12 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mx-auto mb-4" />
-                     <p className="text-xs text-emerald-400 font-bold">Analyzing tone...</p>
+                  <div className="text-center py-48">
+                     <div className="w-48 h-48 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mx-auto mb-16" />
+                     <Small className="text-emerald-500 font-bold">Analyzing tone...</Small>
                   </div>
                 )}
 
                 {emailReview && !isReviewing && (
                   <AnimatePresence>
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col gap-24">
                       
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-[#111114] p-5 rounded-3xl border border-white/5 text-center flex flex-col items-center justify-center shadow-lg">
-                          <span className="text-2xl font-display font-black text-emerald-400">{emailReview.professionalismScore}</span>
-                          <h4 className="text-[9px] text-white/40 uppercase font-bold tracking-widest mt-2">Professional</h4>
-                        </div>
-                        <div className="bg-[#111114] p-5 rounded-3xl border border-white/5 text-center flex flex-col items-center justify-center shadow-lg">
-                          <span className="text-2xl font-display font-black text-indigo-400">{emailReview.grammarScore}</span>
-                          <h4 className="text-[9px] text-white/40 uppercase font-bold tracking-widest mt-2">Grammar</h4>
-                        </div>
+                      <div className="grid grid-cols-2 gap-16">
+                        <Card className="!p-20 text-center flex flex-col items-center justify-center shadow-sm">
+                          <H2 className="text-emerald-500">{emailReview.professionalismScore}</H2>
+                          <Caption className="text-text-secondary uppercase font-bold tracking-widest mt-8">Professional</Caption>
+                        </Card>
+                        <Card className="!p-20 text-center flex flex-col items-center justify-center shadow-sm">
+                          <H2 className="text-primary">{emailReview.grammarScore}</H2>
+                          <Caption className="text-text-secondary uppercase font-bold tracking-widest mt-8">Grammar</Caption>
+                        </Card>
                       </div>
 
-                      <div className="bg-[#111114] p-5 rounded-2xl border border-white/5 shadow-lg">
-                        <h4 className="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-3 flex items-center gap-2"><CheckCircle2 size={12}/> Readability</h4>
-                        <p className="text-[11px] text-white/80 leading-relaxed font-medium">{emailReview.readability}</p>
-                      </div>
+                      <Card className="!p-20 shadow-sm border-emerald-500/20">
+                        <Caption className="font-bold uppercase tracking-widest text-emerald-500 mb-12 flex items-center gap-8"><CheckCircle2 size={16} strokeWidth={1.8}/> Readability</Caption>
+                        <Small className="text-text-primary leading-relaxed font-medium">{emailReview.readability}</Small>
+                      </Card>
 
                       {emailReview.alternativeSubjectLines && emailReview.alternativeSubjectLines.length > 0 && (
                         <div>
-                          <h4 className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-3 pl-2">Alternative Subjects</h4>
-                          <ul className="space-y-2">
+                          <Caption className="font-bold uppercase tracking-widest text-text-secondary mb-12 pl-8">Alternative Subjects</Caption>
+                          <ul className="flex flex-col gap-8">
                             {emailReview.alternativeSubjectLines.map((s: string, i: number) => (
                               <li key={i}>
-                                <button type="button" onClick={() => setEmailData({ ...emailData, subject: s })} className="w-full text-left text-[11px] text-white/70 bg-[#111114] hover:bg-emerald-500/10 border border-white/5 hover:border-emerald-500/20 p-4 rounded-xl cursor-pointer transition-all shadow-md group">
-                                  <span className="group-hover:text-emerald-400 transition-colors font-medium">{s}</span>
+                                <button type="button" onClick={() => setEmailData({ ...emailData, subject: s })} className="w-full text-left text-small text-text-primary bg-background hover:bg-emerald-500/10 border border-border hover:border-emerald-500/20 p-16 rounded-card cursor-pointer transition-all shadow-sm group">
+                                  <span className="group-hover:text-emerald-500 transition-colors font-medium">{s}</span>
                                 </button>
                               </li>
                             ))}
@@ -262,17 +265,17 @@ function EmailAssistantContent() {
                       )}
 
                       {emailReview.missingContext && emailReview.missingContext.length > 0 && (
-                        <div className="bg-amber-500/10 border border-amber-500/20 p-5 rounded-2xl mt-4">
-                          <h4 className="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-3 flex items-center gap-2"><AlertCircle size={12}/> Missing Information</h4>
-                          <ul className="space-y-3">
+                        <Card className="!p-20 bg-warning/10 border-warning/20 mt-16 shadow-sm">
+                          <Caption className="font-bold uppercase tracking-widest text-warning mb-12 flex items-center gap-8"><AlertCircle size={16} strokeWidth={1.8}/> Missing Information</Caption>
+                          <ul className="flex flex-col gap-12">
                             {emailReview.missingContext.map((g: string, i: number) => (
-                              <li key={i} className="text-[11px] text-amber-400/80 leading-relaxed flex items-start gap-3">
-                                <div className="w-1.5 h-1.5 bg-amber-400 rounded-full mt-1.5 shrink-0"/>
+                              <li key={i} className="text-small text-warning/80 leading-relaxed flex items-start gap-12">
+                                <div className="w-6 h-6 bg-warning rounded-full mt-8 shrink-0"/>
                                 <span>{g}</span>
                               </li>
                             ))}
                           </ul>
-                        </div>
+                        </Card>
                       )}
                     </motion.div>
                   </AnimatePresence>
@@ -290,7 +293,7 @@ function EmailAssistantContent() {
 export default function EmailAssistantPage() {
   return (
     <ProtectedRoute allowedRoles={['student']}>
-      <Suspense fallback={<div className="min-h-screen bg-[#0A0A0F]" />}>
+      <Suspense fallback={<div className="min-h-screen bg-background" />}>
         <EmailAssistantContent />
       </Suspense>
     </ProtectedRoute>

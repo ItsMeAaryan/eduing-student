@@ -12,6 +12,7 @@ import {
 import ProtectedRoute from '@/components/ProtectedRoute'
 import { useStudentData } from '@/components/providers/StudentDataProvider'
 import { recommendUniversities } from '@/lib/utils/recommendationEngine'
+import { Card, Button, Badge, H1, H2, H3, H4, Body, Small, Caption, MetricCard } from '@/components/ui/design-system'
 
 const SUGGESTION_CHIPS = ['Engineering', 'Medical', 'MBA', 'Law', 'Study Abroad', 'Scholarships', 'AI Recommended']
 
@@ -20,11 +21,11 @@ const QUICK_CATEGORIES = [
   'Management', 'Architecture', 'Design', 'Agriculture', 'Science'
 ]
 
-function getAIMatchBadge(score: number) {
-  if (score >= 90) return { label: 'Excellent Match', color: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20' }
-  if (score >= 80) return { label: 'Strong Match', color: 'text-blue-400 bg-blue-400/10 border-blue-400/20' }
-  if (score >= 70) return { label: 'Good Match', color: 'text-[#6D5DF6] bg-[#6D5DF6]/10 border-[#6D5DF6]/20' }
-  return { label: 'Average Match', color: 'text-gray-400 bg-white/5 border-white/10' }
+function getAIMatchBadge(score: number): { label: string, variant: 'success' | 'purple' | 'warning' | 'default' } {
+  if (score >= 90) return { label: 'Excellent Match', variant: 'success' }
+  if (score >= 80) return { label: 'Strong Match', variant: 'purple' }
+  if (score >= 70) return { label: 'Good Match', variant: 'warning' }
+  return { label: 'Average Match', variant: 'default' }
 }
 
 export default function DiscoverUniversities() {
@@ -71,63 +72,63 @@ export default function DiscoverUniversities() {
   }
 
   if (loading) return (
-    <div className="min-h-screen bg-[#09090B] flex items-center justify-center">
-      <div className="w-12 h-12 border-2 border-[#6D5DF6]/30 border-t-[#6D5DF6] rounded-full animate-spin" />
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="w-[48px] h-[48px] border-4 border-primary border-t-transparent rounded-full animate-spin" />
     </div>
   )
 
   if (error) return (
-    <div className="min-h-screen bg-[#09090B] flex items-center justify-center text-white">
+    <div className="min-h-screen bg-background flex items-center justify-center text-text-primary">
       Error loading discovery data. Please refresh.
     </div>
   )
 
   return (
     <ProtectedRoute allowedRoles={['student']}>
-      <div className="min-h-screen bg-[#09090B] text-white selection:bg-[#6D5DF6]/30 font-sans pb-32">
+      <div className="min-h-screen bg-background text-text-primary selection:bg-primary/30 pb-64">
         
         {/* HERO SECTION */}
-        <section className="pt-24 pb-16 px-8 max-w-5xl mx-auto flex flex-col items-center text-center">
-          <h1 className="text-[48px] md:text-[64px] font-medium tracking-tight mb-4">Discover Universities</h1>
-          <p className="text-[16px] text-gray-400 mb-12 max-w-2xl">
+        <section className="pt-64 pb-32 px-32 max-w-5xl mx-auto flex flex-col items-center text-center">
+          <H1 className="tracking-tight mb-16">Discover Universities</H1>
+          <Body className="text-text-secondary mb-48 max-w-2xl">
             Explore institutions perfectly matched to your academic journey using our intelligent engine.
-          </p>
+          </Body>
           
           <div className="w-full relative group">
-            <div className="absolute inset-0 bg-[#6D5DF6]/5 blur-3xl rounded-full pointer-events-none transition-opacity opacity-0 group-focus-within:opacity-100" />
-            <div className="relative bg-[#151519] border border-white/5 rounded-[32px] p-3 flex items-center shadow-xl transition-all focus-within:border-[#6D5DF6]/30 focus-within:bg-[#1A1A20]">
-              <div className="pl-6 pr-4 text-[#6D5DF6]">
-                <Sparkles size={24} />
+            <div className="absolute inset-0 bg-primary/5 blur-3xl rounded-full pointer-events-none transition-opacity opacity-0 group-focus-within:opacity-100" />
+            <div className="relative bg-background border border-border rounded-full p-8 flex items-center shadow-sm transition-all focus-within:border-primary/50 focus-within:bg-hover">
+              <div className="pl-24 pr-16 text-primary">
+                <Sparkles size={24} strokeWidth={1.8} />
               </div>
               <input 
                 type="text"
                 placeholder="What are the best Computer Science colleges under ₹8L in Bangalore?"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 bg-transparent border-none outline-none text-[16px] text-white py-4 placeholder:text-gray-500"
+                className="flex-1 bg-transparent border-none outline-none text-body text-text-primary py-16 placeholder:text-text-secondary"
               />
-              <button className="bg-[#6D5DF6] text-white px-8 py-4 rounded-[24px] text-[16px] font-medium hover:bg-[#6D5DF6]/90 transition-colors ml-2">
+              <Button variant="primary" className="ml-8">
                 Search
-              </button>
+              </Button>
             </div>
             
             {searchQuery && (
-              <div className="absolute top-full left-0 w-full mt-4 bg-[#111113] border border-[#6D5DF6]/20 rounded-[24px] p-6 text-left shadow-2xl z-50">
-                <div className="flex items-center gap-3 mb-2">
-                  <Sparkles size={16} className="text-[#6D5DF6]" />
-                  <span className="text-[14px] font-medium text-white">AI is understanding your request...</span>
+              <div className="absolute top-full left-0 w-full mt-16 bg-background border border-primary/20 rounded-card p-24 text-left shadow-2xl z-50">
+                <div className="flex items-center gap-12 mb-8">
+                  <Sparkles size={16} strokeWidth={1.8} className="text-primary" />
+                  <Small className="font-bold text-text-primary">AI is understanding your request...</Small>
                 </div>
-                <p className="text-[14px] text-gray-400">We found {filteredUnis.length} universities matching your preferences perfectly.</p>
+                <Small className="text-text-secondary">We found {filteredUnis.length} universities matching your preferences perfectly.</Small>
               </div>
             )}
           </div>
           
-          <div className="flex flex-wrap items-center justify-center gap-3 mt-8">
+          <div className="flex flex-wrap items-center justify-center gap-12 mt-32">
             {SUGGESTION_CHIPS.map(chip => (
               <button 
                 key={chip} 
                 onClick={() => setSearchQuery(chip)}
-                className="px-6 py-2.5 rounded-full border border-white/5 bg-[#111113] text-[14px] text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+                className="px-24 py-[10px] rounded-full border border-border bg-background text-small text-text-secondary hover:text-text-primary hover:bg-hover transition-colors"
               >
                 {chip}
               </button>
@@ -136,11 +137,11 @@ export default function DiscoverUniversities() {
         </section>
 
         {/* SECTION 2: QUICK CATEGORIES */}
-        <section className="max-w-[1600px] mx-auto px-8 mb-16">
-          <div className="flex items-center gap-4 overflow-x-auto no-scrollbar pb-4">
+        <section className="max-w-[1600px] mx-auto px-32 mb-64">
+          <div className="flex items-center gap-16 overflow-x-auto no-scrollbar pb-16">
             <button 
               onClick={() => setSelectedCategory('All')}
-              className={`px-8 py-4 rounded-[20px] text-[14px] font-medium shrink-0 transition-all ${selectedCategory === 'All' ? 'bg-[#6D5DF6] text-white' : 'bg-[#151519] text-gray-400 hover:bg-white/5 border border-white/5'}`}
+              className={`px-32 py-16 rounded-[20px] text-small font-bold shrink-0 transition-all ${selectedCategory === 'All' ? 'bg-primary text-white border border-primary' : 'bg-hover text-text-secondary hover:bg-background hover:text-text-primary border border-border'}`}
             >
               All Programs
             </button>
@@ -148,7 +149,7 @@ export default function DiscoverUniversities() {
               <button 
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-8 py-4 rounded-[20px] text-[14px] font-medium shrink-0 transition-all ${selectedCategory === cat ? 'bg-[#6D5DF6] text-white' : 'bg-[#151519] text-gray-400 hover:bg-white/5 border border-white/5'}`}
+                className={`px-32 py-16 rounded-[20px] text-small font-bold shrink-0 transition-all ${selectedCategory === cat ? 'bg-primary text-white border border-primary' : 'bg-hover text-text-secondary hover:bg-background hover:text-text-primary border border-border'}`}
               >
                 {cat}
               </button>
@@ -157,40 +158,40 @@ export default function DiscoverUniversities() {
         </section>
 
         {/* MAIN GRID & FILTERS */}
-        <section className="max-w-[1600px] mx-auto px-8 flex flex-col lg:flex-row gap-12 relative">
+        <section className="max-w-[1600px] mx-auto px-32 flex flex-col lg:flex-row gap-48 relative">
           
           {/* Smart Filters */}
-          <aside className="hidden lg:block w-72 shrink-0">
-            <div className="sticky top-8 flex flex-col gap-6">
-              <div className="bg-[#111113] border border-white/5 rounded-[24px] p-8 flex flex-col gap-8">
+          <aside className="hidden lg:block w-[280px] shrink-0">
+            <div className="sticky top-32 flex flex-col gap-24">
+              <Card className="!p-32 flex flex-col gap-32 shadow-sm">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-[20px] font-medium text-white flex items-center gap-2">
-                    <SlidersHorizontal size={20} /> Filters
-                  </h3>
-                  <button className="text-[14px] text-gray-500 hover:text-white transition-colors">Reset</button>
+                  <H3 className="flex items-center gap-8">
+                    <SlidersHorizontal size={20} strokeWidth={1.8} /> Filters
+                  </H3>
+                  <button className="text-small text-text-secondary hover:text-text-primary transition-colors">Reset</button>
                 </div>
                 
                 <FilterGroup title="Location" options={['Delhi', 'Bangalore', 'Mumbai', 'Chennai', 'Pune']} />
                 <FilterGroup title="Fees (Per Year)" options={['Under ₹5L', '₹5L - ₹10L', 'Above ₹10L']} />
                 <FilterGroup title="AI Match %" options={['90% +', '80% +', '70% +']} />
                 <FilterGroup title="Campus Facilities" options={['Hostel', 'Placement Cell', 'Sports Complex']} />
-              </div>
+              </Card>
             </div>
           </aside>
 
           {/* Grid */}
           <div className="flex-1">
             {filteredUnis.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-32 bg-[#111113] border border-white/5 rounded-[32px]">
-                 <Search size={48} className="text-gray-600 mb-6" />
-                 <h3 className="text-[28px] font-medium text-white mb-4">No results found</h3>
-                 <p className="text-[16px] text-gray-400 mb-8">Try adjusting your filters or changing your search criteria.</p>
-                 <button onClick={() => {setSearchQuery(''); setSelectedCategory('All');}} className="px-8 py-4 bg-[#6D5DF6] hover:bg-[#6D5DF6]/90 rounded-full text-[14px] font-medium transition-colors">
+              <Card className="flex flex-col items-center justify-center py-64 !p-64">
+                 <Search size={48} strokeWidth={1.8} className="text-text-secondary mb-24" />
+                 <H3 className="mb-16">No results found</H3>
+                 <Body className="text-text-secondary mb-32">Try adjusting your filters or changing your search criteria.</Body>
+                 <Button onClick={() => {setSearchQuery(''); setSelectedCategory('All');}} variant="primary">
                    Reset Filters
-                 </button>
-              </div>
+                 </Button>
+              </Card>
             ) : (
-              <div className="columns-1 md:columns-2 xl:columns-3 gap-8 space-y-8">
+              <div className="columns-1 md:columns-2 xl:columns-3 gap-32 space-y-32">
                 {filteredUnis.map((uni: any) => {
                   const recData = recMap.get(uni.id)
                   const matchScore = recData ? recData.score : Math.floor(Math.random() * 40 + 50)
@@ -200,83 +201,85 @@ export default function DiscoverUniversities() {
                   return (
                     <div 
                       key={uni.id} 
-                      className="break-inside-avoid bg-[#151519] border border-white/5 rounded-[32px] overflow-hidden flex flex-col group transition-all duration-300 hover:shadow-2xl hover:border-white/10 hover:-translate-y-1 relative"
+                      className="break-inside-avoid bg-background border border-border rounded-card overflow-hidden flex flex-col group transition-all duration-300 hover:shadow-sm hover:border-primary/50 relative"
                       onMouseEnter={() => setHoveredUni(uni.id)}
                       onMouseLeave={() => setHoveredUni(null)}
                     >
                       {/* Image */}
-                      <div className="relative h-64 w-full bg-[#111113] overflow-hidden">
+                      <div className="relative h-[256px] w-full bg-hover overflow-hidden">
                         <Image 
                           src={uni.imageUrl || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=2070&auto=format&fit=crop'}
                           alt={uni.name}
                           fill
                           className="object-cover transition-transform duration-700 group-hover:scale-105"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#151519] via-transparent to-transparent" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#141414] via-transparent to-transparent" />
                         
-                        <div className="absolute top-4 left-4 flex gap-2">
-                          <div className={`px-4 py-2 rounded-full border ${badge.color} text-[12px] font-medium backdrop-blur-md`}>
+                        <div className="absolute top-16 left-16 flex gap-8">
+                          <Badge variant={badge.variant}>
                             {badge.label} {matchScore}%
-                          </div>
+                          </Badge>
                         </div>
                         
-                        <div className="absolute top-4 right-4">
+                        <div className="absolute top-16 right-16">
                           <button 
                             onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                            className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-gray-300 hover:text-white hover:bg-black/60 transition-colors"
+                            className="w-[40px] h-[40px] rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white/70 hover:text-white hover:bg-black/60 transition-colors"
                           >
-                            <Bookmark size={16} />
+                            <Bookmark size={16} strokeWidth={1.8} />
                           </button>
                         </div>
                       </div>
 
                       {/* Content */}
-                      <div className="p-8 flex flex-col flex-1 relative bg-[#151519]">
-                        <h3 className="text-[24px] font-medium text-white mb-2 leading-tight">{uni.name}</h3>
-                        <div className="flex items-center gap-2 text-[14px] text-gray-400 mb-6">
-                          <MapPin size={14} /> {uni.location}
-                        </div>
+                      <div className="p-32 flex flex-col flex-1 relative bg-background">
+                        <H3 className="mb-8 leading-tight group-hover:text-primary transition-colors">{uni.name}</H3>
+                        <Small className="flex items-center gap-8 text-text-secondary mb-24">
+                          <MapPin size={14} strokeWidth={1.8} className="text-primary" /> {uni.location}
+                        </Small>
 
-                        <div className="grid grid-cols-2 gap-4 mb-8">
-                          <div className="flex flex-col gap-1">
-                            <span className="text-[12px] text-gray-500">Starting Fees</span>
-                            <span className="text-[16px] text-white font-medium flex items-center gap-2"><Banknote size={16} className="text-[#6D5DF6]"/> ₹{uni.startingFees || '4.5L'}</span>
+                        <div className="grid grid-cols-2 gap-16 mb-32">
+                          <div className="flex flex-col gap-4">
+                            <Caption className="text-text-secondary uppercase tracking-widest font-bold">Starting Fees</Caption>
+                            <Body className="font-bold flex items-center gap-8"><Banknote size={16} strokeWidth={1.8} className="text-primary"/> ₹{uni.startingFees || '4.5L'}</Body>
                           </div>
-                          <div className="flex flex-col gap-1">
-                            <span className="text-[12px] text-gray-500">Admission Prob.</span>
-                            <span className="text-[16px] text-white font-medium flex items-center gap-2"><ShieldCheck size={16} className="text-emerald-400"/> {Math.floor(Math.random() * 30 + 60)}%</span>
+                          <div className="flex flex-col gap-4">
+                            <Caption className="text-text-secondary uppercase tracking-widest font-bold">Admission Prob.</Caption>
+                            <Body className="font-bold flex items-center gap-8"><ShieldCheck size={16} strokeWidth={1.8} className="text-success"/> {Math.floor(Math.random() * 30 + 60)}%</Body>
                           </div>
                         </div>
 
                         {/* AI Explanation Area */}
-                        <div className="mb-8 p-4 bg-[#111113] border border-white/5 rounded-[16px]">
-                          <div className="text-[12px] font-medium text-[#6D5DF6] mb-3 flex items-center gap-2">
-                            <Sparkles size={14} /> Why it&apos;s recommended
-                          </div>
-                          <div className="flex flex-col gap-2">
+                        <div className="mb-32 p-16 bg-hover border border-border rounded-[16px]">
+                          <Small className="font-bold text-primary mb-12 flex items-center gap-8">
+                            <Sparkles size={14} strokeWidth={1.8} /> Why it&apos;s recommended
+                          </Small>
+                          <div className="flex flex-col gap-8">
                             {(recData?.matchReasons || ['Matches your preferred course', 'Fits your academic score']).slice(0, 2).map((reason: string, i: number) => (
-                              <div key={i} className="flex items-start gap-2 text-[14px] text-gray-400">
-                                <CheckCircle2 size={16} className="text-emerald-400 shrink-0 mt-0.5" />
+                              <Small key={i} className="flex items-start gap-8 text-text-secondary">
+                                <CheckCircle2 size={16} strokeWidth={1.8} className="text-success shrink-0 mt-[2px]" />
                                 <span className="leading-tight">{reason}</span>
-                              </div>
+                              </Small>
                             ))}
                           </div>
                         </div>
 
                         {/* Actions */}
-                        <div className="flex items-center gap-4 mt-auto">
-                          <button 
+                        <div className="flex items-center gap-16 mt-auto">
+                          <Button 
                             onClick={() => router.push(`/student/universities/${uni.id}`)}
-                            className="flex-1 bg-white text-black py-4 rounded-[20px] text-[14px] font-medium hover:bg-gray-200 transition-colors"
+                            variant="secondary"
+                            className="flex-1"
                           >
                             View Details
-                          </button>
-                          <button 
+                          </Button>
+                          <Button 
                             onClick={() => toggleCompare(uni)}
-                            className={`px-6 py-4 rounded-[20px] text-[14px] font-medium border transition-colors ${compareList.find(u => u.id === uni.id) ? 'bg-[#6D5DF6] border-[#6D5DF6] text-white' : 'bg-transparent border-white/10 text-gray-300 hover:bg-white/5'}`}
+                            variant={compareList.find(u => u.id === uni.id) ? "primary" : "ghost"}
+                            className={compareList.find(u => u.id === uni.id) ? "" : "border border-border"}
                           >
                             {compareList.find(u => u.id === uni.id) ? 'Added' : 'Compare'}
-                          </button>
+                          </Button>
                         </div>
                         
                         {/* Hover Preview Overlay */}
@@ -286,33 +289,34 @@ export default function DiscoverUniversities() {
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
                               exit={{ opacity: 0 }}
-                              className="absolute inset-0 bg-[#151519]/95 backdrop-blur-xl z-20 p-8 flex flex-col border border-[#6D5DF6]/20 rounded-[32px] shadow-2xl"
+                              className="absolute inset-0 bg-background/95 backdrop-blur-xl z-20 p-32 flex flex-col border border-primary/20 rounded-card shadow-2xl"
                             >
-                              <div className="flex justify-between items-start mb-6">
-                                <h3 className="text-[20px] font-medium text-white leading-tight">{uni.name}</h3>
-                                <div className="text-[14px] text-[#6D5DF6] font-medium">Preview</div>
+                              <div className="flex justify-between items-start mb-24">
+                                <H3 className="leading-tight">{uni.name}</H3>
+                                <Caption className="text-primary font-bold">Preview</Caption>
                               </div>
-                              <p className="text-[14px] text-gray-400 leading-relaxed mb-6 line-clamp-3">
+                              <Small className="text-text-secondary leading-relaxed mb-24 line-clamp-3">
                                 {uni.description || `${uni.name} is a premier institution offering state-of-the-art facilities and exceptional placement records in ${uni.location}.`}
-                              </p>
+                              </Small>
                               
-                              <div className="flex flex-col gap-4 mb-6">
-                                <h4 className="text-[14px] font-medium text-white">Top Courses</h4>
-                                <div className="flex flex-wrap gap-2">
+                              <div className="flex flex-col gap-16 mb-24">
+                                <Small className="font-bold">Top Courses</Small>
+                                <div className="flex flex-wrap gap-8">
                                   {uni.programs?.slice(0, 3).map((p: any, idx: number) => (
-                                    <span key={idx} className="px-3 py-1.5 bg-white/5 border border-white/5 rounded-full text-[12px] text-gray-300 truncate max-w-[150px]">
+                                    <span key={idx} className="px-12 py-[6px] bg-hover border border-border rounded-full text-[12px] text-text-secondary truncate max-w-[150px]">
                                       {p.name}
                                     </span>
                                   ))}
                                 </div>
                               </div>
 
-                              <button 
+                              <Button 
                                 onClick={() => router.push(`/student/universities/${uni.id}`)}
-                                className="mt-auto w-full py-4 bg-[#6D5DF6] hover:bg-[#6D5DF6]/90 rounded-[20px] text-[14px] font-medium text-white transition-colors flex items-center justify-center gap-2"
+                                variant="primary"
+                                className="mt-auto w-full flex items-center justify-center gap-8"
                               >
-                                Full Overview <ChevronRight size={16} />
-                              </button>
+                                Full Overview <ChevronRight size={16} strokeWidth={1.8} />
+                              </Button>
                             </motion.div>
                           )}
                         </AnimatePresence>
@@ -332,26 +336,26 @@ export default function DiscoverUniversities() {
               initial={{ y: 100, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 100, opacity: 0 }}
-              className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-[#111113]/90 backdrop-blur-2xl border border-white/10 rounded-full px-8 py-4 flex items-center gap-8 shadow-2xl z-50"
+              className="fixed bottom-32 left-1/2 -translate-x-1/2 bg-background/90 backdrop-blur-2xl border border-border rounded-full px-32 py-16 flex items-center gap-32 shadow-2xl z-50"
             >
-              <div className="flex items-center gap-4">
-                <div className="text-[14px] font-medium text-white">
+              <div className="flex items-center gap-16">
+                <Small className="font-bold">
                   {compareList.length} Selected for Compare
-                </div>
-                <div className="flex -space-x-4">
+                </Small>
+                <div className="flex -space-x-8">
                   {compareList.map((u, i) => (
-                    <div key={i} className="w-10 h-10 rounded-full border-2 border-[#111113] bg-[#151519] overflow-hidden relative">
+                    <div key={i} className="w-[40px] h-[40px] rounded-full border-2 border-background bg-hover overflow-hidden relative">
                       <Image src={u.imageUrl || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=2070&auto=format&fit=crop'} alt="uni" fill className="object-cover" />
                     </div>
                   ))}
                 </div>
               </div>
-              <div className="h-8 w-px bg-white/10" />
-              <div className="flex items-center gap-4">
-                <button onClick={() => setCompareList([])} className="text-[14px] text-gray-500 hover:text-white transition-colors">Clear</button>
-                <button className="px-6 py-3 bg-[#6D5DF6] hover:bg-[#6D5DF6]/90 rounded-full text-[14px] font-medium text-white transition-colors">
+              <div className="h-32 w-px bg-border" />
+              <div className="flex items-center gap-16">
+                <button onClick={() => setCompareList([])} className="text-small text-text-secondary hover:text-text-primary transition-colors">Clear</button>
+                <Button variant="primary">
                   Compare Now
-                </button>
+                </Button>
               </div>
             </motion.div>
           )}
@@ -364,15 +368,15 @@ export default function DiscoverUniversities() {
 
 function FilterGroup({ title, options }: { title: string, options: string[] }) {
   return (
-    <div className="flex flex-col gap-4">
-      <h4 className="text-[14px] font-medium text-white">{title}</h4>
-      <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-16">
+      <Small className="font-bold">{title}</Small>
+      <div className="flex flex-col gap-12">
         {options.map(opt => (
-          <label key={opt} className="flex items-center gap-3 cursor-pointer group">
-            <div className="w-5 h-5 rounded-[6px] border border-white/10 bg-[#151519] group-hover:border-[#6D5DF6]/50 flex items-center justify-center transition-colors">
-              <CheckCircle2 size={12} className="text-[#6D5DF6] opacity-0" />
+          <label key={opt} className="flex items-center gap-12 cursor-pointer group">
+            <div className="w-[20px] h-[20px] rounded-[6px] border border-border bg-hover group-hover:border-primary flex items-center justify-center transition-colors">
+              <CheckCircle2 size={12} strokeWidth={2} className="text-primary opacity-0 group-hover:opacity-100" />
             </div>
-            <span className="text-[14px] text-gray-400 group-hover:text-white transition-colors">{opt}</span>
+            <Small className="text-text-secondary group-hover:text-text-primary transition-colors">{opt}</Small>
           </label>
         ))}
       </div>
