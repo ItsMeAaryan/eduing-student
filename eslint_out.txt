@@ -1,0 +1,14 @@
+
+/home/prince-mittal/eduing-student/app/student/applications/page.tsx
+  152:21  error  Visible, non-interactive elements with click handlers must have at least one keyboard listener                                                                                                     jsx-a11y/click-events-have-key-events
+  152:21  error  Avoid non-native interactive elements. If using native HTML is not possible, add an appropriate role and support for tabbing, mouse, keyboard, and touch inputs to an interactive content element  jsx-a11y/no-static-element-interactions
+
+/home/prince-mittal/eduing-student/app/student/documents/page.tsx
+  334:23  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  340:22  error    'H4' is not defined                                                                                                                                                                                                                                             react/jsx-no-undef
+
+/home/prince-mittal/eduing-student/app/student/profile/page.tsx
+  61:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+✖ 5 problems (3 errors, 2 warnings)
+
