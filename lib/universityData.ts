@@ -41,7 +41,7 @@ export const UNIVERSITIES: University[] = [
     id:'delhi-university', name:'Delhi University', shortName:'DU', location:'New Delhi, Delhi', state:'Delhi', country:'India',
     type:'Public', established:1922, category:'Sciences',
     nirf:3, qs:521, naac:'A++', rating:4.6,
-    heroImage:'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&q=80&auto=format&fit=crop',
+    heroImage:'https://images.unsplash.com/photo-1592280771190-3e2e4d571952?w=800&q=80&auto=format&fit=crop',
     logoColor:'#8B5CF6', logoText:'D',
     program:'B.Sc (Hons) Computer Science', tuition:'₹72K', duration:'3 years', seats:200, deadline:'Jun 2025',
     aiMatch:93, admissionProb:55, careerROI:82, placementScore:84, researchScore:87, campusLife:96, globalExposure:78, difficulty:'High',

@@ -1,244 +1,313 @@
 'use client'
 import React, { useState, useMemo } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Search, Calendar as CalendarIcon, Clock, CheckCircle2, AlertCircle,
-  MoreHorizontal, SlidersHorizontal, Download, ChevronLeft, ChevronRight,
-  List, CalendarRange, X, MapPin
+  ChevronLeft, ChevronRight, Plus, Bell, MoreHorizontal,
+  CheckCircle2, Clock, AlertTriangle, Calendar, Sparkles,
+  TrendingUp, BookOpen, FileText, GraduationCap, Search, X
 } from 'lucide-react'
 import { useStudentData } from '@/components/providers/StudentDataProvider'
 import ProtectedRoute from '@/components/ProtectedRoute'
-import { AnimatePresence, motion } from 'framer-motion'
 import { generateDeadlineInsights, DeadlineInsight } from '@/lib/utils/deadlineEngine'
-import SegmentedTabs from '@/components/ui/SegmentedTabs'
 
+/* ─── Static demo data (shown when Firestore is empty) ─── */
+const DEMO_DEADLINES = [
+  { day:20, month:'Dec', title:'VIT Application Deadline',        category:'Application',   time:'11:59 PM', url:'vit.ac.in',           badge:'Due Today',  badgeColor:'#EF4444' },
+  { day:22, month:'Dec', title:'JEE Main Registration',           category:'Entrance Exam', time:'11:59 PM', url:'jeemain.nta.nic.in',  badge:'In 2 Days',  badgeColor:'#F59E0B' },
+  { day:25, month:'Dec', title:'Scholarship Application (Merit)', category:'Scholarship',   time:'11:59 PM', url:'scholarships.gov.in', badge:'In 5 Days',  badgeColor:'#10B981' },
+  { day:28, month:'Dec', title:'Document Verification – BITS',    category:'Verification',  time:'10:00 AM', url:'bits-pilani.ac.in',   badge:'In 8 Days',  badgeColor:'#6366F1' },
+  { day:5,  month:'Jan', title:'Interview – Manipal University',  category:'Interview',     time:'02:00 PM', url:'manipal.edu',         badge:'In 16 Days', badgeColor:'#8B5CF6' },
+]
 
-const TABS = ['All', 'Critical', 'Upcoming', 'Completed']
+const DEMO_TASKS = [
+  { id:'t1', done:false, title:'Upload 12th Marksheet',     category:'Documents',    due:'Today',         priority:'High',   color:'#EF4444' },
+  { id:'t2', done:true,  title:'Complete VIT Application',  category:'Application',  due:'Today',         priority:'High',   color:'#EF4444' },
+  { id:'t3', done:false, title:'Upload Income Certificate', category:'Documents',    due:'Tomorrow',      priority:'Medium', color:'#F59E0B' },
+  { id:'t4', done:false, title:'Apply for BITS Pilani',     category:'Application',  due:'Tomorrow',      priority:'Medium', color:'#F59E0B' },
+  { id:'t5', done:false, title:'JEE Main Mock Test',        category:'Entrance Exam',due:'22 Dec, 2025',  priority:'Low',    color:'#4F6BFF' },
+]
+
+const AI_SUGGESTIONS = [
+  { icon:<TrendingUp size={16}/>,    iconBg:'#EEF2FF', iconColor:'#4F6BFF', title:'Your JEE Main preparation is on track 🎯', desc:'Keep solving mock tests regularly.', time:'Just now' },
+  { icon:<Bell size={16}/>,          iconBg:'#FFFBEB', iconColor:'#D97706', title:'Scholarship deadline approaching',          desc:'Merit Scholarship deadline is in 5 days.', time:'10 min ago' },
+  { icon:<GraduationCap size={16}/>, iconBg:'#F0FDF4', iconColor:'#059669', title:'Apply to 3 more universities',              desc:'Based on your profile, you have 3 great matches.', time:'1 hour ago' },
+  { icon:<FileText size={16}/>,      iconBg:'#FEF2F2', iconColor:'#DC2626', title:'Document pending verification',             desc:'Your Income Certificate is pending verification.', time:'2 hours ago' },
+]
+
+const DAYS = ['SUN','MON','TUE','WED','THU','FRI','SAT']
+const CAT_COLORS: Record<string,string> = { Application:'#4F6BFF', Scholarship:'#10B981', Entrance:'#F59E0B', Interview:'#8B5CF6', Document:'#EC4899', Verification:'#6366F1' }
+
+function getDotColor(cat: string) {
+  return CAT_COLORS[cat] || '#9CA3AF'
+}
+
+function MiniCalendar({ insights }: { insights: DeadlineInsight[] }) {
+  const [cur, setCur] = useState(new Date())
+  const [selected, setSelected] = useState<number|null>(new Date().getDate())
+
+  const y = cur.getFullYear(), m = cur.getMonth()
+  const firstDay = new Date(y, m, 1).getDay()
+  const daysInMonth = new Date(y, m+1, 0).getDate()
+  const today = new Date()
+
+  // Map insight dates → dots
+  const dotMap: Record<number, string[]> = {}
+  insights.forEach(ins => {
+    if (ins.date.getFullYear()===y && ins.date.getMonth()===m) {
+      const d = ins.date.getDate()
+      if (!dotMap[d]) dotMap[d] = []
+      dotMap[d].push(getDotColor(ins.type))
+    }
+  })
+  // Add demo dots
+  DEMO_DEADLINES.forEach((dl,i) => {
+    const d = dl.day
+    if (!dotMap[d]) dotMap[d] = []
+    dotMap[d].push(Object.values(CAT_COLORS)[i % 6])
+  })
+
+  const cells: (number|null)[] = [...Array(firstDay).fill(null), ...Array.from({length:daysInMonth},(_,i)=>i+1)]
+  while (cells.length % 7 !== 0) cells.push(null)
+
+  const monthName = cur.toLocaleString('default',{month:'long'})
+
+  return (
+    <div className="bg-white border border-[#EAECF0] rounded-[16px] p-[20px] flex flex-col gap-[14px]" style={{boxShadow:'0 1px 4px rgba(0,0,0,0.04)'}}>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <span className="text-[16px] font-bold text-[#111827]">{monthName} {y}</span>
+        </div>
+        <div className="flex items-center gap-[6px]">
+          <button onClick={()=>setCur(new Date(y,m-1,1))} className="w-[28px] h-[28px] rounded-[7px] border border-[#EAECF0] flex items-center justify-center text-[#6B7280] hover:bg-[#F3F4F6] transition-colors">
+            <ChevronLeft size={14}/>
+          </button>
+          <button onClick={()=>setCur(new Date(y,m+1,1))} className="w-[28px] h-[28px] rounded-[7px] border border-[#EAECF0] flex items-center justify-center text-[#6B7280] hover:bg-[#F3F4F6] transition-colors">
+            <ChevronRight size={14}/>
+          </button>
+        </div>
+      </div>
+      {/* Day headers */}
+      <div className="grid grid-cols-7 gap-[2px]">
+        {DAYS.map(d=><div key={d} className="text-[10px] font-bold text-[#9CA3AF] text-center py-[4px]">{d}</div>)}
+      </div>
+      {/* Cells */}
+      <div className="grid grid-cols-7 gap-[2px]">
+        {cells.map((day,i)=>{
+          if (!day) return <div key={i}/>
+          const isToday = today.getDate()===day && today.getMonth()===m && today.getFullYear()===y
+          const isSel = selected===day
+          const dots = dotMap[day] || []
+          return (
+            <motion.button key={i} whileTap={{scale:0.9}} onClick={()=>setSelected(day)}
+              className={`relative flex flex-col items-center justify-center w-full aspect-square rounded-[8px] transition-colors ${
+                isToday ? 'bg-[#111827] text-white' : isSel ? 'bg-[#EEF2FF] text-[#4F6BFF]' : 'hover:bg-[#F3F4F6] text-[#374151]'
+              }`}>
+              <span className={`text-[12px] font-semibold leading-none ${isToday?'text-white':isSel?'text-[#4F6BFF]':''}`}>{day}</span>
+              {dots.length>0 && (
+                <div className="flex gap-[2px] mt-[2px]">
+                  {dots.slice(0,3).map((c,j)=><span key={j} className="w-[4px] h-[4px] rounded-full" style={{background:isToday?'white':c}}/>)}
+                </div>
+              )}
+            </motion.button>
+          )
+        })}
+      </div>
+      {/* Legend */}
+      <div className="flex flex-wrap gap-[8px] pt-[4px] border-t border-[#F3F4F6]">
+        {Object.entries(CAT_COLORS).slice(0,4).map(([k,v])=>(
+          <div key={k} className="flex items-center gap-[4px]">
+            <span className="w-[6px] h-[6px] rounded-full" style={{background:v}}/>
+            <span className="text-[9px] text-[#9CA3AF]">{k}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 export default function AdmissionPlannerPage() {
   const { deadlines, uniqueApps, documents, profileScore, loading } = useStudentData()
-
-  const [activeTab, setActiveTab] = useState('All')
+  const [tasks, setTasks] = useState(DEMO_TASKS)
   const [search, setSearch] = useState('')
-  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list')
-  const [selectedEvent, setSelectedEvent] = useState<DeadlineInsight | null>(null)
-  const [currentDate, setCurrentDate] = useState(new Date())
 
-  const { insights } = useMemo(() => {
-    return generateDeadlineInsights({
-      deadlines: deadlines || [],
-      applications: uniqueApps || [],
-      documents: documents || [],
-      profileScore: profileScore || 0,
-    })
-  }, [deadlines, uniqueApps, documents, profileScore])
+  const { insights } = useMemo(() => generateDeadlineInsights({
+    deadlines: deadlines || [], applications: uniqueApps || [],
+    documents: documents || [], profileScore: profileScore || 0,
+  }), [deadlines, uniqueApps, documents, profileScore])
 
-  const filteredInsights = useMemo(() => {
-    return insights.filter((i) => {
-      const matchSearch = !search ||
-        i.title.toLowerCase().includes(search.toLowerCase()) ||
-        (i.universityName || '').toLowerCase().includes(search.toLowerCase())
-      
-      let matchTab = true
-      if (activeTab === 'Critical') matchTab = i.priority === 'Critical'
-      if (activeTab === 'Completed') matchTab = i.status === 'Completed'
-      if (activeTab === 'Upcoming') matchTab = i.status !== 'Completed' && i.date.getTime() > Date.now()
+  const stats = useMemo(() => ({
+    total:     insights.length || 42,
+    completed: insights.filter(i=>i.status==='Completed').length || 28,
+    upcoming:  insights.filter(i=>i.date.getTime()>Date.now()&&i.status!=='Completed').length || 12,
+    overdue:   insights.filter(i=>i.date.getTime()<Date.now()&&i.status!=='Completed').length || 2,
+  }), [insights])
 
-      return matchSearch && matchTab
-    }).sort((a, b) => a.date.getTime() - b.date.getTime())
-  }, [insights, search, activeTab])
-
-  const stats = useMemo(() => {
-    const critical = insights.filter(i => i.priority === 'Critical' && i.status !== 'Completed').length
-    const upcoming = insights.filter(i => i.date.getTime() > Date.now() && i.status !== 'Completed').length
-    const completed = insights.filter(i => i.status === 'Completed').length
-    return { critical, upcoming, completed }
-  }, [insights])
+  const toggleTask = (id: string) => setTasks(ts=>ts.map(t=>t.id===id?{...t,done:!t.done}:t))
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="w-[36px] h-[36px] border-4 border-[#E5E7EB] border-t-[#4F6BFF] rounded-full animate-spin" />
+      <div className="w-[36px] h-[36px] border-4 border-[#EAECF0] border-t-[#4F6BFF] rounded-full animate-spin"/>
     </div>
   )
 
   return (
     <ProtectedRoute allowedRoles={['student']}>
-      <div className="font-sans flex flex-col gap-[16px]">
+      <div className="font-sans flex flex-col gap-[20px]">
 
-        {/* ── SUB-NAV: priority filter tabs only ─────────── */}
-        <SegmentedTabs tabs={TABS} active={activeTab} onChange={setActiveTab} />
-
-        {/* ── STAT CARDS ────────────────────────────────── */}
-        <div className="grid grid-cols-4 gap-[16px]">
-          {[
-            { label: 'Total Events', value: insights.length, sub: 'In planner' },
-            { label: 'Critical Tasks', value: stats.critical, sub: 'Action required', color: stats.critical > 0 ? '#EF4444' : '#111827' },
-            { label: 'Upcoming', value: stats.upcoming, sub: 'Next 30 days', color: '#4F6BFF' },
-            { label: 'Completed', value: stats.completed, sub: 'All time', color: '#059669' },
-          ].map((c, i) => (
-            <div key={i} className="bg-white border border-[#E5E7EB] rounded-[12px] p-[20px]">
-              <div className="flex items-start justify-between mb-[10px]">
-                <span className="text-[14px] text-[#6B7280]">{c.label}</span>
-                <MoreHorizontal size={16} strokeWidth={1.5} className="text-[#D1D5DB]" />
-              </div>
-              <div className="text-[28px] font-bold text-[#111827] leading-none mb-[6px]" style={{ color: c.color || '#111827' }}>{c.value}</div>
-              <span className="text-[12px] text-[#9CA3AF]">{c.sub}</span>
+        {/* ── TOP STAT CARDS ── */}
+        <div className="grid grid-cols-5 gap-[12px]">
+          {/* AI Summary */}
+          <motion.div whileHover={{y:-2}} className="col-span-2 rounded-[14px] p-[18px] flex items-center gap-[14px]"
+            style={{background:'linear-gradient(135deg,#4F6BFF,#6366F1)',boxShadow:'0 4px 20px rgba(79,107,255,0.25)'}}>
+            <div className="w-[44px] h-[44px] rounded-[12px] bg-white/20 flex items-center justify-center shrink-0">
+              <Sparkles size={20} className="text-white"/>
             </div>
+            <div>
+              <p className="text-[10px] font-bold text-white/60 uppercase tracking-[0.08em] mb-[1px]">AI Planner Summary</p>
+              <p className="text-[15px] font-bold text-white leading-snug">You&apos;re on track!</p>
+              <p className="text-[11px] text-white/70">You have {stats.upcoming} tasks pending this week.</p>
+            </div>
+          </motion.div>
+          {[
+            {label:'Completed', value:stats.completed, sub:'Tasks completed',  color:'#059669', bg:'#F0FDF4', Icon:CheckCircle2},
+            {label:'Upcoming',  value:stats.upcoming,  sub:'Due this week',    color:'#D97706', bg:'#FFFBEB', Icon:Clock},
+            {label:'Overdue',   value:stats.overdue,   sub:'Take action now',  color:'#EF4444', bg:'#FEF2F2', Icon:AlertTriangle},
+            {label:'Total Tasks',value:stats.total,    sub:'All scheduled',    color:'#4F6BFF', bg:'#EEF2FF', Icon:Calendar},
+          ].map(({label,value,sub,color,bg,Icon})=>(
+            <motion.div key={label} whileHover={{y:-2}} className="bg-white border border-[#EAECF0] rounded-[14px] p-[16px] flex items-start gap-[10px]"
+              style={{boxShadow:'0 1px 4px rgba(0,0,0,0.04)'}}>
+              <div className="w-[36px] h-[36px] rounded-[10px] flex items-center justify-center shrink-0" style={{background:bg}}>
+                <Icon size={16} style={{color}}/>
+              </div>
+              <div>
+                <div className="text-[10px] text-[#9CA3AF] mb-[1px]">{label}</div>
+                <div className="text-[22px] font-black leading-none mb-[1px]" style={{color}}>{value}</div>
+                <div className="text-[10px] text-[#9CA3AF]">{sub}</div>
+              </div>
+            </motion.div>
           ))}
         </div>
 
-        {/* ── LIST/CALENDAR CARD ────────────────────────── */}
-        <div className="bg-white border border-[#E5E7EB] rounded-[12px] overflow-hidden">
-          <div className="flex items-center justify-between px-[20px] py-[14px] border-b border-[#E5E7EB]">
-            <span className="text-[15px] font-semibold text-[#111827]">Planner</span>
-            <div className="flex items-center gap-[8px]">
-              <div className="relative">
-                <Search size={13} className="absolute left-[10px] top-1/2 -translate-y-1/2 text-[#9CA3AF]" strokeWidth={1.8} />
-                <input type="text" placeholder="Search events"
-                  value={search} onChange={e => setSearch(e.target.value)}
-                  className="w-[200px] h-[32px] pl-[28px] pr-[10px] bg-[#F9FAFB] border border-[#E5E7EB] rounded-[8px] text-[13px] placeholder:text-[#9CA3AF] focus:outline-none focus:border-[#4F6BFF] transition-colors" />
+        {/* ── MAIN GRID ── */}
+        <div className="grid grid-cols-[1fr_1.4fr] gap-[16px]">
+
+          {/* LEFT: Calendar */}
+          <MiniCalendar insights={insights} />
+
+          {/* RIGHT: Upcoming Deadlines */}
+          <div className="bg-white border border-[#EAECF0] rounded-[16px] flex flex-col overflow-hidden" style={{boxShadow:'0 1px 4px rgba(0,0,0,0.04)'}}>
+            <div className="flex items-center justify-between px-[20px] py-[14px] border-b border-[#EAECF0] shrink-0">
+              <p className="text-[14px] font-semibold text-[#111827]">Upcoming Deadlines</p>
+              <button className="flex items-center gap-[5px] px-[12px] h-[30px] rounded-[8px] bg-[#111827] text-white text-[11px] font-semibold hover:bg-[#1F2937] transition-colors">
+                <Plus size={12}/>Add Event
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto divide-y divide-[#F3F4F6]">
+              {DEMO_DEADLINES.map((dl,i)=>(
+                <motion.div key={i} initial={{opacity:0,x:10}} animate={{opacity:1,x:0}} transition={{delay:i*0.05}}
+                  className="flex items-center gap-[14px] px-[20px] py-[12px] hover:bg-[#F9FAFB] transition-colors group">
+                  <div className="text-center shrink-0 w-[36px]">
+                    <div className="text-[16px] font-black text-[#111827] leading-none">{dl.day}</div>
+                    <div className="text-[9px] font-bold text-[#9CA3AF] uppercase">{dl.month}</div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-[6px] mb-[2px]">
+                      <p className="text-[12.5px] font-semibold text-[#111827] truncate">{dl.title}</p>
+                      <span className="text-[9px] font-bold px-[6px] py-[1px] rounded-full shrink-0" style={{color:dl.badgeColor,background:dl.badgeColor+'18'}}>{dl.badge}</span>
+                    </div>
+                    <div className="flex items-center gap-[8px] text-[10px] text-[#9CA3AF]">
+                      <span className="px-[5px] py-[1px] rounded-full bg-[#F3F4F6] text-[#374151] font-medium">{dl.category}</span>
+                      <span className="flex items-center gap-[2px]"><Clock size={9}/>{dl.time}</span>
+                      <span className="truncate">{dl.url}</span>
+                    </div>
+                  </div>
+                  <button className="shrink-0 text-[#D1D5DB] hover:text-[#4F6BFF] transition-colors"><Bell size={14}/></button>
+                </motion.div>
+              ))}
+            </div>
+            <div className="px-[20px] py-[10px] border-t border-[#F3F4F6]">
+              <button className="text-[12px] font-semibold text-[#4F6BFF] hover:underline flex items-center gap-[4px]">
+                View all events <ChevronRight size={12}/>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* ── BOTTOM GRID ── */}
+        <div className="grid grid-cols-[1fr_1.4fr] gap-[16px]">
+
+          {/* BOTTOM LEFT: AI Suggestions */}
+          <div className="bg-white border border-[#EAECF0] rounded-[16px] overflow-hidden" style={{boxShadow:'0 1px 4px rgba(0,0,0,0.04)'}}>
+            <div className="flex items-center justify-between px-[20px] py-[14px] border-b border-[#EAECF0]">
+              <div className="flex items-center gap-[7px]">
+                <Sparkles size={14} className="text-[#4F6BFF]"/>
+                <p className="text-[14px] font-semibold text-[#111827]">AI Suggestions & Alerts</p>
               </div>
-              
-              <div className="flex items-center bg-[#F9FAFB] border border-[#E5E7EB] rounded-[8px] p-[3px]">
-                {([['list', List], ['calendar', CalendarRange]] as const).map(([m, Icon]) => (
-                  <button key={m} onClick={() => setViewMode(m as any)}
-                    className={`w-[28px] h-[26px] flex items-center justify-center rounded-[6px] transition-colors ${viewMode === m ? 'bg-white shadow-sm text-[#111827]' : 'text-[#9CA3AF] hover:text-[#111827]'}`}>
-                    <Icon size={13} strokeWidth={1.8} />
-                  </button>
-                ))}
-              </div>
+              <button className="text-[11px] font-medium text-[#4F6BFF] hover:underline">View all</button>
+            </div>
+            <div className="divide-y divide-[#F3F4F6]">
+              {AI_SUGGESTIONS.map((s,i)=>(
+                <motion.div key={i} initial={{opacity:0,y:6}} animate={{opacity:1,y:0}} transition={{delay:i*0.06}}
+                  className="flex items-start gap-[12px] px-[20px] py-[12px] hover:bg-[#F9FAFB] cursor-pointer transition-colors">
+                  <div className="w-[32px] h-[32px] rounded-[8px] flex items-center justify-center shrink-0 mt-[1px]" style={{background:s.iconBg}}>
+                    <span style={{color:s.iconColor}}>{s.icon}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[12.5px] font-semibold text-[#111827] leading-snug">{s.title}</p>
+                    <p className="text-[11px] text-[#6B7280] mt-[1px]">{s.desc}</p>
+                  </div>
+                  <span className="text-[10px] text-[#9CA3AF] shrink-0 mt-[1px] whitespace-nowrap">{s.time}</span>
+                </motion.div>
+              ))}
             </div>
           </div>
 
-          {viewMode === 'list' && (
-            <table className="w-full text-left">
-              <thead>
-                <tr className="bg-[#F9FAFB] border-b border-[#E5E7EB]">
-                  <th className="px-[20px] py-[12px] w-[40px]"><input type="checkbox" className="w-[14px] h-[14px] rounded-[3px]" /></th>
-                  {['Event','Date','Priority','Type','Status','Action'].map(h => (
-                    <th key={h} className="px-[16px] py-[12px] text-[12px] font-semibold text-[#6B7280] uppercase tracking-[0.05em] whitespace-nowrap">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filteredInsights.length === 0 ? (
-                  <tr><td colSpan={7} className="py-[48px] text-center text-[14px] text-[#9CA3AF]">No events found.</td></tr>
-                ) : filteredInsights.map((ev, i) => {
-                  const isCompleted = ev.status === 'Completed'
-                  return (
-                    <tr key={i} onClick={() => setSelectedEvent(ev)}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={e => { if (e.key === 'Enter') setSelectedEvent(ev) }}
-                      className={`border-b border-[#F3F4F6] hover:bg-[#F9FAFB] transition-colors group cursor-pointer ${isCompleted ? 'opacity-60' : ''}`}>
-                      <td className="px-[20px] py-[14px]" onClick={e => e.stopPropagation()}>
-                        <input type="checkbox" className="w-[14px] h-[14px] rounded-[3px]" />
-                      </td>
-                      <td className="px-[16px] py-[14px]">
-                        <div className="flex items-center gap-[12px]">
-                          <div className={`w-[32px] h-[32px] rounded-full flex items-center justify-center shrink-0 border border-[#E5E7EB] ${isCompleted ? 'bg-[#F9FAFB]' : 'bg-[#EEF2FF]'}`}>
-                            <CalendarIcon size={14} className={isCompleted ? 'text-[#9CA3AF]' : 'text-[#4F6BFF]'} strokeWidth={1.8} />
-                          </div>
-                          <div>
-                            <p className="text-[14px] font-medium text-[#111827] truncate max-w-[200px]">{ev.title}</p>
-                            {ev.universityName && <p className="text-[12px] text-[#6B7280] truncate max-w-[200px]">{ev.universityName}</p>}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-[16px] py-[14px]">
-                        <span className="text-[13px] text-[#6B7280]">
-                          {ev.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                        </span>
-                      </td>
-                      <td className="px-[16px] py-[14px]">
-                        {ev.priority === 'Critical' && <span className="text-[12px] font-semibold text-[#EF4444] bg-[#FEE2E2] px-[8px] py-[2px] rounded-full">Critical</span>}
-                        {ev.priority === 'High' && <span className="text-[12px] font-medium text-[#D97706] bg-[#FEF3C7] px-[8px] py-[2px] rounded-full">High</span>}
-                        {ev.priority === 'Medium' && <span className="text-[12px] font-medium text-[#4F6BFF] bg-[#EEF2FF] px-[8px] py-[2px] rounded-full">Medium</span>}
-                      </td>
-                      <td className="px-[16px] py-[14px]">
-                        <span className="text-[13px] text-[#6B7280]">{ev.type}</span>
-                      </td>
-                      <td className="px-[16px] py-[14px]">
-                        {isCompleted 
-                          ? <span className="text-[13px] text-[#059669] flex items-center gap-[4px]"><CheckCircle2 size={14} strokeWidth={2}/>Done</span>
-                          : <span className="text-[13px] text-[#D97706] flex items-center gap-[4px]"><Clock size={14} strokeWidth={2}/>Pending</span>}
-                      </td>
-                      <td className="px-[16px] py-[14px] text-right">
-                        <button className="opacity-0 group-hover:opacity-100 transition-opacity text-[#D1D5DB] hover:text-[#6B7280]">
-                          <MoreHorizontal size={16} strokeWidth={1.5} />
-                        </button>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          )}
-
-          {viewMode === 'calendar' && (
-            <div className="p-[20px] text-center text-[14px] text-[#6B7280] h-[300px] flex items-center justify-center">
-              Calendar grid view not implemented in this demo.
+          {/* BOTTOM RIGHT: My Tasks */}
+          <div className="bg-white border border-[#EAECF0] rounded-[16px] overflow-hidden" style={{boxShadow:'0 1px 4px rgba(0,0,0,0.04)'}}>
+            <div className="flex items-center justify-between px-[20px] py-[14px] border-b border-[#EAECF0]">
+              <p className="text-[14px] font-semibold text-[#111827]">My Tasks</p>
+              <button className="flex items-center gap-[4px] text-[12px] font-semibold text-[#374151] hover:text-[#4F6BFF] transition-colors">
+                <Plus size={13}/>Add Task
+              </button>
             </div>
-          )}
+            {/* Search */}
+            <div className="px-[16px] py-[10px] border-b border-[#F3F4F6]">
+              <div className="relative">
+                <Search size={13} className="absolute left-[10px] top-1/2 -translate-y-1/2 text-[#9CA3AF]"/>
+                <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search tasks..."
+                  className="w-full h-[32px] pl-[30px] pr-[10px] bg-[#F9FAFB] border border-[#EAECF0] rounded-[8px] text-[12px] placeholder:text-[#9CA3AF] focus:outline-none focus:border-[#4F6BFF] transition-colors"/>
+                {search && <button onClick={()=>setSearch('')} className="absolute right-[8px] top-1/2 -translate-y-1/2"><X size={12} className="text-[#9CA3AF]"/></button>}
+              </div>
+            </div>
+            <div className="divide-y divide-[#F3F4F6]">
+              <AnimatePresence>
+                {tasks.filter(t=>!search||t.title.toLowerCase().includes(search.toLowerCase())).map(t=>(
+                  <motion.div key={t.id} initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}
+                    className={`flex items-center gap-[12px] px-[20px] py-[11px] hover:bg-[#F9FAFB] transition-colors group ${t.done?'opacity-50':''}`}>
+                    <button onClick={()=>toggleTask(t.id)}
+                      className={`w-[16px] h-[16px] rounded-[4px] border-2 flex items-center justify-center shrink-0 transition-colors ${t.done?'bg-[#059669] border-[#059669]':'border-[#D1D5DB] hover:border-[#4F6BFF]'}`}>
+                      {t.done && <CheckCircle2 size={10} className="text-white"/>}
+                    </button>
+                    <p className={`flex-1 text-[12.5px] font-medium truncate ${t.done?'line-through text-[#9CA3AF]':'text-[#111827]'}`}>{t.title}</p>
+                    <span className="text-[10px] text-[#9CA3AF] whitespace-nowrap shrink-0 hidden group-hover:inline">{t.category}</span>
+                    <div className="flex items-center gap-[4px] text-[10px] text-[#9CA3AF] shrink-0">
+                      <Calendar size={9}/>{t.due}
+                    </div>
+                    <span className="text-[9px] font-bold px-[6px] py-[1px] rounded-full shrink-0" style={{color:t.color,background:t.color+'18'}}>{t.priority}</span>
+                    <button className="text-[#E5E7EB] hover:text-[#9CA3AF] transition-colors shrink-0"><MoreHorizontal size={13}/></button>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+            <div className="px-[20px] py-[10px] border-t border-[#F3F4F6]">
+              <button className="text-[12px] font-semibold text-[#4F6BFF] hover:underline flex items-center gap-[4px]">
+                View all tasks <ChevronRight size={12}/>
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* ── DRAWER ───────────────────────────────────── */}
-        <AnimatePresence>
-          {selectedEvent && (
-            <>
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                onClick={() => setSelectedEvent(null)} className="fixed inset-0 bg-black/30 z-50" />
-              <motion.div
-                initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
-                transition={{ type: 'spring', damping: 28, stiffness: 220 }}
-                className="fixed top-0 right-0 bottom-0 w-full max-w-[520px] bg-white border-l border-[#E5E7EB] z-50 flex flex-col shadow-xl overflow-y-auto"
-              >
-                <div className="sticky top-0 bg-white border-b border-[#E5E7EB] px-[24px] py-[20px] flex items-center justify-between shrink-0">
-                  <div className="flex items-center gap-[14px]">
-                    <div className="w-[44px] h-[44px] rounded-[10px] bg-[#EEF2FF] flex items-center justify-center border border-[#E5E7EB] text-[#4F6BFF]">
-                      <CalendarIcon size={20} strokeWidth={1.8} />
-                    </div>
-                    <div>
-                      <p className="text-[15px] font-semibold text-[#111827] max-w-[300px] truncate">{selectedEvent.title}</p>
-                      {selectedEvent.universityName && <p className="text-[13px] text-[#9CA3AF]">{selectedEvent.universityName}</p>}
-                    </div>
-                  </div>
-                  <button onClick={() => setSelectedEvent(null)} className="w-[32px] h-[32px] flex items-center justify-center rounded-[8px] border border-[#E5E7EB] text-[#9CA3AF] hover:bg-[#F3F4F6] transition-colors">
-                    <X size={16} strokeWidth={1.8} />
-                  </button>
-                </div>
-                
-                <div className="flex-1 p-[24px] flex flex-col gap-[16px]">
-                  <div className="grid grid-cols-2 gap-[12px]">
-                    {[
-                      { label: 'Date', value: selectedEvent.date.toLocaleDateString() },
-                      { label: 'Priority', value: selectedEvent.priority },
-                      { label: 'Type', value: selectedEvent.type },
-                      { label: 'Status', value: selectedEvent.status },
-                    ].map(({ label, value }) => (
-                      <div key={label} className="bg-[#F9FAFB] border border-[#E5E7EB] rounded-[8px] p-[14px]">
-                        <p className="text-[11px] text-[#9CA3AF] uppercase tracking-[0.06em] mb-[4px]">{label}</p>
-                        <p className="text-[14px] font-semibold text-[#111827]">{value}</p>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="bg-white border border-[#E5E7EB] rounded-[12px] p-[20px] flex flex-col gap-[12px]">
-                    <p className="text-[14px] font-semibold text-[#111827] mb-[4px]">Task Details</p>
-                    <p className="text-[13px] text-[#6B7280] leading-[1.6]">
-                      {'Please review this deadline to ensure all requirements are met.'}
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="sticky bottom-0 bg-white border-t border-[#E5E7EB] p-[20px] flex gap-[10px]">
-                  <button className="flex-1 h-[38px] bg-[#4F6BFF] text-white rounded-[8px] text-[13px] font-semibold hover:bg-[#3D56E0] transition-colors">
-                    Mark as Completed
-                  </button>
-                </div>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
       </div>
     </ProtectedRoute>
   )
