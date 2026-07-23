@@ -12,31 +12,30 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Log the error to an error reporting service
     console.error("Global Error Boundary caught:", error);
   }, [error]);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-      <motion.div 
+    <div className="min-h-screen bg-[#F9FAFB] flex flex-col items-center justify-center p-4">
+      <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="text-center max-w-md bg-white/[0.02] border border-red-500/20 p-8 rounded-3xl"
+        className="text-center max-w-[440px] bg-white border border-[#EAECF0] p-[40px] rounded-[20px] shadow-[0_4px_20px_rgba(0,0,0,0.06)]"
       >
-        <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-          <AlertOctagon size={40} className="text-red-500" />
+        <div className="w-[72px] h-[72px] bg-[#FEF2F2] rounded-full flex items-center justify-center mx-auto mb-[20px]">
+          <AlertOctagon size={32} className="text-[#EF4444]" strokeWidth={1.5} />
         </div>
-        <h2 className="text-2xl font-bold text-white mb-2">Something went wrong!</h2>
-        <p className="text-textSecondary mb-8 text-sm leading-relaxed">
-          We encountered an unexpected error. Don&apos;t worry, our team has been notified. 
-          Please try refreshing the page.
+        <h2 className="text-[20px] font-bold text-[#111827] mb-[8px]">Something went wrong</h2>
+        <p className="text-[13px] text-[#6B7280] mb-[28px] leading-relaxed">
+          We encountered an unexpected error. Please try refreshing the page.
+          If the issue persists, contact support.
         </p>
-        
         <button
           onClick={() => reset()}
-          className="inline-flex items-center px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium transition-colors w-full justify-center"
+          className="inline-flex items-center gap-[8px] px-[20px] h-[40px] bg-[#EF4444] hover:bg-[#DC2626] text-white rounded-[10px] text-[13px] font-semibold transition-colors w-full justify-center"
         >
-          <RefreshCcw size={18} className="mr-2" /> Try Again
+          <RefreshCcw size={15} strokeWidth={2} />
+          Try Again
         </button>
       </motion.div>
     </div>
