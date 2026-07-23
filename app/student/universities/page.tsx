@@ -5,9 +5,10 @@ import {
   Search, MapPin, Star, Sparkles, Heart, ArrowUpRight,
   SlidersHorizontal, ChevronDown, X, Mic, TrendingUp,
   BookOpen, Users, Award, Globe, Building2, Zap,
-  BarChart3, Shield, Home, GraduationCap, Check
+  BarChart3, Shield, Home, GraduationCap, Check, Scale
 } from 'lucide-react'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import SegmentedTabs from '@/components/ui/SegmentedTabs'
 import { UNIVERSITIES, SORT_OPTIONS, University } from '@/lib/universityData'
@@ -86,13 +87,13 @@ function ScoreBar({ value, color }: { value: number; color: string }) {
   )
 }
 
-function UniCard({ uni, onShortlist, shortlisted, index }: { uni: University; onShortlist: (id: string) => void; shortlisted: boolean; index: number }) {
+const UniCard = React.memo(function UniCard({ uni, onShortlist, shortlisted, onCompare, isCompared, index }: { uni: University; onShortlist: (id: string) => void; shortlisted: boolean; onCompare: (id: string) => void; isCompared: boolean; index: number }) {
   const [hovered, setHovered] = useState(false)
   const [imgErr, setImgErr] = useState(false)
   const matchColor = uni.aiMatch >= 90 ? '#6366F1' : uni.aiMatch >= 80 ? '#10B981' : '#F59E0B'
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.06 }}
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(index * 0.04, 0.3) }}
       onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
       className="bg-white rounded-[16px] border border-[#EAECF0] overflow-hidden flex flex-col group"
       style={{ boxShadow: hovered ? '0 12px 40px rgba(0,0,0,0.10)' : '0 1px 4px rgba(0,0,0,0.04)', transition: 'box-shadow 0.25s, transform 0.2s', transform: hovered ? 'translateY(-3px)' : 'none' }}>
@@ -100,7 +101,7 @@ function UniCard({ uni, onShortlist, shortlisted, index }: { uni: University; on
       {/* Hero image */}
       <div className="relative h-[158px] overflow-hidden bg-[#EEF2FF]">
         {!imgErr ? (
-          <Image src={uni.heroImage} alt={uni.name} fill className="object-cover transition-transform duration-500 group-hover:scale-105" onError={() => setImgErr(true)} />
+          <Image src={uni.heroImage} alt={uni.name} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" priority={index < 3} className="object-cover transition-transform duration-500 group-hover:scale-105" onError={() => setImgErr(true)} />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${uni.logoColor}22, ${uni.logoColor}44)` }}>
             <span className="text-[48px] font-black opacity-30" style={{ color: uni.logoColor }}>{uni.logoText}</span>
@@ -199,17 +200,69 @@ function UniCard({ uni, onShortlist, shortlisted, index }: { uni: University; on
           <span className="text-[11px] text-[#6B7280]"><span className="font-semibold text-[#374151]">{uni.studentCount}</span> Students · <span className="font-semibold text-[#374151]">{uni.reviews.toLocaleString()}</span> Reviews</span>
         </div>
 
-        {/* Actions */}
-        <div className="flex gap-[6px] pt-[2px]">
-          <a href={`/student/universities/${uni.id}`}
-            className="flex-1 h-[32px] bg-[#111827] text-white rounded-[8px] text-[12px] font-semibold flex items-center justify-center gap-[4px] hover:bg-[#1F2937] transition-colors">
-            <ArrowUpRight size={13} />View Details
-          </a>
-          <button className="h-[32px] px-[10px] border border-[#EAECF0] rounded-[8px] text-[11px] font-medium text-[#374151] hover:bg-[#F9FAFB] transition-colors">Compare</button>
-          <button className="h-[32px] px-[10px] bg-[#4F6BFF] text-white rounded-[8px] text-[11px] font-semibold hover:bg-[#3D56E0] transition-colors">Apply</button>
-        </div>
+          <div className="flex gap-[6px] pt-[2px]">
+            <a href={`/student/universities/${uni.id}`}
+              className="flex-1 h-[32px] bg-[#111827] text-white rounded-[8px] text-[12px] font-semibold flex items-center justify-center gap-[4px] hover:bg-[#1F2937] transition-colors">
+              <ArrowUpRight size={13} />View Details
+            </a>
+            <button
+              onClick={() => onCompare(uni.id)}
+              className={`h-[32px] px-[10px] rounded-[8px] text-[11px] font-medium border transition-colors ${
+                isCompared
+                  ? 'bg-[#4F6BFF] text-white border-[#4F6BFF]'
+                  : 'border-[#EAECF0] text-[#374151] hover:bg-[#F9FAFB]'
+              }`}
+              aria-label={isCompared ? 'Remove from compare' : 'Add to compare'}
+            >
+              {isCompared ? '✓ Added' : 'Compare'}
+            </button>
+          </div>
       </div>
     </motion.div>
+  )
+})
+
+/** Sticky compare tray */
+function CompareTray({ ids, onRemove, onClear }: { ids: string[]; onRemove: (id: string) => void; onClear: () => void }) {
+  const router = useRouter()
+  const selected = ids.map(id => UNIVERSITIES.find(u => u.id === id)).filter(Boolean) as University[]
+  return (
+    <AnimatePresence>
+      {ids.length > 0 && (
+        <motion.div
+          initial={{ y: 80, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 80, opacity: 0 }}
+          className="fixed bottom-[72px] lg:bottom-[24px] left-1/2 -translate-x-1/2 z-50 bg-white border border-[#EAECF0] rounded-[16px] shadow-[0_8px_32px_rgba(0,0,0,0.12)] px-[16px] py-[12px] flex items-center gap-[12px] min-w-[480px] max-w-[640px]"
+        >
+          <Scale size={16} className="text-[#4F6BFF] shrink-0" strokeWidth={1.8} />
+          <div className="flex items-center gap-[8px] flex-1">
+            {selected.map(u => (
+              <div key={u.id} className="flex items-center gap-[6px] px-[10px] h-[28px] rounded-full bg-[#EEF2FF] text-[12px] font-medium text-[#374151]">
+                {u.shortName}
+                <button onClick={() => onRemove(u.id)} className="text-[#9CA3AF] hover:text-[#EF4444] transition-colors" aria-label={`Remove ${u.shortName} from compare`}>
+                  <X size={10} strokeWidth={2.5} />
+                </button>
+              </div>
+            ))}
+            {ids.length < 3 && (
+              <span className="text-[11px] text-[#9CA3AF]">Add up to {3 - ids.length} more</span>
+            )}
+          </div>
+          <div className="flex items-center gap-[8px]">
+            <button onClick={onClear} className="text-[12px] text-[#9CA3AF] hover:text-[#374151] transition-colors" aria-label="Clear all from compare">Clear</button>
+            <button
+              onClick={() => router.push(`/student/compare?ids=${ids.join(',')}`)
+              }
+              disabled={ids.length < 2}
+              className="px-[16px] h-[32px] rounded-[8px] bg-[#4F6BFF] text-white text-[12px] font-semibold hover:bg-[#3D56E0] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Compare {ids.length} Universities
+            </button>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   )
 }
 
@@ -218,12 +271,18 @@ export default function UniversitiesPage() {
   const [search, setSearch] = useState('')
   const [sortBy, setSortBy] = useState('AI Match')
   const [shortlisted, setShortlisted] = useState<Set<string>>(new Set())
+  const [compareList, setCompareList] = useState<string[]>([])
   const [showFilters, setShowFilters] = useState(false)
   const [typeFilter, setTypeFilter] = useState('All Types')
   const [loading] = useState(false)
   const searchRef = useRef<HTMLInputElement>(null)
 
   const toggleShortlist = (id: string) => setShortlisted(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
+  const toggleCompare = (id: string) => setCompareList(prev => {
+    if (prev.includes(id)) return prev.filter(x => x !== id)
+    if (prev.length >= 3) return prev // max 3
+    return [...prev, id]
+  })
 
   const filtered = useMemo(() => {
     let list = UNIVERSITIES.filter(u => {
@@ -337,11 +396,19 @@ export default function UniversitiesPage() {
             {filtered.map((uni, i) => (
               <UniCard key={uni.id} uni={uni} index={i}
                 onShortlist={toggleShortlist}
-                shortlisted={shortlisted.has(uni.id)} />
+                shortlisted={shortlisted.has(uni.id)}
+                onCompare={toggleCompare}
+                isCompared={compareList.includes(uni.id)} />
             ))}
           </div>
         )}
       </div>
+      {/* Compare tray */}
+      <CompareTray
+        ids={compareList}
+        onRemove={(id) => setCompareList(prev => prev.filter(x => x !== id))}
+        onClear={() => setCompareList([])}
+      />
     </ProtectedRoute>
   )
 }
