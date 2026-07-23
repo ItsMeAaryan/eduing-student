@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useStudentData } from '@/components/providers/StudentDataProvider';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAIGeneration } from '@/hooks/useAIGeneration';
+import { useToast } from '@/hooks/useToast';
 
 import { EmailService } from '@/lib/ai/gemini/services';
 
@@ -24,6 +25,7 @@ function EmailAssistantContent() {
   const emailSubject = emailData?.subject || '';
   const emailBody = emailData?.body || '';
   const { data: emailReview, isGenerating: isReviewing, generate: generateReview, error: reviewError } = useAIGeneration<any>();
+  const { toast } = useToast();
 
   const handleGenerate = async () => {
     if (!profile) return;
@@ -45,8 +47,11 @@ function EmailAssistantContent() {
   };
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(`Subject: ${emailSubject}\n\n${emailBody}`);
-    alert('Copied to clipboard');
+    navigator.clipboard.writeText(`Subject: ${emailSubject}\n\n${emailBody}`).then(() => {
+      toast.success('Email copied to clipboard!');
+    }).catch(() => {
+      toast.error('Failed to copy. Please try again.');
+    });
   };
 
   return (
