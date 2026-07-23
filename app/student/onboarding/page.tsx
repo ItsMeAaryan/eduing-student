@@ -19,6 +19,7 @@ import ProtectedRoute from '@/components/ProtectedRoute'
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { db, auth } from '@/lib/firebase/config'
 import { Card, Button, H2, H4, Body, Small, Caption, Badge } from '@/components/ui/design-system'
+import { useToast } from '@/hooks/useToast'
 
 const steps = [
   { id: 'personal', title: 'Personal', icon: User },
@@ -30,13 +31,23 @@ const steps = [
 
 export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(0)
-  const [formData, setFormData] = useState<any>({
-    personal: { fullName: '', dob: '', gender: '', phone: '', state: '', city: '', address: '' },
-    academic: { school10: '', board10: '', marks10: '', year10: '', school12: '', board12: '', marks12: '', year12: '', stream: '' },
-    exams: { jeeMain: '', cuet: '', neet: '', bitSat: '' },
-    documents: { photo: true, marksheet10: true, marksheet12: true, idProof: true }
+  const [formData, setFormData] = useState<any>(() => {
+    // Try to restore from localStorage so progress isn't lost on refresh
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('eduing_onboarding_draft')
+        if (saved) return JSON.parse(saved)
+      } catch {}
+    }
+    return {
+      personal: { fullName: '', dob: '', gender: '', phone: '', state: '', city: '', address: '' },
+      academic: { school10: '', board10: '', marks10: '', year10: '', school12: '', board12: '', marks12: '', year12: '', stream: '' },
+      exams: { jeeMain: '', cuet: '', neet: '', bitSat: '' },
+      documents: { photo: true, marksheet10: true, marksheet12: true, idProof: true }
+    }
   })
   const router = useRouter()
+  const { toast } = useToast()
 
   const handleAutofill = () => {
     const stepId = steps[currentStep].id
@@ -77,9 +88,12 @@ export default function OnboardingPage() {
             profileComplete: true,
             updatedAt: serverTimestamp(),
           })
+          // Clear localStorage draft on success
+          localStorage.removeItem('eduing_onboarding_draft')
+          toast.success('Profile saved successfully!')
           router.push('/student/dashboard')
         } catch (err) {
-          alert('Failed to save profile')
+          toast.error('Failed to save profile. Please try again.')
         }
       }
     }
