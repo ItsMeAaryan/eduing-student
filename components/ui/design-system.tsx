@@ -1,274 +1,369 @@
 import React from 'react';
-import { LucideIcon } from 'lucide-react';
+import { LucideIcon, Search, Eye, EyeOff, ChevronDown, X, AlertCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // ==========================================
 // TYPOGRAPHY
 // ==========================================
 export const H1 = ({ children, className = '' }: { children: React.ReactNode, className?: string }) => (
-  <h1 className={`text-h1 font-medium text-text-primary ${className}`}>{children}</h1>
+  <h1 className={`text-[24px] md:text-[28px] font-semibold text-[#111827] tracking-tight ${className}`}>{children}</h1>
 );
 export const H2 = ({ children, className = '' }: { children: React.ReactNode, className?: string }) => (
-  <h2 className={`text-h2 font-medium text-text-primary ${className}`}>{children}</h2>
+  <h2 className={`text-[20px] md:text-[22px] font-semibold text-[#111827] tracking-tight ${className}`}>{children}</h2>
 );
 export const H3 = ({ children, className = '' }: { children: React.ReactNode, className?: string }) => (
-  <h3 className={`text-h3 font-medium text-text-primary ${className}`}>{children}</h3>
+  <h3 className={`text-[16px] md:text-[18px] font-semibold text-[#111827] ${className}`}>{children}</h3>
 );
 export const H4 = ({ children, className = '' }: { children: React.ReactNode, className?: string }) => (
-  <h4 className={`text-h4 font-medium text-text-primary ${className}`}>{children}</h4>
+  <h4 className={`text-[14px] md:text-[15px] font-semibold text-[#111827] ${className}`}>{children}</h4>
 );
 export const BodyLarge = ({ children, className = '' }: { children: React.ReactNode, className?: string }) => (
-  <p className={`text-body-lg font-normal text-text-secondary ${className}`}>{children}</p>
+  <p className={`text-[15px] font-normal text-[#4B5563] leading-relaxed ${className}`}>{children}</p>
 );
 export const Body = ({ children, className = '' }: { children: React.ReactNode, className?: string }) => (
-  <p className={`text-body font-normal text-text-secondary ${className}`}>{children}</p>
+  <p className={`text-[13.5px] font-normal text-[#6B7280] leading-relaxed ${className}`}>{children}</p>
 );
 export const Small = ({ children, className = '' }: { children: React.ReactNode, className?: string }) => (
-  <p className={`text-small font-normal text-text-secondary ${className}`}>{children}</p>
+  <p className={`text-[12px] font-normal text-[#6B7280] ${className}`}>{children}</p>
 );
 export const Caption = ({ children, className = '' }: { children: React.ReactNode, className?: string }) => (
-  <span className={`text-caption font-normal text-text-secondary ${className}`}>{children}</span>
+  <span className={`text-[11px] font-medium text-[#9CA3AF] uppercase tracking-wider ${className}`}>{children}</span>
 );
 
 // ==========================================
 // BUTTONS
 // ==========================================
-type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'icon';
-  size?: 'sm' | 'md' | 'lg';
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'outline' | 'icon';
+export type ButtonSize = 'sm' | 'md' | 'lg';
+
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
   icon?: LucideIcon;
-};
+  iconPosition?: 'left' | 'right';
+  isLoading?: boolean;
+}
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({ 
-  children, variant = 'primary', size = 'md', className = '', icon: Icon, ...props 
+  children, variant = 'primary', size = 'md', className = '', icon: Icon, iconPosition = 'left', isLoading = false, disabled, ...props 
 }, ref) => {
-  const baseStyle = "inline-flex items-center justify-center font-medium transition-colors focus:outline-none disabled:opacity-50 disabled:pointer-events-none";
+  const baseStyle = "inline-flex items-center justify-center font-semibold transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4F6BFF]/30 disabled:opacity-50 disabled:pointer-events-none select-none";
   
-  const variants = {
-    primary: "bg-primary text-white hover:bg-primary/90 border border-transparent rounded-[8px] shadow-none",
-    secondary: "bg-white text-text-primary border border-border hover:bg-hover rounded-[8px] shadow-none",
-    ghost: "bg-transparent text-text-secondary hover:text-text-primary hover:bg-hover border border-transparent rounded-[8px]",
-    icon: "bg-transparent text-text-secondary hover:text-text-primary hover:bg-hover border border-transparent rounded-full",
+  const variants: Record<ButtonVariant, string> = {
+    primary: "bg-[#4F6BFF] text-white hover:bg-[#3D56E0] active:scale-[0.98] border border-transparent rounded-[8px] shadow-sm",
+    secondary: "bg-white text-[#374151] border border-[#EAECF0] hover:bg-[#F9FAFB] hover:border-[#D1D5DB] active:scale-[0.98] rounded-[8px]",
+    outline: "bg-transparent text-[#4F6BFF] border border-[#4F6BFF] hover:bg-[#EEF2FF] rounded-[8px]",
+    ghost: "bg-transparent text-[#6B7280] hover:text-[#111827] hover:bg-[#F3F4F6] border border-transparent rounded-[8px]",
+    danger: "bg-[#EF4444] text-white hover:bg-[#DC2626] active:scale-[0.98] border border-transparent rounded-[8px]",
+    icon: "bg-transparent text-[#6B7280] hover:text-[#111827] hover:bg-[#F3F4F6] border border-transparent rounded-full p-[8px]",
   };
 
-  const sizes = {
-    sm: "px-12 py-8 text-small gap-8",
-    md: "px-16 py-12 text-body gap-8",
-    lg: "px-24 py-16 text-body-lg gap-12",
+  const sizes: Record<ButtonSize, string> = {
+    sm: "px-[12px] h-[32px] text-[12px] gap-[6px]",
+    md: "px-[16px] h-[38px] text-[13px] gap-[8px]",
+    lg: "px-[20px] h-[44px] text-[14px] gap-[10px]",
   };
-
-  const iconSizes = {
-    sm: "p-8",
-    md: "p-12",
-    lg: "p-16",
-  };
-
-  const currentSize = variant === 'icon' ? iconSizes[size] : sizes[size];
 
   return (
-    <button ref={ref} className={`${baseStyle} ${variants[variant]} ${currentSize} ${className}`} {...props}>
-      {Icon && <Icon size={20} strokeWidth={1.8} className={children ? "-ml-4" : ""} />}
+    <button
+      ref={ref}
+      disabled={disabled || isLoading}
+      className={`${baseStyle} ${variants[variant]} ${variant === 'icon' ? '' : sizes[size]} ${className}`}
+      {...props}
+    >
+      {isLoading ? (
+        <span className="w-[14px] h-[14px] border-2 border-current border-t-transparent rounded-full animate-spin shrink-0" />
+      ) : (
+        Icon && iconPosition === 'left' && <Icon size={size === 'sm' ? 14 : size === 'md' ? 16 : 18} strokeWidth={2} className="shrink-0" />
+      )}
       {children}
+      {!isLoading && Icon && iconPosition === 'right' && <Icon size={size === 'sm' ? 14 : size === 'md' ? 16 : 18} strokeWidth={2} className="shrink-0" />}
     </button>
   );
 });
 Button.displayName = 'Button';
 
 // ==========================================
-// CARDS
+// CARDS & CONTAINERS
 // ==========================================
-export const Card = ({ children, className = '', onClick }: { children: React.ReactNode, className?: string, onClick?: () => void }) => (
-  <div className={`bg-white border border-border rounded-card p-24 md:p-32 ${className}`} onClick={onClick} role={onClick ? "button" : undefined} tabIndex={onClick ? 0 : undefined} onKeyDown={onClick ? (e) => {if(e.key==='Enter') onClick()} : undefined}>
+export const Card = ({ children, className = '', onClick, hoverable = false }: { children: React.ReactNode, className?: string, onClick?: () => void, hoverable?: boolean }) => (
+  <div 
+    className={`bg-white border border-[#EAECF0] rounded-[14px] p-[20px] md:p-[24px] ${hoverable ? 'hover:border-[#4F6BFF]/40 hover:shadow-md transition-all duration-200 cursor-pointer' : ''} ${className}`} 
+    onClick={onClick} 
+    role={onClick ? "button" : undefined} 
+    tabIndex={onClick ? 0 : undefined} 
+    onKeyDown={onClick ? (e) => {if(e.key==='Enter' || e.key === ' ') onClick()} : undefined}
+  >
+    {children}
+  </div>
+);
+
+export const SectionCard = ({ title, subtitle, action, children, className = '' }: { title: string; subtitle?: string; action?: React.ReactNode; children: React.ReactNode; className?: string }) => (
+  <Card className={className}>
+    <div className="flex items-center justify-between pb-[16px] mb-[16px] border-b border-[#F3F4F6]">
+      <div>
+        <h3 className="text-[15px] font-semibold text-[#111827]">{title}</h3>
+        {subtitle && <p className="text-[12px] text-[#6B7280] mt-[2px]">{subtitle}</p>}
+      </div>
+      {action && <div>{action}</div>}
+    </div>
+    {children}
+  </Card>
+);
+
+// ==========================================
+// FORM INPUTS
+// ==========================================
+export interface TextInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label?: string;
+  error?: string;
+  helperText?: string;
+}
+
+export const TextInput = React.forwardRef<HTMLInputElement, TextInputProps>(
+  ({ label, error, helperText, className = '', id, ...props }, ref) => {
+    const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
+    return (
+      <div className="flex flex-col gap-[4px] w-full">
+        {label && (
+          <label htmlFor={inputId} className="text-[12px] font-semibold text-[#374151]">
+            {label}
+          </label>
+        )}
+        <input
+          id={inputId}
+          ref={ref}
+          className={`w-full h-[40px] px-[14px] bg-white border ${error ? 'border-[#EF4444]' : 'border-[#EAECF0]'} rounded-[8px] text-[13.5px] text-[#111827] placeholder:text-[#9CA3AF] focus:outline-none focus:border-[#4F6BFF] focus:ring-2 focus:ring-[#4F6BFF]/10 transition-all ${className}`}
+          {...props}
+        />
+        {error ? (
+          <p className="text-[11px] font-medium text-[#EF4444] flex items-center gap-[4px] mt-[2px]">
+            <AlertCircle size={12} /> {error}
+          </p>
+        ) : helperText ? (
+          <p className="text-[11px] text-[#9CA3AF] mt-[2px]">{helperText}</p>
+        ) : null}
+      </div>
+    );
+  }
+);
+TextInput.displayName = 'TextInput';
+
+export const PasswordInput = React.forwardRef<HTMLInputElement, TextInputProps>(
+  ({ label, error, helperText, className = '', ...props }, ref) => {
+    const [show, setShow] = React.useState(false);
+    return (
+      <div className="flex flex-col gap-[4px] w-full relative">
+        <TextInput
+          ref={ref}
+          label={label}
+          error={error}
+          helperText={helperText}
+          type={show ? 'text' : 'password'}
+          className={`pr-[40px] ${className}`}
+          {...props}
+        />
+        <button
+          type="button"
+          onClick={() => setShow(v => !v)}
+          className="absolute right-[12px] top-[32px] text-[#9CA3AF] hover:text-[#374151] transition-colors"
+          tabIndex={-1}
+        >
+          {show ? <EyeOff size={16} /> : <Eye size={16} />}
+        </button>
+      </div>
+    );
+  }
+);
+PasswordInput.displayName = 'PasswordInput';
+
+export interface TextAreaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  label?: string;
+  error?: string;
+  helperText?: string;
+}
+
+export const TextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
+  ({ label, error, helperText, className = '', id, ...props }, ref) => {
+    const textareaId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
+    return (
+      <div className="flex flex-col gap-[4px] w-full">
+        {label && (
+          <label htmlFor={textareaId} className="text-[12px] font-semibold text-[#374151]">
+            {label}
+          </label>
+        )}
+        <textarea
+          id={textareaId}
+          ref={ref}
+          className={`w-full p-[14px] bg-white border ${error ? 'border-[#EF4444]' : 'border-[#EAECF0]'} rounded-[8px] text-[13.5px] text-[#111827] placeholder:text-[#9CA3AF] focus:outline-none focus:border-[#4F6BFF] focus:ring-2 focus:ring-[#4F6BFF]/10 transition-all resize-y min-h-[90px] ${className}`}
+          {...props}
+        />
+        {error ? (
+          <p className="text-[11px] font-medium text-[#EF4444] flex items-center gap-[4px] mt-[2px]">
+            <AlertCircle size={12} /> {error}
+          </p>
+        ) : helperText ? (
+          <p className="text-[11px] text-[#9CA3AF] mt-[2px]">{helperText}</p>
+        ) : null}
+      </div>
+    );
+  }
+);
+TextArea.displayName = 'TextArea';
+
+export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+  label?: string;
+  options: { label: string; value: string }[];
+  error?: string;
+}
+
+export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
+  ({ label, options, error, className = '', id, ...props }, ref) => {
+    const selectId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
+    return (
+      <div className="flex flex-col gap-[4px] w-full relative">
+        {label && (
+          <label htmlFor={selectId} className="text-[12px] font-semibold text-[#374151]">
+            {label}
+          </label>
+        )}
+        <div className="relative">
+          <select
+            id={selectId}
+            ref={ref}
+            className={`w-full h-[40px] pl-[14px] pr-[36px] bg-white border ${error ? 'border-[#EF4444]' : 'border-[#EAECF0]'} rounded-[8px] text-[13.5px] text-[#111827] focus:outline-none focus:border-[#4F6BFF] appearance-none cursor-pointer ${className}`}
+            {...props}
+          >
+            {options.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+          <ChevronDown size={14} className="absolute right-[12px] top-1/2 -translate-y-1/2 text-[#9CA3AF] pointer-events-none" />
+        </div>
+      </div>
+    );
+  }
+);
+Select.displayName = 'Select';
+
+// ==========================================
+// HEADERS & TOOLBARS
+// ==========================================
+export const PageHeader = ({ title, subtitle, action }: { title: string; subtitle?: string; action?: React.ReactNode }) => (
+  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-[16px] mb-[20px]">
+    <div>
+      <H1>{title}</H1>
+      {subtitle && <Body className="mt-[4px]">{subtitle}</Body>}
+    </div>
+    {action && <div className="shrink-0">{action}</div>}
+  </div>
+);
+
+export const FilterBar = ({ children }: { children: React.ReactNode }) => (
+  <div className="flex items-center gap-[12px] flex-wrap bg-white border border-[#EAECF0] rounded-[12px] p-[12px]">
     {children}
   </div>
 );
 
 // ==========================================
-// INPUTS
+// MODALS & DIALOGS
 // ==========================================
-export const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(({ className = '', ...props }, ref) => (
-  <input
-    ref={ref}
-    className={`w-full bg-background border border-border rounded-input px-16 py-12 text-body text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary transition-colors ${className}`}
-    {...props}
-  />
-));
-Input.displayName = 'Input';
+export interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  children: React.ReactNode;
+  maxWidth?: string;
+}
 
+export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, maxWidth = 'max-w-[480px]' }) => (
+  <AnimatePresence>
+    {isOpen && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-[16px]">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+          className="absolute inset-0 bg-black/20 backdrop-blur-sm"
+        />
+        <motion.div
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.95, opacity: 0 }}
+          className={`relative bg-white border border-[#EAECF0] rounded-[16px] p-[24px] w-full ${maxWidth} shadow-2xl z-10`}
+        >
+          <div className="flex items-center justify-between mb-[16px] pb-[12px] border-b border-[#F3F4F6]">
+            <h3 className="text-[16px] font-semibold text-[#111827]">{title}</h3>
+            <button onClick={onClose} className="text-[#9CA3AF] hover:text-[#374151] transition-colors" aria-label="Close modal">
+              <X size={16} />
+            </button>
+          </div>
+          {children}
+        </motion.div>
+      </div>
+    )}
+  </AnimatePresence>
+);
 // ==========================================
 // BADGES
 // ==========================================
 export const Badge = ({ children, variant = 'default', className = '' }: { children: React.ReactNode, variant?: 'default' | 'success' | 'warning' | 'danger' | 'purple', className?: string }) => {
   const variants = {
-    default: "bg-gray-100 text-text-primary",
-    success: "bg-success/10 text-success",
-    warning: "bg-warning/10 text-warning",
-    danger: "bg-danger/10 text-danger",
-    purple: "bg-purple/10 text-purple",
+    default: "bg-gray-100 text-[#111827]",
+    success: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+    warning: "bg-amber-50 text-amber-700 border border-amber-200",
+    danger: "bg-rose-50 text-rose-700 border border-rose-200",
+    purple: "bg-indigo-50 text-indigo-700 border border-indigo-200",
   };
   return (
-    <span className={`inline-flex items-center px-12 py-4 rounded-badge text-caption font-medium ${variants[variant]} ${className}`}>
+    <span className={`inline-flex items-center px-[8px] py-[2px] rounded-full text-[11px] font-semibold ${variants[variant]} ${className}`}>
       {children}
     </span>
   );
 };
 
 // ==========================================
-// TABS
+// METRIC CARDS
 // ==========================================
-export const Tabs = ({ tabs, activeTab, onChange }: { tabs: string[], activeTab: string, onChange: (t: string) => void }) => (
-  <div className="inline-flex items-center gap-4 bg-[#F9FAFB] border border-border p-4 rounded-[8px]">
-    {tabs.map(tab => (
-      <button
-        key={tab}
-        onClick={() => onChange(tab)}
-        className={`px-16 py-8 text-[13px] font-medium rounded-[6px] transition-all duration-200 ${activeTab === tab ? 'bg-white text-text-primary shadow-sm' : 'text-text-secondary hover:text-text-primary hover:bg-hover'}`}
-      >
-        {tab}
-      </button>
-    ))}
+export const StatCard = ({ title, value, icon: Icon, trend }: { title: string, value: string | number, icon?: LucideIcon, trend?: React.ReactNode }) => (
+  <div className="flex flex-col justify-between p-[24px] border border-[#EAECF0] rounded-[14px] bg-white shadow-sm transition-shadow hover:shadow-md group">
+    <div className="flex justify-between items-start">
+      <div className="text-[14px] font-medium text-[#6B7280] group-hover:text-[#111827] transition-colors">{title}</div>
+      {Icon && (
+        <div className="w-[36px] h-[36px] rounded-[10px] flex items-center justify-center border border-[#4F6BFF]/20 bg-[#EEF2FF]">
+          <Icon size={18} strokeWidth={1.8} className="text-[#4F6BFF]" />
+        </div>
+      )}
+    </div>
+    <div className="flex flex-col gap-[4px] mt-[16px]">
+      <div className="text-[28px] font-bold text-[#111827] leading-none tracking-tight">{value}</div>
+      {trend && <div className="text-[12px] text-[#6B7280]">{trend}</div>}
+    </div>
   </div>
 );
-
-// ==========================================
-// METRIC / STAT CARDS
-// ==========================================
-// StatCard — same proportions as MetricCard, kept for backward compat
-export const StatCard = ({ title, value, icon: Icon, trend }: { title: string, value: string | number, icon?: LucideIcon, trend?: React.ReactNode }) => {
-  return (
-    <div className="flex flex-col justify-between p-32 h-[170px] border border-border rounded-[18px] bg-white shadow-sm transition-shadow hover:shadow-md group">
-      <div className="flex justify-between items-start">
-        <div className="text-[18px] font-medium text-text-secondary group-hover:text-text-primary transition-colors">{title}</div>
-        {Icon && (
-          <div className="w-48 h-48 rounded-[12px] flex items-center justify-center border border-primary/20 bg-primary/10">
-            <Icon size={24} strokeWidth={1.8} className="text-primary" />
-          </div>
-        )}
-      </div>
-      <div className="flex flex-col gap-4 mt-auto">
-        <div className="text-[46px] font-bold text-text-primary leading-none tracking-tight">{value}</div>
-        {trend && <div className="text-[15px] text-text-secondary">{trend}</div>}
-      </div>
-    </div>
-  );
-};
 
 export const MetricCard = ({ label, value, icon: Icon, color = 'primary', description }: { label: string, value: string | number, icon: LucideIcon, color?: 'primary' | 'success' | 'warning' | 'purple', description?: string }) => {
   const colorMap = {
-    primary: "text-primary bg-primary/10 border-primary/20",
-    success: "text-success bg-success/10 border-success/20",
-    warning: "text-warning bg-warning/10 border-warning/20",
-    purple: "text-purple bg-purple/10 border-purple/20",
+    primary: "text-[#4F6BFF] bg-[#EEF2FF] border-[#4F6BFF]/20",
+    success: "text-[#059669] bg-[#F0FDF4] border-[#059669]/20",
+    warning: "text-[#D97706] bg-[#FFFBEB] border-[#D97706]/20",
+    purple: "text-[#7C3AED] bg-[#F5F3FF] border-[#7C3AED]/20",
   };
   
   return (
-    <div className="flex flex-col justify-between p-32 h-[170px] border border-border rounded-[18px] bg-white shadow-sm transition-shadow hover:shadow-md group">
+    <div className="flex flex-col justify-between p-[20px] border border-[#EAECF0] rounded-[14px] bg-white shadow-sm transition-shadow hover:shadow-md group">
       <div className="flex justify-between items-start">
-        <div className="text-[18px] font-medium text-text-secondary group-hover:text-text-primary transition-colors">{label}</div>
-        <div className={`w-48 h-48 rounded-[12px] flex items-center justify-center border ${colorMap[color]}`}>
-          <Icon size={24} strokeWidth={1.8} />
+        <div className="text-[14px] font-medium text-[#6B7280] group-hover:text-[#111827] transition-colors">{label}</div>
+        <div className={`w-[36px] h-[36px] rounded-[10px] flex items-center justify-center border ${colorMap[color]}`}>
+          <Icon size={18} strokeWidth={1.8} />
         </div>
       </div>
-      <div className="flex flex-col gap-4 mt-auto">
-        <div className="text-[46px] font-bold text-text-primary leading-none tracking-tight">{value}</div>
-        {description && <div className="text-[15px] text-text-secondary">{description}</div>}
+      <div className="flex flex-col gap-[4px] mt-[12px]">
+        <div className="text-[28px] font-bold text-[#111827] leading-none tracking-tight">{value}</div>
+        {description && <div className="text-[11px] text-[#9CA3AF]">{description}</div>}
       </div>
     </div>
   );
 };
-
-// ==========================================
-// TABLE
-// ==========================================
-export const Table = ({ headers, children }: { headers: string[], children: React.ReactNode }) => (
-  <div className="w-full overflow-x-auto rounded-[12px] border border-border bg-white">
-    <table className="w-full text-left border-collapse">
-      <thead>
-        <tr className="border-b border-border bg-[#F9FAFB]">
-          {headers.map((h, i) => (
-            <th key={i} className="py-16 px-24 text-[13px] uppercase tracking-wider font-medium text-text-secondary">{h}</th>
-          ))}
-        </tr>
-      </thead>
-      <tbody className="divide-y divide-border">
-        {children}
-      </tbody>
-    </table>
-  </div>
-);
-
-export const TableRow = ({ children, className = '' }: { children: React.ReactNode, className?: string }) => (
-  <tr className={`hover:bg-gray-50 transition-colors ${className}`}>
-    {children}
-  </tr>
-);
-
-export const TableCell = ({ children, className = '' }: { children: React.ReactNode, className?: string }) => (
-  <td className={`py-16 px-24 text-[14px] text-text-primary ${className}`}>
-    {children}
-  </td>
-);
-
-// ==========================================
-// SECTION HEADER
-// ==========================================
-export const SectionHeader = ({ title, description, action }: { title: string, description?: string, action?: React.ReactNode }) => (
-  <div className="flex items-end justify-between mb-24">
-    <div>
-      <H3>{title}</H3>
-      {description && <Body className="mt-8">{description}</Body>}
-    </div>
-    {action && <div>{action}</div>}
-  </div>
-);
-
-// ==========================================
-// TOOLBAR
-// ==========================================
-export const Toolbar = ({ children }: { children: React.ReactNode }) => (
-  <div className="flex items-center justify-between py-16 px-24 border-b border-border bg-background">
-    {children}
-  </div>
-);
-
-// ==========================================
-// SIDEBAR ITEM
-// ==========================================
-export const SidebarItem = ({ icon: Icon, label, active, onClick }: { icon: LucideIcon, label: string, active?: boolean, onClick?: () => void }) => (
-  <button 
-    onClick={onClick}
-    className={`w-full flex items-center gap-12 px-16 py-12 rounded-button text-body font-medium transition-colors ${active ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:bg-gray-50 hover:text-text-primary'}`}
-  >
-    <Icon size={20} strokeWidth={1.8} />
-    {label}
-  </button>
-);
-
-// ==========================================
-// AVATAR
-// ==========================================
-export const Avatar = ({ initials, src, size = 'md' }: { initials: string, src?: string, size?: 'sm' | 'md' | 'lg' }) => {
-  const sizes = {
-    sm: "w-32 h-32 text-caption",
-    md: "w-40 h-40 text-body font-medium",
-    lg: "w-64 h-64 text-h4 font-medium",
-  };
-  
-  return (
-    <div className={`${sizes[size]} rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20 overflow-hidden`}>
-      {src ? <img src={src} alt="Avatar" className="w-full h-full object-cover" /> : initials}
-    </div>
-  );
-};
-
-// ==========================================
-// PROFILE CARD
-// ==========================================
-export const ProfileCard = ({ name, role, initials }: { name: string, role: string, initials: string }) => (
-  <div className="flex items-center gap-16 p-16 border border-border rounded-card bg-background">
-    <Avatar initials={initials} size="md" />
-    <div className="flex flex-col">
-      <span className="text-body font-medium text-text-primary">{name}</span>
-      <span className="text-caption text-text-secondary mt-4">{role}</span>
-    </div>
-  </div>
-);
