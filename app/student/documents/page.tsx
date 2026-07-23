@@ -6,6 +6,7 @@ import ProtectedRoute from '@/components/ProtectedRoute'
 import SegmentedTabs from '@/components/ui/SegmentedTabs'
 import AIHealthBanner from '@/components/documents/AIHealthBanner'
 import DocPreviewPanel from '@/components/documents/DocPreviewPanel'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 const TABS = ['All', 'Identity', 'Academic', 'Entrance Exams', 'Certificates', 'Portfolio']
 
@@ -242,7 +243,20 @@ export default function DocumentsPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map(doc=>(
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="p-[32px]">
+                    <EmptyState
+                      icon={FolderOpen}
+                      title={search ? `No documents matching "${search}"` : "No documents uploaded"}
+                      description={search ? "Try searching for a different file name or clear filter tabs." : "Upload your marksheets, certificates, and identity proofs to power AI verification."}
+                      primaryCtaLabel="Upload Document"
+                      onPrimaryClick={() => uploadRef.current?.click()}
+                    />
+                  </td>
+                </tr>
+              ) : (
+                filtered.map(doc=>(
                 <tr key={doc.id} onClick={()=>setSelected(doc)}
                   className="border-b border-[#F3F4F6] hover:bg-[#F9FAFB] cursor-pointer transition-colors group">
                   <td className="px-[16px] py-[12px]">
@@ -269,13 +283,7 @@ export default function DocumentsPage() {
                     </div>
                   </td>
                 </tr>
-              ))}
-              {filtered.length===0 && (
-                <tr><td colSpan={7} className="py-[48px] text-center">
-                  <FileText size={32} className="text-[#D1D5DB] mx-auto mb-[8px]" />
-                  <p className="text-[13px] text-[#9CA3AF]">No documents found</p>
-                </td></tr>
-              )}
+              )))}
             </tbody>
           </table>
         </div>

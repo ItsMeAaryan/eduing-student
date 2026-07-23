@@ -9,6 +9,7 @@ import ProtectedRoute from '@/components/ProtectedRoute'
 import { useAIGeneration } from '@/hooks/useAIGeneration'
 import { ResumeService } from '@/lib/ai/gemini/services'
 import { calculateProfileStrength } from '@/lib/utils/profileStrength'
+import { useToast } from '@/hooks/useToast'
 
 const TABS = ['Editor', 'AI Review', 'Templates']
 
@@ -18,6 +19,7 @@ export default function ResumePage() {
 
   const { data: resumeSectionsData, setData: setResumeSections, isGenerating, generate } = useAIGeneration<any>()
   const resumeSections = resumeSectionsData?.sections || []
+  const { toast } = useToast()
 
   const handleGenerate = async () => {
     if (!profile) return
@@ -32,8 +34,11 @@ export default function ResumePage() {
 
   const handleCopy = () => {
     const text = resumeSections.map((s: any) => `${s.heading}\n${s.content}`).join('\n\n')
-    navigator.clipboard.writeText(text)
-    alert('Copied to clipboard')
+    navigator.clipboard.writeText(text).then(() => {
+      toast.success('Resume content copied to clipboard!')
+    }).catch(() => {
+      toast.error('Failed to copy. Please try again.')
+    })
   }
 
   return (

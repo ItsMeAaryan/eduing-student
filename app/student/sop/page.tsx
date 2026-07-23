@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useStudentData } from '@/components/providers/StudentDataProvider';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAIGeneration } from '@/hooks/useAIGeneration';
+import { useToast } from '@/hooks/useToast';
 
 import { SOPService } from '@/lib/ai/gemini/services';
 import { calculateProfileStrength } from '@/lib/utils/profileStrength';
@@ -26,6 +27,7 @@ function SOPBuilderContent() {
   const sopSections = sopData?.sections || [];
   const sopTitle = sopData?.title || 'Statement of Purpose';
   const { data: sopReview, isGenerating: isReviewing, generate: generateReview, error: reviewError } = useAIGeneration<any>();
+  const { toast } = useToast();
 
   const handleGenerate = async () => {
     if (!profile) return;
@@ -56,8 +58,11 @@ function SOPBuilderContent() {
 
   const handleCopy = () => {
     const text = sopSections.map((s: any) => `${s.heading}\n${s.content}`).join('\n\n');
-    navigator.clipboard.writeText(text);
-    alert('Copied to clipboard');
+    navigator.clipboard.writeText(text).then(() => {
+      toast.success('SOP copied to clipboard!');
+    }).catch(() => {
+      toast.error('Failed to copy. Please try again.');
+    });
   };
 
   const handleUpdateSection = (index: number, content: string) => {
