@@ -11,6 +11,8 @@ import {
 import { useStudentData } from "@/components/providers/StudentDataProvider";
 import { useRouter } from "next/navigation";
 import { Card, Button, Badge, Body, Small, Caption, MetricCard } from '@/components/ui/design-system';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { SearchInput } from '@/components/ui/FormPrimitives';
 
 export default function SavedPage() {
   const router = useRouter();
@@ -62,16 +64,12 @@ export default function SavedPage() {
         </div>
 
         <div className="flex items-center gap-12 w-full md:w-auto">
-          <div className="relative flex-1 md:w-[280px] group">
-            <Search className="absolute left-16 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within:text-primary transition-colors" size={16} strokeWidth={1.8} />
-            <input 
-              type="text" 
-              placeholder="Search programs..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white border border-border rounded-[8px] pl-48 pr-16 h-[40px] text-[13px] text-text-primary placeholder:text-text-secondary focus:border-primary outline-none transition-all shadow-sm"
-            />
-          </div>
+          <SearchInput
+            placeholder="Search programs..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            containerClassName="w-full md:w-[280px]"
+          />
           <button className="w-40 h-40 flex items-center justify-center rounded-[8px] bg-white border border-border shadow-sm text-text-secondary hover:text-text-primary hover:bg-[#F5F7FF] transition-colors">
             <SlidersHorizontal size={18} strokeWidth={1.8} />
           </button>
@@ -105,26 +103,15 @@ export default function SavedPage() {
       {/* Content */}
       <AnimatePresence mode="wait">
         {filteredPrograms.length === 0 ? (
-          <div 
+          <EmptyState
             key="empty"
-            className="w-full flex flex-col items-center justify-center py-64 bg-white border border-border rounded-[12px] relative overflow-hidden shadow-none"
-          >
-            <div className="absolute top-0 right-0 w-[256px] h-[256px] bg-primary/5 blur-[100px] pointer-events-none" />
-            <div className="w-[64px] h-[64px] bg-primary/10 text-primary rounded-[12px] flex items-center justify-center mb-20 border border-primary/20">
-              <Bookmark size={24} strokeWidth={1.5} />
-            </div>
-            <h3 className="text-[16px] font-semibold mb-8">No saved universities yet.</h3>
-            <Body className="text-text-secondary mb-24 max-w-sm text-center">
-              Explore programs and bookmark them here to compare your options and apply later.
-            </Body>
-            <Button 
-              onClick={() => router.push('/student/universities')}
-              variant="primary"
-              className="shadow-sm rounded-[8px]"
-            >
-              Explore Universities
-            </Button>
-          </div>
+            icon={Bookmark}
+            title={searchQuery ? `No programs matching "${searchQuery}"` : "No saved universities yet"}
+            description={searchQuery ? "Try searching for another program or university." : "Explore programs and bookmark them here to compare your options and apply later."}
+            primaryCtaLabel="Explore Universities"
+            onPrimaryClick={() => router.push('/student/universities')}
+            className="my-[20px]"
+          />
         ) : (
           <div 
             key="list"

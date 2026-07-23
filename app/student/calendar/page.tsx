@@ -128,8 +128,28 @@ function MiniCalendar({ insights }: { insights: DeadlineInsight[] }) {
 
 export default function AdmissionPlannerPage() {
   const { deadlines, uniqueApps, documents, profileScore, loading } = useStudentData()
-  const [tasks, setTasks] = useState(DEMO_TASKS)
   const [search, setSearch] = useState('')
+  const [tasks, setTasks] = useState<any[]>(DEMO_TASKS)
+  const [showAddTask, setShowAddTask] = useState(false)
+  const [newTaskTitle, setNewTaskTitle] = useState('')
+  const [newTaskCategory, setNewTaskCategory] = useState('Application')
+
+  const toggleTask = (id: string) => setTasks(prev => prev.map(t => t.id === id ? { ...t, done: !t.done } : t))
+  const handleAddTask = () => {
+    if (!newTaskTitle.trim()) return
+    const newTask = {
+      id: `t_${Date.now()}`,
+      done: false,
+      title: newTaskTitle,
+      category: newTaskCategory,
+      due: 'Today',
+      priority: 'Medium',
+      color: '#4F6BFF'
+    }
+    setTasks(prev => [newTask, ...prev])
+    setNewTaskTitle('')
+    setShowAddTask(false)
+  }
 
   const { insights } = useMemo(() => generateDeadlineInsights({
     deadlines: deadlines || [], applications: uniqueApps || [],
@@ -142,8 +162,6 @@ export default function AdmissionPlannerPage() {
     upcoming:  insights.filter(i=>i.date.getTime()>Date.now()&&i.status!=='Completed').length || 12,
     overdue:   insights.filter(i=>i.date.getTime()<Date.now()&&i.status!=='Completed').length || 2,
   }), [insights])
-
-  const toggleTask = (id: string) => setTasks(ts=>ts.map(t=>t.id===id?{...t,done:!t.done}:t))
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
@@ -267,7 +285,7 @@ export default function AdmissionPlannerPage() {
           <div className="bg-white border border-[#EAECF0] rounded-[16px] overflow-hidden" style={{boxShadow:'0 1px 4px rgba(0,0,0,0.04)'}}>
             <div className="flex items-center justify-between px-[20px] py-[14px] border-b border-[#EAECF0]">
               <p className="text-[14px] font-semibold text-[#111827]">My Tasks</p>
-              <button className="flex items-center gap-[4px] text-[12px] font-semibold text-[#374151] hover:text-[#4F6BFF] transition-colors">
+              <button onClick={() => setShowAddTask(true)} className="flex items-center gap-[4px] text-[12px] font-semibold text-[#374151] hover:text-[#4F6BFF] transition-colors">
                 <Plus size={13}/>Add Task
               </button>
             </div>
@@ -308,6 +326,39 @@ export default function AdmissionPlannerPage() {
           </div>
         </div>
 
+        {/* ── ADD TASK MODAL ── */}
+        <AnimatePresence>
+          {showAddTask && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-[16px]">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowAddTask(false)} className="absolute inset-0 bg-black/20 backdrop-blur-sm" />
+              <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="relative bg-white border border-[#EAECF0] rounded-[16px] p-[24px] w-full max-w-[400px] shadow-2xl z-10">
+                <div className="flex items-center justify-between mb-[16px]">
+                  <h3 className="text-[16px] font-semibold text-[#111827]">Add New Task</h3>
+                  <button onClick={() => setShowAddTask(false)} className="text-[#9CA3AF] hover:text-[#374151]"><X size={16} /></button>
+                </div>
+                <div className="flex flex-col gap-[14px]">
+                  <div>
+                    <label htmlFor="newTaskTitleInput" className="text-[12px] font-medium text-[#6B7280] block mb-[4px]">Task Title</label>
+                    <input id="newTaskTitleInput" type="text" value={newTaskTitle} onChange={e => setNewTaskTitle(e.target.value)} placeholder="e.g. Request recommendation letter" className="w-full h-[38px] px-[12px] bg-[#F9FAFB] border border-[#EAECF0] rounded-[8px] text-[13px] text-[#111827] focus:outline-none focus:border-[#4F6BFF]" />
+                  </div>
+                  <div>
+                    <label htmlFor="newTaskCategorySelect" className="text-[12px] font-medium text-[#6B7280] block mb-[4px]">Category</label>
+                    <select id="newTaskCategorySelect" value={newTaskCategory} onChange={e => setNewTaskCategory(e.target.value)} className="w-full h-[38px] px-[12px] bg-[#F9FAFB] border border-[#EAECF0] rounded-[8px] text-[13px] text-[#111827] focus:outline-none focus:border-[#4F6BFF]">
+                      <option value="Application">Application</option>
+                      <option value="Documents">Documents</option>
+                      <option value="Entrance Exam">Entrance Exam</option>
+                      <option value="Scholarship">Scholarship</option>
+                    </select>
+                  </div>
+                  <div className="flex justify-end gap-[8px] mt-[10px]">
+                    <button onClick={() => setShowAddTask(false)} className="px-[14px] h-[34px] border border-[#EAECF0] rounded-[8px] text-[12px] font-medium text-[#374151]">Cancel</button>
+                    <button onClick={handleAddTask} className="px-[16px] h-[34px] bg-[#4F6BFF] text-white rounded-[8px] text-[12px] font-semibold hover:bg-[#3D56E0]">Save Task</button>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </div>
     </ProtectedRoute>
   )
