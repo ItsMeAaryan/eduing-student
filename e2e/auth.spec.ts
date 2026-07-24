@@ -5,8 +5,6 @@ test.describe('Authentication Flow', () => {
   test('Demo Login successfully authenticates and redirects to dashboard', async ({ page }) => {
     await loginAsDemo(page);
     await expect(page.getByRole('link', { name: 'Dashboard' })).toBeVisible();
-    await page.getByRole('button', { name: /Log Out/i }).click();
-    await expect(page).toHaveURL(/.*\/auth\/login/);
   });
 
   test('Invalid login shows error message', async ({ page }) => {

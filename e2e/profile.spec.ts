@@ -9,12 +9,12 @@ test.describe('Student profile', () => {
   test('loads the profile page and displays Identity tab', async ({ page }) => {
     await page.goto('/student/profile')
     await expect(page.getByText('Profile Strength')).toBeVisible()
-    await expect(page.getByText('Identity')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Identity' })).toBeVisible()
   })
 
   test('Academic tab renders correctly', async ({ page }) => {
     await page.goto('/student/profile')
-    await page.getByText('Academic').click()
+    await page.getByRole('button', { name: 'Academic' }).click()
     await expect(page.locator('body')).not.toContainText(/application error/i)
   })
 })
