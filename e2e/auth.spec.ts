@@ -1,14 +1,10 @@
-import { test, expect, Page } from '@playwright/test';
-
+import { test, expect } from '@playwright/test';
 import { loginAsDemo } from './auth-helper';
+
 test.describe('Authentication Flow', () => {
   test('Demo Login successfully authenticates and redirects to dashboard', async ({ page }) => {
     await loginAsDemo(page);
-    
-    // Check if the dashboard rendered correctly (Home is selected in sidebar)
-    await expect(page.getByRole('link', { name: /Home/i })).toBeVisible();
-    
-    // Test logout
+    await expect(page.getByRole('link', { name: 'Dashboard' })).toBeVisible();
     await page.getByRole('button', { name: /Log Out/i }).click();
     await expect(page).toHaveURL(/.*\/auth\/login/);
   });
@@ -18,7 +14,6 @@ test.describe('Authentication Flow', () => {
     await page.getByLabel(/Email Address/i).fill('invalid@example.com');
     await page.getByLabel(/Password/i).fill('wrongpassword');
     await page.getByRole('button', { name: /Sign In/i }).click();
-    
     await expect(page.getByText(/Invalid email or password|error/i)).toBeVisible();
   });
 

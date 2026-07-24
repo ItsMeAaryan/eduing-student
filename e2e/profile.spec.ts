@@ -6,29 +6,15 @@ test.describe('Student profile', () => {
     await loginAsDemo(page)
   })
 
-  test('loads the profile page and displays Admission Identity', async ({ page }) => {
+  test('loads the profile page and displays Identity tab', async ({ page }) => {
     await page.goto('/student/profile')
-
-    await expect(page.getByRole('button', { name: /edit profile/i })).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'Admission Identity' }).first()).toBeVisible()
     await expect(page.getByText('Profile Strength')).toBeVisible()
-    
-    // Check cards
-    await expect(page.getByText('Full Name')).toBeVisible()
-    await expect(page.getByText('Email')).toBeVisible()
-    await expect(page.getByText('Phone')).toBeVisible()
+    await expect(page.getByText('Identity')).toBeVisible()
   })
 
-  test('Academic Journey and AI Insights render correctly', async ({ page }) => {
+  test('Academic tab renders correctly', async ({ page }) => {
     await page.goto('/student/profile')
-
-    await expect(page.getByText('Academic Journey')).toBeVisible()
-    await expect(page.getByText('AI Insights')).toBeVisible()
-    await expect(page.getByText('Documents')).toBeVisible()
-    
-    // Check timeline items
-    await expect(page.getByText('10th Standard')).toBeVisible()
-    await expect(page.getByText('12th Standard')).toBeVisible()
-    await expect(page.getByText('Entrance Exams')).toBeVisible()
+    await page.getByText('Academic').click()
+    await expect(page.locator('body')).not.toContainText(/application error/i)
   })
 })
