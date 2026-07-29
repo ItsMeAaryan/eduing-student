@@ -1,9 +1,61 @@
 import {
   collection, doc, query, where,
-  orderBy, onSnapshot
+  orderBy, onSnapshot, QuerySnapshot, DocumentData
 } from 'firebase/firestore'
 import { db } from './config'
 import { University } from '@/types/firebase'
+
+// ---------------------------------------------------------------------------
+// Firestore-native shape for the universities collection
+// ---------------------------------------------------------------------------
+export interface UniversityFirestore {
+  id: string
+  name: string
+  shortName: string
+  type: string
+  location: { city: string; state: string }
+  rankings: { nirfOverall: number }
+  approvalStatus: string
+  feesPerYear: number
+  totalSeats: number
+  about: string
+  logoUrl?: string
+  heroImageUrl?: string
+  tags?: string[]
+  naacGrade?: string
+  placementRate?: number
+  avgPackageLpa?: number
+  createdAt: any
+}
+
+// ---------------------------------------------------------------------------
+// Real-time subscription for all approved universities (used by page + hook)
+// ---------------------------------------------------------------------------
+export function subscribeToUniversities(
+  callback: (unis: UniversityFirestore[]) => void,
+  onError: (err: Error) => void
+) {
+  const q = query(
+    collection(db, 'universities'),
+    where('approvalStatus', '==', 'approved'),
+    orderBy('name')
+  )
+  return onSnapshot(
+    q,
+    (snap: QuerySnapshot<DocumentData>) => {
+      const unis = snap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as UniversityFirestore[]
+      callback(unis)
+    },
+    onError
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Legacy helpers (kept for backward-compat – do not remove until migrated)
+// ---------------------------------------------------------------------------
 
 // Get filtered universities (real-time)
 export function listenUniversitiesFiltered(

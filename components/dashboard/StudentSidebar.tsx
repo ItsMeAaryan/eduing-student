@@ -11,6 +11,9 @@ import {
 import { logoutUser } from "@/lib/firebase/auth";
 import { useStudentData } from "@/components/providers/StudentDataProvider";
 import Image from "next/image";
+import UserAccountMenu from "./UserAccountMenu";
+import LogoutConfirmModal from "./LogoutConfirmModal";
+import { useToast } from "@/hooks/useToast";
 
 const NAV = {
   "MAIN MENU": [
@@ -45,26 +48,21 @@ export default function StudentSidebar({
   const pathname = usePathname();
   const router   = useRouter();
   const { profile } = useStudentData();
+  const { toast } = useToast();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [logoutConfirm, setLogoutConfirm] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
-    try { await logoutUser(); router.push("/auth/login"); }
-    catch {}
-  };
-
-  // Close dropdown on outside click
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false);
-        setLogoutConfirm(false);
-      }
+    try { 
+      setIsLoggingOut(true);
+      await logoutUser(); 
+      toast.success('Successfully logged out.');
+      router.push("/auth/login"); 
+    } catch {
+      setIsLoggingOut(false);
     }
-    if (menuOpen) document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [menuOpen]);
+  };
 
   return (
     <>
@@ -136,107 +134,79 @@ export default function StudentSidebar({
 
         {/* ── ACCOUNT SECTION ── */}
         {!isCollapsed && (
-          <div className="px-[12px] pb-[20px] shrink-0 relative" ref={menuRef}>
-
-            {/* Dropdown menu — appears above the account card */}
-            {menuOpen && (
-              <div className="absolute bottom-[calc(100%-8px)] left-[12px] right-[12px] bg-white border border-[#EAECF0] rounded-[12px] shadow-[0_8px_24px_rgba(0,0,0,0.08)] overflow-hidden z-50 mb-[8px]">
-                <Link
-                  href="/student/profile"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-[10px] px-[14px] h-[40px] text-[13px] font-medium text-[#374151] hover:bg-[#F9FAFB] transition-colors"
-                >
-                  <User size={14} strokeWidth={1.8} className="text-[#6B7280]" />
-                  My Profile
-                </Link>
-                <Link
-                  href="/student/settings"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-[10px] px-[14px] h-[40px] text-[13px] font-medium text-[#374151] hover:bg-[#F9FAFB] transition-colors"
-                >
-                  <Settings size={14} strokeWidth={1.8} className="text-[#6B7280]" />
-                  Settings
-                </Link>
-                <div className="h-px bg-[#F3F4F6] mx-[10px]" />
-                {/* Logout with inline confirmation */}
-                {logoutConfirm ? (
-                  <div className="px-[14px] py-[10px] flex flex-col gap-[6px]">
-                    <p className="text-[12px] text-[#374151] font-medium">Are you sure?</p>
-                    <div className="flex items-center gap-[6px]">
-                      <button
-                        onClick={() => { setLogoutConfirm(false); setMenuOpen(false); handleLogout(); }}
-                        className="flex-1 h-[28px] rounded-[6px] bg-[#EF4444] text-white text-[11px] font-semibold hover:bg-[#DC2626] transition-colors"
-                      >
-                        Yes, log out
-                      </button>
-                      <button
-                        onClick={() => setLogoutConfirm(false)}
-                        className="flex-1 h-[28px] rounded-[6px] border border-[#EAECF0] text-[11px] font-medium text-[#374151] hover:bg-[#F9FAFB] transition-colors"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => setLogoutConfirm(true)}
-                    className="w-full flex items-center gap-[10px] px-[14px] h-[40px] text-[13px] font-medium text-[#EF4444] hover:bg-[#FEF2F2] transition-colors text-left"
-                  >
-                    <LogOut size={14} strokeWidth={1.8} />
-                    Log Out
-                  </button>
-                )}
-              </div>
-            )}
+          <div className="px-[12px] pb-[20px] shrink-0 relative">
+            
+            <UserAccountMenu 
+              isOpen={menuOpen} 
+              onClose={() => setMenuOpen(false)} 
+              onLogoutClick={() => setLogoutConfirmOpen(true)}
+              profile={profile}
+            />
 
             {/* Account card */}
-            <div className="flex items-center gap-[10px] p-[10px] rounded-[10px] border border-[#EAECF0] bg-white hover:bg-[#F9FAFB] transition-colors cursor-pointer">
-              <Link href="/student/profile" className="shrink-0" onClick={() => setMenuOpen(false)}>
+            <button 
+              onClick={() => setMenuOpen(prev => !prev)}
+              className="w-full flex items-center gap-[10px] p-[10px] rounded-[10px] border border-[#EAECF0] bg-white hover:bg-[#F9FAFB] hover:shadow-sm transition-all duration-180 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <div className="shrink-0">
                 <div className="w-[34px] h-[34px] rounded-full bg-[#EEF2FF] flex items-center justify-center overflow-hidden relative">
                   {profile?.profilePhotoURL
                     ? <Image src={profile.profilePhotoURL} alt="Avatar" fill className="object-cover" />
                     : <User size={15} strokeWidth={1.8} className="text-[#4F6BFF]" />
                   }
                 </div>
-              </Link>
+              </div>
 
-              <Link href="/student/profile" className="flex-1 min-w-0 flex flex-col justify-center" onClick={() => setMenuOpen(false)}>
+              <div className="flex-1 min-w-0 flex flex-col justify-center">
                 <div className="text-[13px] font-semibold text-[#111827] truncate leading-snug">
                   {profile?.fullName || profile?.firstName || "Student"}
                 </div>
                 <div className="text-[11px] text-[#9CA3AF] truncate leading-snug">
                   {(profile as any)?.email ?? "student@eduing.in"}
                 </div>
-              </Link>
+              </div>
 
-              <button
-                onClick={(e) => { e.stopPropagation(); setMenuOpen(prev => !prev); setLogoutConfirm(false); }}
-                className="shrink-0 text-[#9CA3AF] hover:text-[#374151] transition-colors p-[2px]"
-                aria-label="Account menu"
-              >
+              <div className="shrink-0 text-[#9CA3AF] hover:text-[#374151] transition-colors p-[2px]">
                 <ChevronsUpDown size={14} strokeWidth={1.8} />
-              </button>
-            </div>
+              </div>
+            </button>
           </div>
         )}
 
         {/* Collapsed account avatar */}
         {isCollapsed && (
-          <div className="px-[12px] pb-[20px] shrink-0 flex justify-center">
-            <Link href="/student/profile" title="My Profile">
-              <div className="w-[34px] h-[34px] rounded-full bg-[#EEF2FF] flex items-center justify-center overflow-hidden relative">
-                {profile?.profilePhotoURL
-                  ? <Image src={profile.profilePhotoURL} alt="Avatar" fill className="object-cover" />
-                  : <User size={15} strokeWidth={1.8} className="text-[#4F6BFF]" />
-                }
-              </div>
-            </Link>
+          <div className="px-[12px] pb-[20px] shrink-0 flex justify-center relative">
+            <UserAccountMenu 
+              isOpen={menuOpen} 
+              onClose={() => setMenuOpen(false)} 
+              onLogoutClick={() => setLogoutConfirmOpen(true)}
+              profile={profile}
+            />
+            <button 
+              onClick={() => setMenuOpen(prev => !prev)}
+              className="w-[34px] h-[34px] rounded-full bg-[#EEF2FF] flex items-center justify-center overflow-hidden relative cursor-pointer hover:shadow-sm transition-all duration-180 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              title="Account Menu"
+              aria-label="Account Menu"
+            >
+              {profile?.profilePhotoURL
+                ? <Image src={profile.profilePhotoURL} alt="Avatar" fill className="object-cover" />
+                : <User size={15} strokeWidth={1.8} className="text-[#4F6BFF]" />
+              }
+            </button>
           </div>
         )}
       </aside>
 
+      {/* Logout Modal */}
+      <LogoutConfirmModal 
+        isOpen={logoutConfirmOpen}
+        onClose={() => setLogoutConfirmOpen(false)}
+        onConfirm={handleLogout}
+        isLoggingOut={isLoggingOut}
+      />
+
       {/* ─── Mobile Bottom Navigation ────────────────────── */}
-      <MobileBottomNav pathname={pathname} />
+      <MobileBottomNav pathname={pathname} setMenuOpen={setMenuOpen} />
     </>
   );
 }
@@ -250,12 +220,33 @@ const MOBILE_NAV = [
   { label: "Profile", href: "/student/profile",      icon: User            },
 ];
 
-function MobileBottomNav({ pathname }: { pathname: string }) {
+function MobileBottomNav({ pathname, setMenuOpen }: { pathname: string, setMenuOpen: (v: boolean) => void }) {
   return (
     <nav className="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-white border-t border-[#EAECF0] flex items-stretch h-[60px] safe-area-inset-bottom">
       {MOBILE_NAV.map(item => {
         const active = pathname === item.href || pathname.startsWith(item.href + "/");
         const Icon = item.icon;
+        
+        if (item.label === "Profile") {
+          return (
+            <button
+              key={item.label}
+              onClick={() => setMenuOpen(true)}
+              className="flex-1 flex flex-col items-center justify-center gap-[3px] transition-colors"
+              aria-label="Account menu"
+            >
+              <Icon
+                size={20}
+                strokeWidth={1.7}
+                className="transition-colors text-[#9CA3AF]"
+              />
+              <span className="text-[10px] font-semibold text-[#9CA3AF]">
+                Menu
+              </span>
+            </button>
+          )
+        }
+
         return (
           <Link
             key={item.href}

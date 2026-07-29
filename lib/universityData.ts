@@ -1,3 +1,7 @@
+// DEPRECATED: This file contains hardcoded data.
+// All new code should use hooks/useUniversities instead.
+// This file will be removed once all components are migrated.
+
 export interface University {
   id: string; name: string; shortName: string; location: string; state: string; country: string;
   type: 'Public' | 'Private' | 'Deemed'; established: number; category: string;

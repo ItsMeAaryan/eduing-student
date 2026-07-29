@@ -1,7 +1,7 @@
 'use client'
 import { createContext, useContext, useEffect, useState } from 'react'
 import { onAuthStateChanged } from 'firebase/auth'
-import { collection, query, where, onSnapshot, doc, getDocs } from 'firebase/firestore'
+import { collection, query, where, onSnapshot, doc } from 'firebase/firestore'
 import { auth, db } from '@/lib/firebase/config'
 import { useRouter } from 'next/navigation'
 import { calculateProfileStrength } from '@/lib/utils/profileStrength'
@@ -99,16 +99,28 @@ export function StudentDataProvider({ children }: { children: React.ReactNode })
         (err) => console.error('Payments error:', err)
       )
 
-      // Global Data (Universities & Scholarships)
-      getDocs(collection(db, 'universities')).then(snap => {
-        setUniversities(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      }).catch(err => console.error('Universities error:', err));
-      
-      getDocs(collection(db, 'scholarships')).then(snap => {
-        setScholarships(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      }).catch(err => console.error('Scholarships error:', err));
+      // Universities – real-time from Firestore (approved only)
+      const unsubUnis = onSnapshot(
+        query(
+          collection(db, 'universities'),
+          where('approvalStatus', '==', 'approved')
+        ),
+        (snap) => {
+          setUniversities(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+        },
+        (err) => console.error('Universities error:', err)
+      )
 
-      return () => { unsubProfile(); unsubApps1(); unsubApps2(); unsubNotifs(); unsubPayments() }
+      // Scholarships – real-time from Firestore
+      const unsubScholarships = onSnapshot(
+        collection(db, 'scholarships'),
+        (snap) => {
+          setScholarships(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+        },
+        (err) => console.error('Scholarships error:', err)
+      )
+
+      return () => { unsubProfile(); unsubApps1(); unsubApps2(); unsubNotifs(); unsubPayments(); unsubUnis(); unsubScholarships() }
     })
     return unsub
   }, [router])
