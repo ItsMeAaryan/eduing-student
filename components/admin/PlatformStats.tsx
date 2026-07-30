@@ -27,7 +27,7 @@ export default function PlatformStats({ data }: Props) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
       {stats.map((stat, index) => (
-        <div key={index} className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 hover:bg-white/5 transition-colors">
+        <div key={index} className="bg-card/[0.02] border border-white/5 rounded-2xl p-4 hover:bg-card/5 transition-colors">
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${stat.bg} ${stat.color}`}>
             <stat.icon size={20} />
           </div>

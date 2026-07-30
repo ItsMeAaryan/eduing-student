@@ -77,7 +77,7 @@ export default function PlatformAnalytics({ applications, universities, students
     <div className="space-y-6 animate-in fade-in">
       
       {/* Line Chart */}
-      <div className="bg-white/[0.02] border border-white/5 p-6 rounded-3xl">
+      <div className="bg-card/[0.02] border border-white/5 p-6 rounded-3xl">
         <h3 className="text-lg font-bold text-white mb-6">Platform Application Trends (YTD)</h3>
         <div className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
@@ -98,7 +98,7 @@ export default function PlatformAnalytics({ applications, universities, students
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* Bar Chart 1 */}
-        <div className="bg-white/[0.02] border border-white/5 p-6 rounded-3xl">
+        <div className="bg-card/[0.02] border border-white/5 p-6 rounded-3xl">
           <h3 className="text-lg font-bold text-white mb-6">Most Popular Universities</h3>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -118,7 +118,7 @@ export default function PlatformAnalytics({ applications, universities, students
         </div>
 
         {/* Bar Chart 2 */}
-        <div className="bg-white/[0.02] border border-white/5 p-6 rounded-3xl">
+        <div className="bg-card/[0.02] border border-white/5 p-6 rounded-3xl">
           <h3 className="text-lg font-bold text-white mb-6">Student Distribution by State</h3>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">

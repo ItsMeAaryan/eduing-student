@@ -16,7 +16,7 @@ export default function StudentsTable({ students }: Props) {
   );
 
   return (
-    <div className="bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden flex flex-col h-[600px] animate-in fade-in">
+    <div className="bg-card/[0.02] border border-white/5 rounded-3xl overflow-hidden flex flex-col h-[600px] animate-in fade-in">
       
       {/* Toolbar */}
       <div className="p-5 border-b border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4 bg-black/20">
@@ -27,11 +27,11 @@ export default function StudentsTable({ students }: Props) {
             placeholder="Search students by name or email..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-red-500/50 transition-colors"
+            className="w-full bg-card/5 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-red-500/50 transition-colors"
           />
         </div>
         
-        <button className="flex items-center px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-xl text-sm font-medium transition-colors border border-white/10">
+        <button className="flex items-center px-4 py-2 bg-card/5 hover:bg-card/10 text-white rounded-xl text-sm font-medium transition-colors border border-white/10">
           <Filter size={16} className="mr-2" /> Filters
         </button>
       </div>
@@ -40,7 +40,7 @@ export default function StudentsTable({ students }: Props) {
       <div className="flex-grow overflow-auto custom-scrollbar">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-white/5 text-xs uppercase tracking-wider text-textSecondary bg-white/[0.01] sticky top-0 backdrop-blur-md z-10">
+            <tr className="border-b border-white/5 text-xs uppercase tracking-wider text-textSecondary bg-card/[0.01] sticky top-0 backdrop-blur-md z-10">
               <th className="p-4 font-semibold">Student</th>
               <th className="p-4 font-semibold">Location</th>
               <th className="p-4 font-semibold hidden md:table-cell">Profile Status</th>
@@ -56,7 +56,7 @@ export default function StudentsTable({ students }: Props) {
               </tr>
             ) : (
               filtered.map((student) => (
-                <tr key={student.uid} className="hover:bg-white/[0.02] transition-colors group">
+                <tr key={student.uid} className="hover:bg-card/[0.02] transition-colors group">
                   <td className="p-4">
                     <div className="flex items-center">
                       <div className="w-10 h-10 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold mr-3 border border-blue-500/30">
@@ -84,7 +84,7 @@ export default function StudentsTable({ students }: Props) {
                   </td>
                   <td className="p-4 text-right">
                     <button 
-                      className="inline-flex p-2 bg-white/5 hover:bg-white/10 text-white rounded-lg transition-colors border border-white/5"
+                      className="inline-flex p-2 bg-card/5 hover:bg-card/10 text-white rounded-lg transition-colors border border-white/5"
                       title="View Student Info"
                     >
                       <Eye size={16} />

@@ -65,7 +65,7 @@ export default function PendingApprovals({ universities }: Props) {
 
   if (pendingUnis.length === 0) {
     return (
-      <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-8 text-center">
+      <div className="bg-card/[0.02] border border-white/5 rounded-3xl p-8 text-center">
         <div className="w-16 h-16 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
           <Check size={32} />
         </div>
@@ -99,7 +99,7 @@ export default function PendingApprovals({ universities }: Props) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {pendingUnis.map((uni) => (
-          <div key={uni.uid} className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 relative overflow-hidden">
+          <div key={uni.uid} className="bg-card/[0.02] border border-white/5 rounded-2xl p-6 relative overflow-hidden">
             
             {/* Header */}
             <div className="flex items-start justify-between mb-4">
@@ -169,7 +169,7 @@ export default function PendingApprovals({ universities }: Props) {
                   <div className="flex gap-2 shrink-0">
                     <button 
                       onClick={() => setRejectingId(null)}
-                      className="flex-1 py-2 text-xs font-medium text-textSecondary bg-white/5 rounded-lg hover:bg-white/10"
+                      className="flex-1 py-2 text-xs font-medium text-textSecondary bg-card/5 rounded-lg hover:bg-card/10"
                     >
                       Cancel
                     </button>

@@ -63,7 +63,7 @@ export default function SuperAdminSidebar({ activeTab, setActiveTab }: Props) {
               className={`w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                 isActive 
                   ? "bg-red-500/10 text-red-400 border border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)]" 
-                  : "text-textSecondary hover:bg-white/5 hover:text-white border border-transparent"
+                  : "text-textSecondary hover:bg-card/5 hover:text-white border border-transparent"
               }`}
             >
               <item.icon size={18} className="mr-3 shrink-0" />
@@ -77,7 +77,7 @@ export default function SuperAdminSidebar({ activeTab, setActiveTab }: Props) {
       <div className="pt-4 mt-4 border-t border-white/10">
         <button 
           onClick={handleLogout}
-          className="flex items-center w-full px-4 py-3 rounded-xl text-sm font-medium text-textSecondary hover:bg-white/5 hover:text-white transition-colors border border-transparent"
+          className="flex items-center w-full px-4 py-3 rounded-xl text-sm font-medium text-textSecondary hover:bg-card/5 hover:text-white transition-colors border border-transparent"
         >
           <LogOut size={18} className="mr-3" />
           Logout
