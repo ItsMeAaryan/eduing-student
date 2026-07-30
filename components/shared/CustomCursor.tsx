@@ -69,7 +69,7 @@ export default function CustomCursor() {
       {/* Small Dot */}
       <div
         ref={dotRef}
-        className="fixed top-0 left-0 pointer-events-none z-[10000] w-[6px] h-[6px] bg-white rounded-full -translate-x-1/2 -translate-y-1/2 hidden md:block"
+        className="fixed top-0 left-0 pointer-events-none z-[10000] w-[6px] h-[6px] bg-card rounded-full -translate-x-1/2 -translate-y-1/2 hidden md:block"
       />
     </>
   );

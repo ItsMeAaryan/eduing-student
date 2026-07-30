@@ -56,7 +56,7 @@ export default function AuthContainer({ children }: AuthContainerProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-              className="absolute top-[80px] left-[20px] w-[380px] bg-white/[0.02] border border-white/[0.06] rounded-[24px] p-8 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)] backdrop-blur-xl z-20"
+              className="absolute top-[80px] left-[20px] w-[380px] bg-card/[0.02] border border-white/[0.06] rounded-[24px] p-8 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)] backdrop-blur-xl z-20"
             >
               <div className="flex justify-between items-center mb-8">
                 <h3 className="font-display font-[700] text-white/90 text-[18px]">Application Progress</h3>
@@ -65,7 +65,7 @@ export default function AuthContainer({ children }: AuthContainerProps) {
                 </span>
               </div>
               
-              <div className="space-y-6 relative before:absolute before:inset-y-2 before:left-[11px] before:w-[2px] before:bg-white/5">
+              <div className="space-y-6 relative before:absolute before:inset-y-2 before:left-[11px] before:w-[2px] before:bg-card/5">
                 {[
                   { title: "Profile Completion", date: "Verified", active: true },
                   { title: "Academic Records", date: "Verified", active: true },
@@ -91,7 +91,7 @@ export default function AuthContainer({ children }: AuthContainerProps) {
               transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
               className="absolute top-[280px] right-[20px] w-[340px] bg-gradient-to-br from-[#111116] to-[#0A0A0E] border border-white/[0.08] rounded-[24px] p-6 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] z-30"
             >
-              <div className="w-12 h-12 rounded-[16px] bg-white/5 flex items-center justify-center mb-5 border border-white/10">
+              <div className="w-12 h-12 rounded-[16px] bg-card/5 flex items-center justify-center mb-5 border border-white/10">
                 <FileText className="text-white/70" size={20} />
               </div>
               <h4 className="font-display font-[700] text-[16px] text-white/90 mb-1">Offer Letter Received</h4>
@@ -110,7 +110,7 @@ export default function AuthContainer({ children }: AuthContainerProps) {
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-              className="absolute bottom-[60px] left-[100px] bg-white/[0.03] border border-white/[0.06] rounded-[20px] py-4 px-6 shadow-xl backdrop-blur-md z-40 flex items-center gap-4"
+              className="absolute bottom-[60px] left-[100px] bg-card/[0.03] border border-white/[0.06] rounded-[20px] py-4 px-6 shadow-xl backdrop-blur-md z-40 flex items-center gap-4"
             >
               <ShieldCheck className="text-emerald-400" size={24} />
               <div>
@@ -147,7 +147,7 @@ export default function AuthContainer({ children }: AuthContainerProps) {
           
           {/* Segmented Control */}
           {(isLogin || isRegister) && (
-            <div className="mb-8 w-full max-w-[220px] bg-white/[0.02] p-1 rounded-full flex relative border border-white/[0.05] shadow-inner">
+            <div className="mb-8 w-full max-w-[220px] bg-card/[0.02] p-1 rounded-full flex relative border border-white/[0.05] shadow-inner">
               <Link 
                 href="/auth/login" 
                 className={`flex-1 text-center py-2 rounded-full text-[12px] font-display font-medium transition-colors z-10 ${isLogin ? 'text-white' : 'text-white/40 hover:text-white/70'}`}

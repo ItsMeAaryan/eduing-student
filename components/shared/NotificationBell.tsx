@@ -84,7 +84,7 @@ export default function NotificationBell() {
       {/* Bell Trigger */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 text-textSecondary hover:text-white hover:bg-white/5 rounded-full transition-colors"
+        className="relative p-2 text-textSecondary hover:text-white hover:bg-card/5 rounded-full transition-colors"
       >
         <Bell size={20} />
         {unreadCount > 0 && (
@@ -109,7 +109,7 @@ export default function NotificationBell() {
               className="relative w-full max-w-sm h-full bg-background border-l border-white/10 shadow-2xl flex flex-col z-10"
             >
               {/* Header */}
-              <div className="flex items-center justify-between p-4 border-b border-white/10 bg-white/[0.02]">
+              <div className="flex items-center justify-between p-4 border-b border-white/10 bg-card/[0.02]">
                 <h2 className="text-lg font-bold text-white flex items-center">
                   Notifications
                   {unreadCount > 0 && <span className="ml-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{unreadCount} New</span>}
@@ -141,8 +141,8 @@ export default function NotificationBell() {
                       onKeyDown={(e) => { if (!notif.isRead && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); handleMarkAsRead(notif.id); } }}
                       className={`mb-2 p-4 rounded-xl border transition-colors cursor-pointer relative overflow-hidden group ${
                         notif.isRead 
-                          ? "bg-transparent border-transparent hover:bg-white/5" 
-                          : "bg-white/[0.04] border-white/10 hover:border-white/20"
+                          ? "bg-transparent border-transparent hover:bg-card/5" 
+                          : "bg-card/[0.04] border-white/10 hover:border-white/20"
                       }`}
                     >
                       {!notif.isRead && (

@@ -36,7 +36,7 @@ const Cursor = () => {
     <>
       {/* Small Dot */}
       <motion.div
-        className="fixed top-0 left-0 w-2 h-2 bg-white rounded-full z-[9999] pointer-events-none mix-blend-difference"
+        className="fixed top-0 left-0 w-2 h-2 bg-card rounded-full z-[9999] pointer-events-none mix-blend-difference"
         style={{
           x: mouseX,
           y: mouseY,
