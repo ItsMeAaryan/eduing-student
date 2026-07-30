@@ -6,13 +6,7 @@ import { Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react'
 import { signInWithEmailAndPassword } from 'firebase/auth'
 import { doc, getDoc } from 'firebase/firestore'
 import { auth, db } from '@/lib/firebase/config'
-import { useAuth } from '@/hooks/useAuth'
 
-const DEMO_USER = {
-  email: 'aaryan.student@eduing.in',
-  password: 'demo123',
-  name: 'Aaryan Sharma',
-}
 
 export default function LoginForm() {
   const router = useRouter()
@@ -21,12 +15,6 @@ export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-
-  function fillDemo() {
-    setEmail(DEMO_USER.email)
-    setPassword(DEMO_USER.password)
-    setError('')
-  }
 
   async function handleLogin(e?: React.FormEvent) {
     if (e) e.preventDefault()
@@ -53,7 +41,7 @@ export default function LoginForm() {
     }
   }
 
-  const inputClasses = "w-full bg-white/[0.02] border border-white/10 rounded-[12px] px-4 h-[56px] text-[14px] text-white focus:border-brand-indigo focus:bg-brand-indigo/5 focus:ring-4 focus:ring-brand-indigo/10 outline-none transition-all duration-200 placeholder:text-white/30"
+  const inputClasses = "w-full bg-card/[0.02] border border-white/10 rounded-[12px] px-4 h-[56px] text-[14px] text-white focus:border-brand-indigo focus:bg-brand-indigo/5 focus:ring-4 focus:ring-brand-indigo/10 outline-none transition-all duration-200 placeholder:text-white/30"
   const labelClasses = "block font-sans text-[13px] font-medium text-white/70 mb-2"
 
   return (
@@ -131,16 +119,6 @@ export default function LoginForm() {
           {loading ? <Loader2 className="animate-spin text-white" size={18} /> : <span>Sign In</span>}
         </button>
       </form>
-
-      <div className="mt-5">
-        <button
-          type="button"
-          onClick={fillDemo}
-          className="w-full font-display font-medium text-[14px] flex items-center justify-center h-[56px] bg-transparent border border-white/10 hover:bg-white/[0.03] hover:border-white/20 rounded-[14px] transition-all text-white/70 hover:text-white"
-        >
-          Try Demo Account
-        </button>
-      </div>
     </div>
   )
 }
