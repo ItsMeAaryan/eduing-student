@@ -43,29 +43,29 @@ export default function DocPreviewPanel({ doc, onClose }: { doc: Doc; onClose: (
   return (
     <motion.div initial={{ x:'100%' }} animate={{ x:0 }} exit={{ x:'100%' }}
       transition={{ type:'spring', damping:28, stiffness:220 }}
-      className="fixed top-0 right-0 bottom-0 w-[400px] bg-white dark:bg-slate-900 border-l border-[#EAECF0] dark:border-slate-800 z-50 flex flex-col shadow-2xl transition-colors">
+      className="fixed top-0 right-0 bottom-0 w-[400px] bg-card dark:bg-slate-900 border-l border-border dark:border-slate-800 z-50 flex flex-col shadow-2xl transition-colors">
 
       {/* Header */}
-      <div className="flex items-center justify-between px-[20px] py-[14px] border-b border-[#EAECF0] shrink-0">
+      <div className="flex items-center justify-between px-[20px] py-[14px] border-b border-border shrink-0">
         <div className="flex items-center gap-[10px]">
-          <div className="w-[34px] h-[34px] rounded-[8px] bg-[#EEF2FF] flex items-center justify-center shrink-0">
+          <div className="w-[34px] h-[34px] rounded-[8px] bg-primary/10 flex items-center justify-center shrink-0">
             <FileText size={15} className="text-[#4F6BFF]" />
           </div>
           <div>
-            <p className="text-[13px] font-semibold text-[#111827] truncate max-w-[240px]">{doc.name}</p>
-            <p className="text-[11px] text-[#9CA3AF]">{doc.size !== '—' ? doc.size : 'Not uploaded'} · {doc.category}</p>
+            <p className="text-[13px] font-semibold text-foreground truncate max-w-[240px]">{doc.name}</p>
+            <p className="text-[11px] text-muted-foreground">{doc.size !== '—' ? doc.size : 'Not uploaded'} · {doc.category}</p>
           </div>
         </div>
-        <button onClick={onClose} className="w-[28px] h-[28px] rounded-[6px] border border-[#EAECF0] flex items-center justify-center text-[#9CA3AF] hover:bg-[#F3F4F6] transition-colors">
+        <button onClick={onClose} className="w-[28px] h-[28px] rounded-[6px] border border-border flex items-center justify-center text-muted-foreground hover:bg-secondary transition-colors">
           <X size={14} />
         </button>
       </div>
 
       {/* Sub-tabs */}
-      <div className="flex border-b border-[#EAECF0] px-[16px] shrink-0 bg-[#F9FAFB]">
+      <div className="flex border-b border-border px-[16px] shrink-0 bg-muted">
         {(['preview','info','ai','ocr'] as Tab[]).map(t => (
           <button key={t} onClick={()=>setTab(t)}
-            className={`px-[14px] py-[10px] text-[12px] font-semibold capitalize transition-colors border-b-2 ${tab===t?'border-[#4F6BFF] text-[#4F6BFF]':'border-transparent text-[#6B7280] hover:text-[#374151]'}`}>
+            className={`px-[14px] py-[10px] text-[12px] font-semibold capitalize transition-colors border-b-2 ${tab===t?'border-[#4F6BFF] text-[#4F6BFF]':'border-transparent text-muted-foreground hover:text-foreground'}`}>
             {t==='ai'?'AI Analysis':t==='ocr'?'OCR Data':t.charAt(0).toUpperCase()+t.slice(1)}
           </button>
         ))}
@@ -83,20 +83,20 @@ export default function DocPreviewPanel({ doc, onClose }: { doc: Doc; onClose: (
                 <div className="text-center z-10">
                   <FileText size={48} className="text-[#A5B4FC] mx-auto mb-[8px]" />
                   <p className="text-[12px] font-medium text-[#6366F1]">Document Preview</p>
-                  {doc.status==='missing' && <p className="text-[11px] text-[#9CA3AF] mt-[4px]">Not yet uploaded</p>}
+                  {doc.status==='missing' && <p className="text-[11px] text-muted-foreground mt-[4px]">Not yet uploaded</p>}
                 </div>
                 {/* Toolbar overlay */}
                 <div className="absolute bottom-[10px] right-[10px] flex gap-[6px]">
                   {[ZoomIn, RotateCw, Eye].map((Icon,i)=>(
-                    <button key={i} className="w-[28px] h-[28px] rounded-[6px] bg-white/80 backdrop-blur-sm flex items-center justify-center text-[#374151] hover:bg-white shadow-sm transition-colors">
+                    <button key={i} className="w-[28px] h-[28px] rounded-[6px] bg-card/80 backdrop-blur-sm flex items-center justify-center text-foreground hover:bg-card shadow-sm transition-colors">
                       <Icon size={13}/>
                     </button>
                   ))}
                 </div>
               </div>
               {/* Status */}
-              <div className="flex items-center justify-between p-[12px] rounded-[10px] border border-[#EAECF0]">
-                <span className="text-[12px] text-[#6B7280]">Status</span>
+              <div className="flex items-center justify-between p-[12px] rounded-[10px] border border-border">
+                <span className="text-[12px] text-muted-foreground">Status</span>
                 <span className="flex items-center gap-[4px] px-[8px] h-[22px] rounded-full text-[11px] font-semibold" style={{color:s.color,background:s.bg}}>
                   {s.icon}{s.label}
                 </span>
@@ -104,8 +104,8 @@ export default function DocPreviewPanel({ doc, onClose }: { doc: Doc; onClose: (
               {/* Actions */}
               <div className="grid grid-cols-3 gap-[8px]">
                 {[{I:Download,l:'Download'},{I:Share2,l:'Share'},{I:RefreshCcw,l:'Replace'}].map(({I,l})=>(
-                  <button key={l} className="flex flex-col items-center gap-[4px] py-[10px] rounded-[10px] border border-[#EAECF0] text-[11px] font-medium text-[#374151] hover:bg-[#F9FAFB] transition-colors">
-                    <I size={15} className="text-[#6B7280]"/>{l}
+                  <button key={l} className="flex flex-col items-center gap-[4px] py-[10px] rounded-[10px] border border-border text-[11px] font-medium text-foreground hover:bg-muted transition-colors">
+                    <I size={15} className="text-muted-foreground"/>{l}
                   </button>
                 ))}
               </div>
@@ -128,8 +128,8 @@ export default function DocPreviewPanel({ doc, onClose }: { doc: Doc; onClose: (
               {doc.apps > 0 && (
                 <Section title={`Used In ${doc.apps} Applications`}>
                   {LINKED_APPS.slice(0, doc.apps).map(a=>(
-                    <div key={a.name} className="flex items-center justify-between py-[6px] border-b border-[#F3F4F6] last:border-0">
-                      <span className="text-[12px] text-[#374151]">{a.name}</span>
+                    <div key={a.name} className="flex items-center justify-between py-[6px] border-b border-border last:border-0">
+                      <span className="text-[12px] text-foreground">{a.name}</span>
                       <span className="flex items-center gap-[4px] px-[7px] h-[20px] rounded-full text-[10px] font-semibold" style={{color:STATUS[a.status].color,background:STATUS[a.status].bg}}>
                         {STATUS[a.status].label}
                       </span>
@@ -148,7 +148,7 @@ export default function DocPreviewPanel({ doc, onClose }: { doc: Doc; onClose: (
                 </div>
                 <div className="text-[40px] font-black leading-none mb-[4px]" style={{color:scoreColor}}>{doc.aiScore}%</div>
                 <div className="text-[13px] font-semibold mb-[12px]" style={{color:scoreColor}}>{scoreLabel}</div>
-                <div className="h-[4px] bg-white/10 rounded-full overflow-hidden">
+                <div className="h-[4px] bg-card/10 rounded-full overflow-hidden">
                   <motion.div className="h-full rounded-full" style={{background:scoreColor}}
                     initial={{width:0}} animate={{width:`${doc.aiScore}%`}} transition={{duration:1}} />
                 </div>
@@ -156,10 +156,10 @@ export default function DocPreviewPanel({ doc, onClose }: { doc: Doc; onClose: (
               {/* Checks */}
               <Section title="AI Verification Checks">
                 {AI_CHECKS.map(c=>(
-                  <div key={c.label} className="flex items-center justify-between py-[6px] border-b border-[#F3F4F6] last:border-0">
+                  <div key={c.label} className="flex items-center justify-between py-[6px] border-b border-border last:border-0">
                     <div className="flex items-center gap-[6px]">
                       <Shield size={11} className={c.ok?'text-[#059669]':'text-[#DC2626]'}/>
-                      <span className="text-[12px] text-[#374151]">{c.label}</span>
+                      <span className="text-[12px] text-foreground">{c.label}</span>
                     </div>
                     <span className="text-[11px] font-semibold" style={{color:c.ok?'#059669':'#DC2626'}}>{c.value}</span>
                   </div>
@@ -176,23 +176,23 @@ export default function DocPreviewPanel({ doc, onClose }: { doc: Doc; onClose: (
 
             {tab==='ocr' && <>
               {doc.status==='verified' ? <>
-                <div className="flex items-center gap-[8px] px-[12px] py-[8px] rounded-[10px] bg-[#EEF2FF] border border-[#C7D2FE]">
+                <div className="flex items-center gap-[8px] px-[12px] py-[8px] rounded-[10px] bg-primary/10 border border-[#C7D2FE]">
                   <Sparkles size={13} className="text-[#4F6BFF]"/>
                   <span className="text-[12px] font-semibold text-[#4F6BFF]">OCR Extraction Complete · 98% accuracy</span>
                 </div>
                 <Section title="Extracted Fields">
                   {Object.entries(OCR_FIELDS).map(([k,v])=>(
-                    <div key={k} className="flex items-start justify-between py-[7px] border-b border-[#F3F4F6] last:border-0">
-                      <span className="text-[11px] text-[#9CA3AF] w-[110px] shrink-0">{k}</span>
-                      <span className="text-[12px] font-semibold text-[#111827] text-right">{v}</span>
+                    <div key={k} className="flex items-start justify-between py-[7px] border-b border-border last:border-0">
+                      <span className="text-[11px] text-muted-foreground w-[110px] shrink-0">{k}</span>
+                      <span className="text-[12px] font-semibold text-foreground text-right">{v}</span>
                     </div>
                   ))}
                 </Section>
               </> : (
                 <div className="flex flex-col items-center justify-center py-[40px] gap-[10px]">
                   <FileText size={36} className="text-[#D1D5DB]"/>
-                  <p className="text-[13px] font-medium text-[#374151]">OCR not available</p>
-                  <p className="text-[12px] text-[#9CA3AF] text-center">Document must be verified before OCR extraction is shown.</p>
+                  <p className="text-[13px] font-medium text-foreground">OCR not available</p>
+                  <p className="text-[12px] text-muted-foreground text-center">Document must be verified before OCR extraction is shown.</p>
                 </div>
               )}
             </>}
@@ -206,8 +206,8 @@ export default function DocPreviewPanel({ doc, onClose }: { doc: Doc; onClose: (
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="bg-[#F9FAFB] rounded-[12px] p-[14px]">
-      <p className="text-[12px] font-semibold text-[#111827] mb-[10px]">{title}</p>
+    <div className="bg-muted rounded-[12px] p-[14px]">
+      <p className="text-[12px] font-semibold text-foreground mb-[10px]">{title}</p>
       {children}
     </div>
   )
@@ -215,9 +215,9 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between py-[5px] border-b border-[#F3F4F6] last:border-0">
-      <span className="text-[11px] text-[#9CA3AF]">{label}</span>
-      <span className="text-[12px] font-semibold text-[#374151] text-right max-w-[200px] truncate">{value}</span>
+    <div className="flex items-center justify-between py-[5px] border-b border-border last:border-0">
+      <span className="text-[11px] text-muted-foreground">{label}</span>
+      <span className="text-[12px] font-semibold text-foreground text-right max-w-[200px] truncate">{value}</span>
     </div>
   )
 }

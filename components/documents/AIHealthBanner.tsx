@@ -78,7 +78,7 @@ export default function AIHealthBanner({ verified, pending, missing, total }: Pr
               <AlertTriangle size={13}/>Review Missing
             </button>
           )}
-          <button className="flex items-center gap-[6px] px-[16px] h-[36px] rounded-[10px] text-[13px] font-semibold text-[#111827] bg-white hover:bg-[#F9FAFB] transition-colors">
+          <button className="flex items-center gap-[6px] px-[16px] h-[36px] rounded-[10px] text-[13px] font-semibold text-foreground bg-card hover:bg-muted transition-colors">
             <Upload size={13}/>Upload Now<ChevronRight size={12}/>
           </button>
         </div>
