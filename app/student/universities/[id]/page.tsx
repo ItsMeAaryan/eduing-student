@@ -134,14 +134,14 @@ export default function PremiumUniversityDetailPage() {
                       <ShieldCheck size={14} strokeWidth={1.8} /> Verified Partner
                     </div>
                   )}
-                  <div className="bg-white/10 backdrop-blur-md border border-white/10 px-16 py-8 rounded-full flex items-center gap-8 text-white">
+                  <div className="bg-card/10 backdrop-blur-md border border-white/10 px-16 py-8 rounded-full flex items-center gap-8 text-white">
                     <Star size={14} strokeWidth={1.8} className="text-amber-400 fill-amber-400" />
                     <span className="text-caption font-bold">{university.rating || '4.5'} Rating</span>
                   </div>
-                  <div className="bg-white/10 backdrop-blur-md border border-white/10 px-16 py-8 rounded-full text-caption font-bold text-white">
+                  <div className="bg-card/10 backdrop-blur-md border border-white/10 px-16 py-8 rounded-full text-caption font-bold text-white">
                     NAAC {university.naacGrade || 'A++'}
                   </div>
-                  <div className="bg-white/10 backdrop-blur-md border border-white/10 px-16 py-8 rounded-full text-caption font-bold text-white">
+                  <div className="bg-card/10 backdrop-blur-md border border-white/10 px-16 py-8 rounded-full text-caption font-bold text-white">
                     {university.type || 'Private'} Institution
                   </div>
                 </div>
@@ -156,10 +156,10 @@ export default function PremiumUniversityDetailPage() {
               </div>
               
               <div className="flex items-center gap-16 shrink-0">
-                <button className="w-[48px] h-[48px] rounded-full bg-white/10 backdrop-blur-md border border-white/10 flex items-center justify-center hover:bg-white/20 transition-colors text-white">
+                <button className="w-[48px] h-[48px] rounded-full bg-card/10 backdrop-blur-md border border-white/10 flex items-center justify-center hover:bg-card/20 transition-colors text-white">
                   <Share size={18} strokeWidth={1.8} />
                 </button>
-                <button className="w-[48px] h-[48px] rounded-full bg-white/10 backdrop-blur-md border border-white/10 flex items-center justify-center hover:bg-white/20 transition-colors text-white">
+                <button className="w-[48px] h-[48px] rounded-full bg-card/10 backdrop-blur-md border border-white/10 flex items-center justify-center hover:bg-card/20 transition-colors text-white">
                   <Bookmark size={18} strokeWidth={1.8} />
                 </button>
                 <Button 
@@ -321,7 +321,7 @@ export default function PremiumUniversityDetailPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-24 mb-24">
                 <div className="md:col-span-2 h-[320px] relative rounded-[32px] overflow-hidden bg-hover group cursor-pointer">
                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-10 group-hover:bg-black/20 transition-colors">
-                     <div className="w-[64px] h-[64px] bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white">
+                     <div className="w-[64px] h-[64px] bg-card/20 backdrop-blur-md rounded-full flex items-center justify-center text-white">
                        <Video size={24} strokeWidth={1.8} className="ml-4" />
                      </div>
                    </div>
