@@ -4,17 +4,15 @@ import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import Logo from '@/components/Logo'
-import { 
-  User, 
-  GraduationCap, 
-  ClipboardList, 
-  FileUp, 
-  CheckCircle2, 
-  Wand2, 
-  ArrowRight, 
-  ArrowLeft 
+import {
+  User,
+  GraduationCap,
+  ClipboardList,
+  FileUp,
+  CheckCircle2,
+  ArrowRight,
+  ArrowLeft
 } from 'lucide-react'
-import { DEMO_STUDENT } from '@/lib/demo'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { db, auth } from '@/lib/firebase/config'
@@ -48,33 +46,6 @@ export default function OnboardingPage() {
   })
   const router = useRouter()
   const { toast } = useToast()
-
-  const handleAutofill = () => {
-    const stepId = steps[currentStep].id
-    if (stepId === 'personal') {
-      setFormData({ ...formData, personal: { 
-        fullName: DEMO_STUDENT.fullName, 
-        dob: DEMO_STUDENT.dob, 
-        gender: DEMO_STUDENT.gender, 
-        phone: DEMO_STUDENT.phone, 
-        state: DEMO_STUDENT.state, 
-        city: DEMO_STUDENT.city, 
-        address: '123, Demo Street, Bengaluru' 
-      }})
-    } else if (stepId === 'academic') {
-      setFormData({ ...formData, academic: { 
-        school10: 'Demo Public School', board10: DEMO_STUDENT.tenthBoard, marks10: DEMO_STUDENT.tenthMarks, year10: DEMO_STUDENT.tenthYear,
-        school12: 'Demo Senior Secondary', board12: DEMO_STUDENT.twelfthBoard, marks12: DEMO_STUDENT.twelfthMarks, year12: DEMO_STUDENT.twelfthYear,
-        stream: DEMO_STUDENT.stream
-      }})
-    } else if (stepId === 'exams') {
-      setFormData({ ...formData, exams: { 
-        jeeMain: DEMO_STUDENT.entranceScores.JEE_Main, 
-        cuet: DEMO_STUDENT.entranceScores.CUET,
-        neet: '', bitSat: ''
-      }})
-    }
-  }
 
   const nextStep = async () => {
     if (currentStep < steps.length - 1) setCurrentStep(currentStep + 1)
@@ -150,15 +121,6 @@ export default function OnboardingPage() {
                     <H2 className="mb-4">{steps[currentStep].title} Information</H2>
                     <Small className="text-text-secondary">Please fill in your details to complete your profile.</Small>
                   </div>
-                  {currentStep < 3 && (
-                    <button 
-                      onClick={handleAutofill}
-                      className="flex items-center gap-8 px-12 py-[6px] rounded-[8px] bg-warning/10 border border-warning/30 text-warning text-[11px] font-bold hover:bg-warning/20 transition-all"
-                    >
-                      <Wand2 size={14} />
-                      🪄 Autofill
-                    </button>
-                  )}
                 </div>
 
                 {/* Step Content */}
