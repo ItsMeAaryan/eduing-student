@@ -72,7 +72,7 @@ function SearchModal({ onClose }: { onClose: () => void }) {
       <button
         type="button"
         aria-label="Close modal backdrop"
-        className="absolute inset-0 bg-black/20 backdrop-blur-sm border-0 cursor-default"
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm border-0 cursor-default"
         onClick={onClose}
       />
 
@@ -81,20 +81,20 @@ function SearchModal({ onClose }: { onClose: () => void }) {
         role="dialog"
         aria-modal="true"
         aria-label="Command palette search"
-        className="relative w-full max-w-[540px] bg-white border border-[#EAECF0] rounded-[16px] shadow-[0_20px_60px_rgba(0,0,0,0.12)] overflow-hidden"
+        className="relative w-full max-w-[540px] bg-card border border-border rounded-[16px] shadow-2xl overflow-hidden"
       >
         {/* Search input */}
-        <div className="flex items-center gap-[10px] px-[16px] py-[14px] border-b border-[#F3F4F6]">
-          <Search size={16} className="text-[#9CA3AF] shrink-0" strokeWidth={1.8} />
+        <div className="flex items-center gap-[10px] px-[16px] py-[14px] border-b border-border">
+          <Search size={16} className="text-muted-foreground shrink-0" strokeWidth={1.8} />
           <input
             ref={inputRef}
             type="text"
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search universities, applications, documents..."
-            className="flex-1 text-[14px] text-[#111827] placeholder:text-[#9CA3AF] outline-none bg-transparent"
+            className="flex-1 text-[14px] text-foreground placeholder:text-muted-foreground outline-none bg-transparent"
           />
-          <button onClick={onClose} className="text-[#9CA3AF] hover:text-[#6B7280] transition-colors" aria-label="Close search">
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors" aria-label="Close search">
             <X size={16} strokeWidth={1.8} />
           </button>
         </div>
@@ -102,10 +102,10 @@ function SearchModal({ onClose }: { onClose: () => void }) {
         {/* Results */}
         <div className="py-[8px] max-h-[320px] overflow-y-auto">
           {query.trim() && filtered.length === 0 ? (
-            <div className="py-[32px] text-center text-[13px] text-[#9CA3AF]">No results for &ldquo;{query}&rdquo;</div>
+            <div className="py-[32px] text-center text-[13px] text-muted-foreground">No results for &ldquo;{query}&rdquo;</div>
           ) : (
             <>
-              <p className="px-[16px] pt-[4px] pb-[8px] text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-[0.08em]">
+              <p className="px-[16px] pt-[4px] pb-[8px] text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.08em]">
                 {query.trim() ? "Results" : "Quick Navigation"}
               </p>
               {filtered.map(item => {
@@ -114,14 +114,14 @@ function SearchModal({ onClose }: { onClose: () => void }) {
                   <button
                     key={item.href}
                     onClick={() => handleSelect(item.href)}
-                    className="w-full flex items-center gap-[12px] px-[16px] py-[10px] hover:bg-[#F9FAFB] transition-colors text-left"
+                    className="w-full flex items-center gap-[12px] px-[16px] py-[10px] hover:bg-muted transition-colors text-left"
                   >
-                    <div className="w-[32px] h-[32px] rounded-[8px] bg-[#EEF2FF] flex items-center justify-center shrink-0">
-                      <Icon size={14} className="text-[#4F6BFF]" strokeWidth={1.8} />
+                    <div className="w-[32px] h-[32px] rounded-[8px] bg-primary/10 flex items-center justify-center shrink-0">
+                      <Icon size={14} className="text-primary" strokeWidth={1.8} />
                     </div>
                     <div>
-                      <p className="text-[13px] font-medium text-[#111827]">{item.label}</p>
-                      <p className="text-[11px] text-[#9CA3AF]">{item.desc}</p>
+                      <p className="text-[13px] font-medium text-foreground">{item.label}</p>
+                      <p className="text-[11px] text-muted-foreground">{item.desc}</p>
                     </div>
                   </button>
                 );
@@ -131,12 +131,12 @@ function SearchModal({ onClose }: { onClose: () => void }) {
         </div>
 
         {/* Footer hint */}
-        <div className="px-[16px] py-[10px] border-t border-[#F3F4F6] flex items-center gap-[16px]">
-          <span className="text-[11px] text-[#9CA3AF]">
-            <kbd className="px-[5px] py-[1px] rounded-[4px] bg-[#F3F4F6] text-[10px] font-medium">↵</kbd> to select
+        <div className="px-[16px] py-[10px] border-t border-border flex items-center gap-[16px]">
+          <span className="text-[11px] text-muted-foreground">
+            <kbd className="px-[5px] py-[1px] rounded-[4px] bg-muted text-[10px] font-medium">↵</kbd> to select
           </span>
-          <span className="text-[11px] text-[#9CA3AF]">
-            <kbd className="px-[5px] py-[1px] rounded-[4px] bg-[#F3F4F6] text-[10px] font-medium">Esc</kbd> to close
+          <span className="text-[11px] text-muted-foreground">
+            <kbd className="px-[5px] py-[1px] rounded-[4px] bg-muted text-[10px] font-medium">Esc</kbd> to close
           </span>
         </div>
       </div>
@@ -171,10 +171,10 @@ export default function StudentTopBar() {
 
   return (
     <>
-      <header className="sticky top-0 z-30 h-[72px] bg-white dark:bg-slate-900 border-b border-[#EAECF0] dark:border-slate-800 flex items-center justify-between px-[32px] transition-colors">
+      <header className="sticky top-0 z-30 h-[72px] bg-background/80 backdrop-blur-md border-b border-border flex items-center justify-between px-[32px] transition-colors">
 
         {/* Left: page title */}
-        <h1 className="text-[20px] font-semibold text-[#111827] dark:text-slate-100 leading-none tracking-[-0.01em]">{title}</h1>
+        <h1 className="text-[20px] font-semibold text-foreground leading-none tracking-[-0.01em]">{title}</h1>
 
         {/* Right cluster */}
         <div className="flex items-center gap-[10px]">
@@ -182,17 +182,17 @@ export default function StudentTopBar() {
           {/* Need help */}
           <a
             href="mailto:support@eduing.in"
-            className="hidden sm:flex items-center gap-[6px] px-[14px] h-[34px] rounded-[8px] border border-[#EAECF0] dark:border-slate-800 bg-white dark:bg-slate-900 text-[13px] font-medium text-[#374151] dark:text-slate-300 hover:bg-[#F9FAFB] dark:hover:bg-slate-800 transition-colors"
+            className="hidden sm:flex items-center gap-[6px] px-[14px] h-[34px] rounded-[8px] border border-border bg-card text-[13px] font-medium text-foreground hover:bg-muted transition-colors"
             aria-label="Get help"
           >
-            <HelpCircle size={15} strokeWidth={1.8} className="text-[#6B7280] dark:text-slate-400" />
+            <HelpCircle size={15} strokeWidth={1.8} className="text-muted-foreground" />
             Need help
           </a>
 
           {/* Search — opens command palette */}
           <button
             onClick={() => setSearchOpen(true)}
-            className="w-[34px] h-[34px] flex items-center justify-center rounded-[8px] border border-[#EAECF0] dark:border-slate-800 bg-white dark:bg-slate-900 text-[#6B7280] dark:text-slate-400 hover:bg-[#F9FAFB] dark:hover:bg-slate-800 transition-colors"
+            className="w-[34px] h-[34px] flex items-center justify-center rounded-[8px] border border-border bg-card text-muted-foreground hover:bg-muted transition-colors"
             aria-label="Search (⌘K)"
             title="Search (⌘K)"
           >
@@ -202,11 +202,11 @@ export default function StudentTopBar() {
           {/* Notification bell — wired to NotificationsDrawer */}
           <button
             onClick={() => setNotifOpen(true)}
-            className="w-[34px] h-[34px] flex items-center justify-center rounded-[8px] border border-[#EAECF0] dark:border-slate-800 bg-white dark:bg-slate-900 text-[#6B7280] dark:text-slate-400 hover:bg-[#F9FAFB] dark:hover:bg-slate-800 transition-colors relative"
+            className="w-[34px] h-[34px] flex items-center justify-center rounded-[8px] border border-border bg-card text-muted-foreground hover:bg-muted transition-colors relative"
             aria-label="Notifications"
           >
             <Bell size={15} strokeWidth={1.8} />
-            <span className="absolute top-[7px] right-[7px] w-[7px] h-[7px] bg-[#EF4444] rounded-full border-[1.5px] border-white dark:border-slate-900" />
+            <span className="absolute top-[7px] right-[7px] w-[7px] h-[7px] bg-destructive rounded-full border-[1.5px] border-background" />
           </button>
 
           {/* Theme Toggle */}
@@ -215,7 +215,7 @@ export default function StudentTopBar() {
           {/* + New Application — wired to universities */}
           <Link
             href="/student/universities"
-            className="w-[34px] h-[34px] flex items-center justify-center rounded-[8px] border border-[#EAECF0] dark:border-slate-800 bg-white dark:bg-slate-900 text-[#374151] dark:text-slate-300 hover:bg-[#F9FAFB] dark:hover:bg-slate-800 transition-colors"
+            className="w-[34px] h-[34px] flex items-center justify-center rounded-[8px] border border-border bg-card text-foreground hover:bg-muted transition-colors"
             aria-label="New Application"
             title="New Application"
           >

@@ -67,24 +67,24 @@ export default function StudentSidebar({
     <>
       {/* ─── Desktop Sidebar ─────────────────────────────── */}
       <aside
-        className={`hidden lg:flex flex-col fixed inset-y-0 left-0 z-50 bg-white dark:bg-slate-900 border-r border-[#EAECF0] dark:border-slate-800 transition-all duration-300 ${
+        className={`hidden lg:flex flex-col fixed inset-y-0 left-0 z-50 bg-background border-r border-border transition-all duration-300 ${
           isCollapsed ? "w-[64px]" : "w-[240px]"
         }`}
       >
         {/* ── LOGO ── h-[72px] matches header */}
-        <div className="h-[72px] flex items-center justify-between px-[16px] shrink-0 border-b border-[#EAECF0] dark:border-slate-800">
+        <div className="h-[72px] flex items-center justify-between px-[16px] shrink-0 border-b border-border">
           <Link href="/student/dashboard" className="flex items-center gap-[10px] min-w-0">
-            <div className="w-[28px] h-[28px] bg-[#111827] dark:bg-white rounded-[7px] flex items-center justify-center shrink-0">
-              <span className="text-white dark:text-slate-900 font-bold text-[13px] leading-none">E</span>
+            <div className="w-[28px] h-[28px] bg-foreground rounded-[7px] flex items-center justify-center shrink-0">
+              <span className="text-background font-bold text-[13px] leading-none">E</span>
             </div>
             {!isCollapsed && (
-              <span className="text-[16px] font-semibold text-[#111827] dark:text-slate-100 tracking-tight truncate">EDUING</span>
+              <span className="text-[16px] font-semibold text-foreground tracking-tight truncate">EDUING</span>
             )}
           </Link>
           {/* Collapse toggle — now wired */}
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="w-[24px] h-[24px] flex items-center justify-center text-[#9CA3AF] dark:text-slate-400 hover:text-[#111827] dark:hover:text-slate-100 transition-colors rounded-[4px] hover:bg-[#F3F4F6] dark:hover:bg-slate-800 shrink-0"
+            className="w-[24px] h-[24px] flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors rounded-[4px] hover:bg-muted shrink-0"
             aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {isCollapsed
@@ -99,12 +99,12 @@ export default function StudentSidebar({
           {Object.entries(NAV).map(([section, items], sectionIdx) => (
             <div key={section}>
               {!isCollapsed && (
-                <div className={`text-[10px] font-semibold text-[#9CA3AF] dark:text-slate-400 uppercase tracking-[0.08em] px-[12px] mb-[4px] ${sectionIdx === 0 ? "mt-[16px]" : "mt-[24px]"}`}>
+                <div className={`text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.08em] px-[12px] mb-[4px] ${sectionIdx === 0 ? "mt-[16px]" : "mt-[24px]"}`}>
                   {section}
                 </div>
               )}
               {sectionIdx > 0 && isCollapsed && (
-                <div className="my-[8px] mx-[8px] h-px bg-[#F3F4F6] dark:bg-slate-800" />
+                <div className="my-[8px] mx-[8px] h-px bg-border" />
               )}
               {items.map(item => {
                 const active = pathname === item.href || pathname.startsWith(item.href + "/");
@@ -118,8 +118,8 @@ export default function StudentSidebar({
                       isCollapsed ? "px-[0px] justify-center" : "px-[12px]"
                     } ${
                       active
-                        ? "bg-[#111827] dark:bg-slate-800 text-white dark:text-slate-100 font-semibold"
-                        : "text-[#6B7280] dark:text-slate-400 hover:text-[#111827] dark:hover:text-slate-100 hover:bg-[#F3F4F6] dark:hover:bg-slate-800/60"
+                        ? "bg-secondary text-secondary-foreground font-semibold shadow-sm"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
                     }`}
                   >
                     <Icon size={15} strokeWidth={active ? 2 : 1.7} className="shrink-0" />
@@ -145,27 +145,27 @@ export default function StudentSidebar({
             {/* Account card */}
             <button 
               onClick={() => setMenuOpen(prev => !prev)}
-              className="w-full flex items-center gap-[10px] p-[10px] rounded-[10px] border border-[#EAECF0] bg-white hover:bg-[#F9FAFB] hover:shadow-sm transition-all duration-180 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full flex items-center gap-[10px] p-[10px] rounded-[10px] border border-border bg-card hover:bg-muted hover:shadow-sm transition-all duration-180 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-ring"
             >
               <div className="shrink-0">
-                <div className="w-[34px] h-[34px] rounded-full bg-[#EEF2FF] flex items-center justify-center overflow-hidden relative">
+                <div className="w-[34px] h-[34px] rounded-full bg-primary/10 flex items-center justify-center overflow-hidden relative">
                   {profile?.profilePhotoURL
                     ? <Image src={profile.profilePhotoURL} alt="Avatar" fill className="object-cover" />
-                    : <User size={15} strokeWidth={1.8} className="text-[#4F6BFF]" />
+                    : <User size={15} strokeWidth={1.8} className="text-primary" />
                   }
                 </div>
               </div>
 
               <div className="flex-1 min-w-0 flex flex-col justify-center">
-                <div className="text-[13px] font-semibold text-[#111827] truncate leading-snug">
+                <div className="text-[13px] font-semibold text-foreground truncate leading-snug">
                   {profile?.fullName || profile?.firstName || "Student"}
                 </div>
-                <div className="text-[11px] text-[#9CA3AF] truncate leading-snug">
+                <div className="text-[11px] text-muted-foreground truncate leading-snug">
                   {(profile as any)?.email ?? "student@eduing.in"}
                 </div>
               </div>
 
-              <div className="shrink-0 text-[#9CA3AF] hover:text-[#374151] transition-colors p-[2px]">
+              <div className="shrink-0 text-muted-foreground hover:text-foreground transition-colors p-[2px]">
                 <ChevronsUpDown size={14} strokeWidth={1.8} />
               </div>
             </button>
@@ -183,13 +183,13 @@ export default function StudentSidebar({
             />
             <button 
               onClick={() => setMenuOpen(prev => !prev)}
-              className="w-[34px] h-[34px] rounded-full bg-[#EEF2FF] flex items-center justify-center overflow-hidden relative cursor-pointer hover:shadow-sm transition-all duration-180 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-[34px] h-[34px] rounded-full bg-primary/10 flex items-center justify-center overflow-hidden relative cursor-pointer hover:shadow-sm transition-all duration-180 focus:outline-none focus:ring-2 focus:ring-ring"
               title="Account Menu"
               aria-label="Account Menu"
             >
               {profile?.profilePhotoURL
                 ? <Image src={profile.profilePhotoURL} alt="Avatar" fill className="object-cover" />
-                : <User size={15} strokeWidth={1.8} className="text-[#4F6BFF]" />
+                : <User size={15} strokeWidth={1.8} className="text-primary" />
               }
             </button>
           </div>
@@ -221,7 +221,7 @@ const MOBILE_NAV = [
 
 function MobileBottomNav({ pathname, setMenuOpen }: { pathname: string, setMenuOpen: (v: boolean) => void }) {
   return (
-    <nav className="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-white border-t border-[#EAECF0] flex items-stretch h-[60px] safe-area-inset-bottom">
+    <nav className="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-background border-t border-border flex items-stretch h-[60px] safe-area-inset-bottom">
       {MOBILE_NAV.map(item => {
         const active = pathname === item.href || pathname.startsWith(item.href + "/");
         const Icon = item.icon;
@@ -237,9 +237,9 @@ function MobileBottomNav({ pathname, setMenuOpen }: { pathname: string, setMenuO
               <Icon
                 size={20}
                 strokeWidth={1.7}
-                className="transition-colors text-[#9CA3AF]"
+                className="transition-colors text-muted-foreground"
               />
-              <span className="text-[10px] font-semibold text-[#9CA3AF]">
+              <span className="text-[10px] font-semibold text-muted-foreground">
                 Menu
               </span>
             </button>
@@ -257,9 +257,9 @@ function MobileBottomNav({ pathname, setMenuOpen }: { pathname: string, setMenuO
             <Icon
               size={20}
               strokeWidth={active ? 2.2 : 1.7}
-              className={`transition-colors ${active ? "text-[#4F6BFF]" : "text-[#9CA3AF]"}`}
+              className={`transition-colors ${active ? "text-primary" : "text-muted-foreground"}`}
             />
-            <span className={`text-[10px] font-semibold ${active ? "text-[#4F6BFF]" : "text-[#9CA3AF]"}`}>
+            <span className={`text-[10px] font-semibold ${active ? "text-primary" : "text-muted-foreground"}`}>
               {item.label}
             </span>
           </Link>

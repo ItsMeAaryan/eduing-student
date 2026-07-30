@@ -70,11 +70,11 @@ export default function UserAccountMenu({
       <div
         ref={menuRef}
         className="
-          fixed bottom-0 left-0 right-0 z-[100] bg-white rounded-t-[20px] 
-          shadow-[0_-8px_30px_rgba(0,0,0,0.12)] 
+          fixed bottom-0 left-0 right-0 z-[100] bg-popover text-popover-foreground rounded-t-[20px] 
+          shadow-2xl 
           lg:absolute lg:bottom-[calc(100%+12px)] lg:left-[12px] lg:right-auto lg:top-auto
-          lg:w-[320px] lg:rounded-[20px] lg:shadow-[0_12px_40px_rgba(0,0,0,0.12)]
-          lg:border lg:border-gray-200/60
+          lg:w-[320px] lg:rounded-[20px] lg:shadow-2xl
+          lg:border lg:border-border
           overflow-hidden
           animate-in slide-in-from-bottom-full duration-300
           lg:slide-in-from-bottom-2 lg:fade-in lg:zoom-in-95 lg:duration-180
@@ -82,25 +82,25 @@ export default function UserAccountMenu({
         "
       >
         {/* Header section */}
-        <div className="p-5 border-b border-gray-100 bg-gray-50/50">
+        <div className="p-5 border-b border-border bg-muted/30">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center overflow-hidden relative border border-gray-200/60 shadow-sm shrink-0">
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden relative border border-primary/20 shadow-sm shrink-0">
               {profile?.profilePhotoURL ? (
                 <Image src={profile.profilePhotoURL} alt="Avatar" fill className="object-cover" />
               ) : (
-                <User size={20} strokeWidth={1.8} className="text-[#4F6BFF]" />
+                <User size={20} strokeWidth={1.8} className="text-primary" />
               )}
               {/* Online indicator */}
-              <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full z-10" />
+              <div className="absolute bottom-0 right-0 w-3 h-3 bg-[#0ABE52] border-2 border-background rounded-full z-10" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-[15px] font-semibold text-gray-900 truncate">
+              <div className="text-[15px] font-semibold text-foreground truncate">
                 {name}
               </div>
-              <div className="text-[13px] text-gray-500 truncate">
+              <div className="text-[13px] text-muted-foreground truncate">
                 {email}
               </div>
-              <div className="text-[11px] font-medium text-[#4F6BFF] mt-0.5 inline-block px-1.5 py-0.5 bg-indigo-50 rounded-md">
+              <div className="text-[11px] font-medium text-primary mt-0.5 inline-block px-1.5 py-0.5 bg-primary/10 rounded-md">
                 Student
               </div>
             </div>
@@ -112,49 +112,49 @@ export default function UserAccountMenu({
           <Link
             href="/student/profile"
             onClick={onClose}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[14px] font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors group"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[14px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors group"
           >
-            <User size={16} strokeWidth={2} className="text-gray-400 group-hover:text-gray-600 transition-colors" />
+            <User size={16} strokeWidth={2} className="text-muted-foreground group-hover:text-foreground transition-colors" />
             <span className="flex-1">Profile</span>
-            <ChevronRight size={14} className="text-gray-300 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+            <ChevronRight size={14} className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
           </Link>
           <Link
             href="/student/settings"
             onClick={onClose}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[14px] font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors group"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[14px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors group"
           >
-            <Settings size={16} strokeWidth={2} className="text-gray-400 group-hover:text-gray-600 transition-colors" />
+            <Settings size={16} strokeWidth={2} className="text-muted-foreground group-hover:text-foreground transition-colors" />
             <span className="flex-1">Settings</span>
-            <ChevronRight size={14} className="text-gray-300 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+            <ChevronRight size={14} className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
           </Link>
           <Link
             href="/student/notifications"
             onClick={onClose}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[14px] font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors group"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[14px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors group"
           >
-            <Bell size={16} strokeWidth={2} className="text-gray-400 group-hover:text-gray-600 transition-colors" />
+            <Bell size={16} strokeWidth={2} className="text-muted-foreground group-hover:text-foreground transition-colors" />
             <span className="flex-1">Notifications</span>
-            <ChevronRight size={14} className="text-gray-300 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+            <ChevronRight size={14} className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
           </Link>
           <Link
             href="/student/help"
             onClick={onClose}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[14px] font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors group"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[14px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors group"
           >
-            <HelpCircle size={16} strokeWidth={2} className="text-gray-400 group-hover:text-gray-600 transition-colors" />
+            <HelpCircle size={16} strokeWidth={2} className="text-muted-foreground group-hover:text-foreground transition-colors" />
             <span className="flex-1">Help Center</span>
-            <ChevronRight size={14} className="text-gray-300 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+            <ChevronRight size={14} className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
           </Link>
         </div>
 
         {/* Theme Toggle placeholder */}
-        <div className="px-6 py-3 border-t border-gray-100 flex items-center justify-between">
-          <span className="text-[13px] font-medium text-gray-500">Theme</span>
-          <div className="flex bg-gray-100/80 p-0.5 rounded-lg border border-gray-200/50">
+        <div className="px-6 py-3 border-t border-border flex items-center justify-between">
+          <span className="text-[13px] font-medium text-muted-foreground">Theme</span>
+          <div className="flex bg-muted/50 p-0.5 rounded-lg border border-border">
             <button
               onClick={() => setTheme('light')}
               className={`p-1.5 rounded-md transition-all ${
-                theme === 'light' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-400 hover:text-gray-600'
+                theme === 'light' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
               }`}
               title="Light"
             >
@@ -163,7 +163,7 @@ export default function UserAccountMenu({
             <button
               onClick={() => setTheme('dark')}
               className={`p-1.5 rounded-md transition-all ${
-                theme === 'dark' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-400 hover:text-gray-600'
+                theme === 'dark' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
               }`}
               title="Dark"
             >
@@ -172,7 +172,7 @@ export default function UserAccountMenu({
             <button
               onClick={() => setTheme('system')}
               className={`p-1.5 rounded-md transition-all ${
-                theme === 'system' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-400 hover:text-gray-600'
+                theme === 'system' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
               }`}
               title="System"
             >
@@ -182,16 +182,16 @@ export default function UserAccountMenu({
         </div>
 
         {/* Divider */}
-        <div className="h-px bg-gray-100 w-full" />
+        <div className="h-px bg-border w-full" />
 
         {/* Logout Action */}
-        <div className="p-3 bg-gray-50/50">
+        <div className="p-3 bg-muted/30">
           <button
             onClick={() => {
               onClose()
               onLogoutClick()
             }}
-            className="w-full flex items-center justify-center gap-2 h-[42px] px-4 rounded-[10px] border border-red-200 bg-white text-[14px] font-semibold text-red-600 hover:bg-red-50 hover:border-red-300 hover:text-red-700 transition-colors group focus:outline-none focus:ring-2 focus:ring-red-100"
+            className="w-full flex items-center justify-center gap-2 h-[42px] px-4 rounded-[10px] border border-destructive/20 bg-background text-[14px] font-semibold text-destructive hover:bg-destructive/10 hover:border-destructive/30 transition-colors group focus:outline-none focus:ring-2 focus:ring-destructive/20"
           >
             <LogOut size={16} strokeWidth={2} className="group-hover:scale-110 transition-transform duration-200" />
             Logout

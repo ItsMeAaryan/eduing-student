@@ -59,7 +59,7 @@ export default function ApplicationCard({ application }: Props) {
   };
 
   return (
-    <div className="bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden transition-all hover:border-white/10">
+    <div className="bg-card/[0.02] border border-white/5 rounded-2xl overflow-hidden transition-all hover:border-white/10">
       
       {/* Card Header (Always visible) */}
       <div
@@ -71,7 +71,7 @@ export default function ApplicationCard({ application }: Props) {
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setExpanded(!expanded); } }}
       >
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+          <div className="w-12 h-12 rounded-xl bg-card/5 border border-white/10 flex items-center justify-center shrink-0">
             {application.universityLogo ? (
               <Image src={application.universityLogo} alt="Logo" width={48} height={48} className="w-full h-full object-cover rounded-xl" />
             ) : (
@@ -96,7 +96,7 @@ export default function ApplicationCard({ application }: Props) {
             <motion.div
               animate={{ rotate: expanded ? 180 : 0 }}
               transition={{ duration: 0.3 }}
-              className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-textSecondary"
+              className="w-8 h-8 rounded-full bg-card/5 flex items-center justify-center text-textSecondary"
             >
               <ChevronDown size={18} />
             </motion.div>
@@ -119,7 +119,7 @@ export default function ApplicationCard({ application }: Props) {
                 <FileText size={16} className="text-primary mr-2" /> Application Timeline
               </h4>
               
-              <div className="relative pl-6 space-y-8 before:absolute before:inset-y-0 before:left-2 before:w-px before:bg-white/10 before:ml-[3px]">
+              <div className="relative pl-6 space-y-8 before:absolute before:inset-y-0 before:left-2 before:w-px before:bg-card/10 before:ml-[3px]">
                 {timeline.map((event, idx) => {
                   const evConfig = STATUS_CONFIG[event.status];
                   const isLast = idx === timeline.length - 1;
@@ -153,7 +153,7 @@ export default function ApplicationCard({ application }: Props) {
                 {/* Future state indicator if not finalized */}
                 {application.status !== "selected" && application.status !== "rejected" && (
                   <div className="relative">
-                    <div className="absolute -left-[29px] w-4 h-4 rounded-full border-4 border-background bg-white/10 z-10"></div>
+                    <div className="absolute -left-[29px] w-4 h-4 rounded-full border-4 border-background bg-card/10 z-10"></div>
                     <span className="font-medium text-sm text-textSecondary italic">
                       Final Decision Pending
                     </span>
@@ -164,7 +164,7 @@ export default function ApplicationCard({ application }: Props) {
               <div className="mt-8 flex justify-end">
                 <Link 
                   href={`/student/universities/${application.universityId}`}
-                  className="px-4 py-2 text-sm font-medium text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-white bg-card/5 hover:bg-card/10 border border-white/10 rounded-xl transition-colors"
                 >
                   View University Profile
                 </Link>

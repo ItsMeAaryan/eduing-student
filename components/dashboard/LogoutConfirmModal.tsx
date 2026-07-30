@@ -49,7 +49,7 @@ export default function LogoutConfirmModal({
         role="dialog" 
         aria-modal="true" 
         aria-labelledby="modal-title"
-        className="bg-white rounded-[20px] shadow-2xl w-full max-w-[340px] mx-4 overflow-hidden animate-in zoom-in-95 duration-200"
+        className="bg-card rounded-[20px] shadow-2xl w-full max-w-[340px] mx-4 overflow-hidden animate-in zoom-in-95 duration-200"
       >
         <div className="p-6">
           <h2 id="modal-title" className="text-xl font-bold text-gray-900 mb-2">
