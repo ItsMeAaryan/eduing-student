@@ -69,7 +69,7 @@ export default function Navbar() {
             </Link>
             <Link
               href="/auth/student/register"
-              className="text-[14px] font-[600] text-black bg-white px-5 py-2.5 rounded-[10px] hover:scale-[1.04] transition-all duration-[250ms] ease-[var(--ease)] hover:shadow-[0_0_20px_rgba(255,255,255,0.2)]"
+              className="text-[14px] font-[600] text-black bg-card px-5 py-2.5 rounded-[10px] hover:scale-[1.04] transition-all duration-[250ms] ease-[var(--ease)] hover:shadow-[0_0_20px_rgba(255,255,255,0.2)]"
             >
               Get Started
             </Link>
@@ -115,7 +115,7 @@ export default function Navbar() {
                 <Link
                   href="/auth/student/register"
                   onClick={() => setIsOpen(false)}
-                  className="text-[18px] font-bold text-black bg-white px-8 py-4 rounded-xl"
+                  className="text-[18px] font-bold text-black bg-card px-8 py-4 rounded-xl"
                 >
                   Get Started
                 </Link>

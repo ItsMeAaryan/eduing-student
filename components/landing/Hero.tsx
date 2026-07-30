@@ -12,7 +12,7 @@ export default function Hero() {
         {[...Array(50)].map((_, i) => (
           <div
             key={i}
-            className="absolute bg-white rounded-full"
+            className="absolute bg-card rounded-full"
             style={{
               width: "2px",
               height: "2px",
@@ -85,18 +85,18 @@ export default function Hero() {
             className="relative w-full h-full"
           >
             {/* Card 1 */}
-            <div className="absolute top-[10%] left-[10%] w-[320px] bg-white/[0.04] border border-white/[0.08] rounded-2xl backdrop-blur-xl p-5 z-30 animate-float shadow-2xl">
+            <div className="absolute top-[10%] left-[10%] w-[320px] bg-card/[0.04] border border-white/[0.08] rounded-2xl backdrop-blur-xl p-5 z-30 animate-float shadow-2xl">
               <div className="flex items-center gap-3 mb-5">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#6c6fff] to-[#4f8eff]" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-2.5 w-24 bg-white/10 rounded" />
-                  <div className="h-2 w-16 bg-white/5 rounded" />
+                  <div className="h-2.5 w-24 bg-card/10 rounded" />
+                  <div className="h-2 w-16 bg-card/5 rounded" />
                 </div>
               </div>
               <div className="space-y-3 mb-6">
-                <div className="h-2 w-full bg-white/5 rounded" />
-                <div className="h-2 w-3/4 bg-white/5 rounded" />
-                <div className="h-2 w-1/2 bg-white/5 rounded" />
+                <div className="h-2 w-full bg-card/5 rounded" />
+                <div className="h-2 w-3/4 bg-card/5 rounded" />
+                <div className="h-2 w-1/2 bg-card/5 rounded" />
               </div>
               <div className="inline-flex items-center px-2.5 py-1 rounded-full bg-[#6c6fff26] border border-[#6c6fff33] text-[11px] font-bold text-[#6c6fffcc]">
                 Profile Complete
@@ -104,17 +104,17 @@ export default function Hero() {
             </div>
 
             {/* Card 2 */}
-            <div className="absolute top-[35%] left-[25%] w-[300px] bg-white/[0.04] border border-white/[0.08] rounded-2xl backdrop-blur-xl p-5 z-20 animate-float shadow-2xl" style={{ animationDelay: "0.5s" }}>
+            <div className="absolute top-[35%] left-[25%] w-[300px] bg-card/[0.04] border border-white/[0.08] rounded-2xl backdrop-blur-xl p-5 z-20 animate-float shadow-2xl" style={{ animationDelay: "0.5s" }}>
               <div className="flex items-center gap-3 mb-5">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#4f8eff] to-[#6c6fff]" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-2.5 w-24 bg-white/10 rounded" />
-                  <div className="h-2 w-16 bg-white/5 rounded" />
+                  <div className="h-2.5 w-24 bg-card/10 rounded" />
+                  <div className="h-2 w-16 bg-card/5 rounded" />
                 </div>
               </div>
               <div className="space-y-3 mb-6">
-                <div className="h-2 w-full bg-white/5 rounded" />
-                <div className="h-2 w-2/3 bg-white/5 rounded" />
+                <div className="h-2 w-full bg-card/5 rounded" />
+                <div className="h-2 w-2/3 bg-card/5 rounded" />
               </div>
               <div className="inline-flex items-center px-2.5 py-1 rounded-full bg-[#6c6fff26] border border-[#6c6fff33] text-[11px] font-bold text-[#6c6fffcc]">
                 Applied
@@ -122,16 +122,16 @@ export default function Hero() {
             </div>
 
             {/* Card 3 */}
-            <div className="absolute top-[20%] left-[40%] w-[280px] bg-white/[0.04] border border-white/[0.08] rounded-2xl backdrop-blur-xl p-5 z-10 animate-float shadow-2xl" style={{ animationDelay: "1s" }}>
+            <div className="absolute top-[20%] left-[40%] w-[280px] bg-card/[0.04] border border-white/[0.08] rounded-2xl backdrop-blur-xl p-5 z-10 animate-float shadow-2xl" style={{ animationDelay: "1s" }}>
                <div className="flex items-center gap-3 mb-5">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#6c6fff] to-[#4f8eff]" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-2.5 w-24 bg-white/10 rounded" />
-                  <div className="h-2 w-16 bg-white/5 rounded" />
+                  <div className="h-2.5 w-24 bg-card/10 rounded" />
+                  <div className="h-2 w-16 bg-card/5 rounded" />
                 </div>
               </div>
               <div className="space-y-3">
-                <div className="h-2 w-full bg-white/5 rounded" />
+                <div className="h-2 w-full bg-card/5 rounded" />
               </div>
             </div>
           </motion.div>

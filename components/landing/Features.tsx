@@ -92,7 +92,7 @@ export default function Features() {
                 {/* Layer 4 - Floating Accent Dots */}
                 <div className="absolute top-4 left-4 w-2 h-2 rounded-full bg-[#6c6fff99] animate-float-accent z-10" />
                 <div className="absolute bottom-4 right-5 w-1.5 h-1.5 rounded-full bg-[#4f8eff80] animate-float-accent-reverse z-10" />
-                <div className="absolute top-5 right-10 w-1 h-1 rounded-full bg-white/20 z-10" />
+                <div className="absolute top-5 right-10 w-1 h-1 rounded-full bg-card/20 z-10" />
 
                 {/* Layer 3 - Icon Container */}
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[72px] h-[72px] bg-[#6c6fff1f] border border-[#6c6fff40] rounded-[18px] flex items-center justify-center z-10">
