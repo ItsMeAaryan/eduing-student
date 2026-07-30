@@ -6,7 +6,7 @@ import {
   LayoutDashboard, FileText, Building2, GraduationCap,
   Award, Calendar, Sparkles, User, Settings,
   BookOpen, PanelLeftClose, PanelLeftOpen, ChevronsUpDown, LogOut,
-  Mic, FileEdit, Briefcase, Scale
+  Mic, FileEdit, Briefcase
 } from "lucide-react";
 import { logoutUser } from "@/lib/firebase/auth";
 import { useStudentData } from "@/components/providers/StudentDataProvider";
@@ -30,7 +30,6 @@ const NAV = {
     { label: "SOP Workspace", href: "/student/sop",       icon: FileEdit  },
     { label: "Interview Sim", href: "/student/interview", icon: Mic       },
     { label: "Career Advice", href: "/student/career",    icon: Briefcase },
-    { label: "Compare",       href: "/student/compare",   icon: Scale     },
   ],
   "PREFERENCES": [
     { label: "Settings", href: "/student/settings", icon: Settings },
@@ -68,24 +67,24 @@ export default function StudentSidebar({
     <>
       {/* ─── Desktop Sidebar ─────────────────────────────── */}
       <aside
-        className={`hidden lg:flex flex-col fixed inset-y-0 left-0 z-50 bg-white border-r border-[#EAECF0] transition-all duration-300 ${
+        className={`hidden lg:flex flex-col fixed inset-y-0 left-0 z-50 bg-white dark:bg-slate-900 border-r border-[#EAECF0] dark:border-slate-800 transition-all duration-300 ${
           isCollapsed ? "w-[64px]" : "w-[240px]"
         }`}
       >
         {/* ── LOGO ── h-[72px] matches header */}
-        <div className="h-[72px] flex items-center justify-between px-[16px] shrink-0 border-b border-[#EAECF0]">
+        <div className="h-[72px] flex items-center justify-between px-[16px] shrink-0 border-b border-[#EAECF0] dark:border-slate-800">
           <Link href="/student/dashboard" className="flex items-center gap-[10px] min-w-0">
-            <div className="w-[28px] h-[28px] bg-[#111827] rounded-[7px] flex items-center justify-center shrink-0">
-              <span className="text-white font-bold text-[13px] leading-none">E</span>
+            <div className="w-[28px] h-[28px] bg-[#111827] dark:bg-white rounded-[7px] flex items-center justify-center shrink-0">
+              <span className="text-white dark:text-slate-900 font-bold text-[13px] leading-none">E</span>
             </div>
             {!isCollapsed && (
-              <span className="text-[16px] font-semibold text-[#111827] tracking-tight truncate">EDUING</span>
+              <span className="text-[16px] font-semibold text-[#111827] dark:text-slate-100 tracking-tight truncate">EDUING</span>
             )}
           </Link>
           {/* Collapse toggle — now wired */}
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="w-[24px] h-[24px] flex items-center justify-center text-[#9CA3AF] hover:text-[#111827] transition-colors rounded-[4px] hover:bg-[#F3F4F6] shrink-0"
+            className="w-[24px] h-[24px] flex items-center justify-center text-[#9CA3AF] dark:text-slate-400 hover:text-[#111827] dark:hover:text-slate-100 transition-colors rounded-[4px] hover:bg-[#F3F4F6] dark:hover:bg-slate-800 shrink-0"
             aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {isCollapsed
@@ -100,12 +99,12 @@ export default function StudentSidebar({
           {Object.entries(NAV).map(([section, items], sectionIdx) => (
             <div key={section}>
               {!isCollapsed && (
-                <div className={`text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-[0.08em] px-[12px] mb-[4px] ${sectionIdx === 0 ? "mt-[16px]" : "mt-[24px]"}`}>
+                <div className={`text-[10px] font-semibold text-[#9CA3AF] dark:text-slate-400 uppercase tracking-[0.08em] px-[12px] mb-[4px] ${sectionIdx === 0 ? "mt-[16px]" : "mt-[24px]"}`}>
                   {section}
                 </div>
               )}
               {sectionIdx > 0 && isCollapsed && (
-                <div className="my-[8px] mx-[8px] h-px bg-[#F3F4F6]" />
+                <div className="my-[8px] mx-[8px] h-px bg-[#F3F4F6] dark:bg-slate-800" />
               )}
               {items.map(item => {
                 const active = pathname === item.href || pathname.startsWith(item.href + "/");
@@ -119,8 +118,8 @@ export default function StudentSidebar({
                       isCollapsed ? "px-[0px] justify-center" : "px-[12px]"
                     } ${
                       active
-                        ? "bg-[#111827] text-white"
-                        : "text-[#6B7280] hover:text-[#111827] hover:bg-[#F3F4F6]"
+                        ? "bg-[#111827] dark:bg-slate-800 text-white dark:text-slate-100 font-semibold"
+                        : "text-[#6B7280] dark:text-slate-400 hover:text-[#111827] dark:hover:text-slate-100 hover:bg-[#F3F4F6] dark:hover:bg-slate-800/60"
                     }`}
                   >
                     <Icon size={15} strokeWidth={active ? 2 : 1.7} className="shrink-0" />

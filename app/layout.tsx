@@ -1,16 +1,15 @@
 import type { Metadata } from 'next'
 import { Poppins } from 'next/font/google'
 import './globals.css'
-import Navbar from '@/components/Navbar'
+import { ThemeProvider } from '@/components/providers/ThemeProvider'
 
-const poppins = Poppins({ 
+const poppins = Poppins({
   weight: ['300', '400', '500', '600'],
-  subsets: ['latin'], 
-  variable: '--font-poppins' 
+  subsets: ['latin'],
+  variable: '--font-poppins'
 })
 
 export const metadata: Metadata = {
-  // TODO: confirm actual production domain - placeholder used for metadataBase/OG image resolution
   metadataBase: new URL('https://student.eduing.in'),
   title: {
     default: 'EDUING.in - Student Admissions Platform',
@@ -40,14 +39,16 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`dark ${poppins.variable}`}>
-      <body className="bg-background text-text-primary antialiased font-sans">
-        <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden bg-background" />
-        <div className="relative z-10 flex flex-col min-h-screen">
-          <main className="flex-grow">
-            {children}
-          </main>
-        </div>
+    <html lang="en" suppressHydrationWarning className={poppins.variable}>
+      <body className="bg-[#f6f5f4] dark:bg-[#0b0f17] text-[#111827] dark:text-slate-100 antialiased font-sans transition-colors duration-200">
+        <ThemeProvider>
+          <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden bg-[#f6f5f4] dark:bg-[#0b0f17]" />
+          <div className="relative z-10 flex flex-col min-h-screen">
+            <main className="flex-grow">
+              {children}
+            </main>
+          </div>
+        </ThemeProvider>
       </body>
     </html>
   )

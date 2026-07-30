@@ -4,6 +4,7 @@ import { Search, Bell, HelpCircle, Plus, X, Building2, BookOpen, GraduationCap, 
 import { useStudentData } from "@/components/providers/StudentDataProvider";
 import { usePathname, useRouter } from "next/navigation";
 import NotificationsDrawer from "@/components/dashboard/NotificationsDrawer";
+import ThemeToggle from "@/components/ui/ThemeToggle";
 import Link from "next/link";
 
 const TITLES: Record<string, string> = {
@@ -170,10 +171,10 @@ export default function StudentTopBar() {
 
   return (
     <>
-      <header className="sticky top-0 z-30 h-[72px] bg-white border-b border-[#EAECF0] flex items-center justify-between px-[32px]">
+      <header className="sticky top-0 z-30 h-[72px] bg-white dark:bg-slate-900 border-b border-[#EAECF0] dark:border-slate-800 flex items-center justify-between px-[32px] transition-colors">
 
         {/* Left: page title */}
-        <h1 className="text-[20px] font-semibold text-[#111827] leading-none tracking-[-0.01em]">{title}</h1>
+        <h1 className="text-[20px] font-semibold text-[#111827] dark:text-slate-100 leading-none tracking-[-0.01em]">{title}</h1>
 
         {/* Right cluster */}
         <div className="flex items-center gap-[10px]">
@@ -181,17 +182,17 @@ export default function StudentTopBar() {
           {/* Need help */}
           <a
             href="mailto:support@eduing.in"
-            className="hidden sm:flex items-center gap-[6px] px-[14px] h-[34px] rounded-[8px] border border-[#EAECF0] bg-white text-[13px] font-medium text-[#374151] hover:bg-[#F9FAFB] transition-colors"
+            className="hidden sm:flex items-center gap-[6px] px-[14px] h-[34px] rounded-[8px] border border-[#EAECF0] dark:border-slate-800 bg-white dark:bg-slate-900 text-[13px] font-medium text-[#374151] dark:text-slate-300 hover:bg-[#F9FAFB] dark:hover:bg-slate-800 transition-colors"
             aria-label="Get help"
           >
-            <HelpCircle size={15} strokeWidth={1.8} className="text-[#6B7280]" />
+            <HelpCircle size={15} strokeWidth={1.8} className="text-[#6B7280] dark:text-slate-400" />
             Need help
           </a>
 
           {/* Search — opens command palette */}
           <button
             onClick={() => setSearchOpen(true)}
-            className="w-[34px] h-[34px] flex items-center justify-center rounded-[8px] border border-[#EAECF0] bg-white text-[#6B7280] hover:bg-[#F9FAFB] transition-colors"
+            className="w-[34px] h-[34px] flex items-center justify-center rounded-[8px] border border-[#EAECF0] dark:border-slate-800 bg-white dark:bg-slate-900 text-[#6B7280] dark:text-slate-400 hover:bg-[#F9FAFB] dark:hover:bg-slate-800 transition-colors"
             aria-label="Search (⌘K)"
             title="Search (⌘K)"
           >
@@ -201,18 +202,20 @@ export default function StudentTopBar() {
           {/* Notification bell — wired to NotificationsDrawer */}
           <button
             onClick={() => setNotifOpen(true)}
-            className="w-[34px] h-[34px] flex items-center justify-center rounded-[8px] border border-[#EAECF0] bg-white text-[#6B7280] hover:bg-[#F9FAFB] transition-colors relative"
+            className="w-[34px] h-[34px] flex items-center justify-center rounded-[8px] border border-[#EAECF0] dark:border-slate-800 bg-white dark:bg-slate-900 text-[#6B7280] dark:text-slate-400 hover:bg-[#F9FAFB] dark:hover:bg-slate-800 transition-colors relative"
             aria-label="Notifications"
           >
             <Bell size={15} strokeWidth={1.8} />
-            {/* Show indicator — will be driven by real unread count later */}
-            <span className="absolute top-[7px] right-[7px] w-[7px] h-[7px] bg-[#EF4444] rounded-full border-[1.5px] border-white" />
+            <span className="absolute top-[7px] right-[7px] w-[7px] h-[7px] bg-[#EF4444] rounded-full border-[1.5px] border-white dark:border-slate-900" />
           </button>
+
+          {/* Theme Toggle */}
+          <ThemeToggle />
 
           {/* + New Application — wired to universities */}
           <Link
             href="/student/universities"
-            className="w-[34px] h-[34px] flex items-center justify-center rounded-[8px] border border-[#EAECF0] bg-white text-[#374151] hover:bg-[#F9FAFB] transition-colors"
+            className="w-[34px] h-[34px] flex items-center justify-center rounded-[8px] border border-[#EAECF0] dark:border-slate-800 bg-white dark:bg-slate-900 text-[#374151] dark:text-slate-300 hover:bg-[#F9FAFB] dark:hover:bg-slate-800 transition-colors"
             aria-label="New Application"
             title="New Application"
           >

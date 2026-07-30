@@ -16,7 +16,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
       >
         Skip to main content
       </a>
-      <div className="min-h-screen bg-[#F9FAFB] flex text-[#111827] font-sans">
+      <div className="min-h-screen bg-[#f6f5f4] dark:bg-[#0b0f17] flex text-[#111827] dark:text-slate-100 font-sans transition-colors duration-200">
         <StudentSidebar isCollapsed={isSidebarCollapsed} setIsCollapsed={setIsSidebarCollapsed} />
         {/* Main content: shifts right by sidebar width; adds bottom padding for mobile nav */}
         <div className={`flex-1 flex flex-col min-h-screen max-w-full transition-all duration-300 pb-[60px] lg:pb-0 ${
