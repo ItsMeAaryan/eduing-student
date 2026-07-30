@@ -1,13 +1,22 @@
 import type { Config } from "tailwindcss";
 
-const config: Config = {
-  darkMode: 'class',
+const config = {
+  darkMode: ["class"],
   content: [
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
   ],
+  prefix: "",
   theme: {
+    container: {
+      center: true,
+      padding: "2rem",
+      screens: {
+        "2xl": "1400px",
+      },
+    },
     extend: {
       fontFamily: {
         sans: ['var(--font-poppins)', 'sans-serif'],
@@ -30,38 +39,49 @@ const config: Config = {
         'caption': ['12px', { lineHeight: '1.5' }],
       },
       colors: {
-        background: {
-          DEFAULT: '#FAFAFC',
-          sidebar: '#FFFFFF',
-          card: '#FFFFFF',
-        },
-        text: {
-          primary: '#141414',
-          secondary: '#666666',
-        },
-        border: {
-          DEFAULT: '#ECECEC',
-        },
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: '#4F6BFF',
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
         },
-        success: {
-          DEFAULT: '#0ABE52',
+        secondary: {
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
         },
-        danger: {
-          DEFAULT: '#DE3B34',
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
         },
-        warning: {
-          DEFAULT: '#EE8248',
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
         },
-        purple: {
-          DEFAULT: '#B57AF1',
+        accent: {
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
         },
-        hover: {
-          DEFAULT: '#F5F7FF',
+        popover: {
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
         },
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
+        },
+        // Kept for backward compatibility while we refactor
+        success: { DEFAULT: '#0ABE52' },
+        danger: { DEFAULT: '#DE3B34' },
+        warning: { DEFAULT: '#EE8248' },
+        purple: { DEFAULT: '#B57AF1' },
       },
       borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
         card: "18px",
         button: "14px",
         input: "14px",
@@ -79,9 +99,10 @@ const config: Config = {
       },
       boxShadow: {
         subtle: "0 2px 12px rgba(0,0,0,0.04)",
-      }
+      },
     },
   },
   plugins: [],
-};
+} satisfies Config;
+
 export default config;

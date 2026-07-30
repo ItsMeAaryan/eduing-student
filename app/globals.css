@@ -2,30 +2,87 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --bg-canvas: #f6f5f4;
-  --bg-surface: #ffffff;
-  --bg-surface-hover: #f9fafb;
-  --border-color: #eaecf0;
-  --border-subtle: #f3f4f6;
-  --text-primary: #000000;
-  --text-heading: #111827;
-  --text-secondary: #31302e;
-  --text-muted: #615d59;
-  --primary-accent: #0075de;
+@layer base {
+  :root {
+    --background: 60 4.8% 95.9%; /* #f6f5f4 */
+    --foreground: 222.2 84% 4.9%; /* #020817 */
+
+    --card: 0 0% 100%; /* #ffffff */
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 208 100% 43%; /* #0075de - Notion Blue */
+    --primary-foreground: 210 40% 98%; /* #f8fafc */
+
+    --secondary: 210 40% 96.1%; /* #f1f5f9 */
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%; /* #64748b */
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%; /* #e2e8f0 - like #EAECF0 */
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222 47% 11%; /* #0f172a / #0b0f17 ish */
+    --foreground: 210 40% 98%; /* #f8fafc */
+
+    --card: 222 47% 11%; /* Use background for card, or slightly lighter? Let's use #141b2d which is slightly lighter */
+    /* Let's define a slightly lighter card background for dark mode */
+    --card: 223 38% 13%; /* ~ #141b2d */
+    --card-foreground: 210 40% 98%;
+
+    --popover: 223 38% 13%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 212 97% 51%; /* Slightly brighter blue for dark mode: #388bfd */
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 217.2 32.6% 17.5%; /* #1e293b */
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%; /* #94a3b8 */
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+  }
 }
 
-.dark {
-  --bg-canvas: #0b0f17;
-  --bg-surface: #141b2d;
-  --bg-surface-hover: #1e293b;
-  --border-color: #1e293b;
-  --border-subtle: #1e293b;
-  --text-primary: #f8fafc;
-  --text-heading: #f8fafc;
-  --text-secondary: #cbd5e1;
-  --text-muted: #94a3b8;
-  --primary-accent: #0075de;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  html { 
+    scroll-behavior: smooth; 
+    overflow-x: hidden;
+  }
 }
 
 @layer base {
@@ -41,80 +98,8 @@
 
   ::selection { 
     background: rgba(0, 117, 222, 0.2); 
-    color: var(--text-primary); 
+    color: hsl(var(--foreground)); 
   }
-
-  html { 
-    scroll-behavior: smooth; 
-    overflow-x: hidden;
-  }
-
-  body {
-    background: var(--bg-canvas);
-    color: var(--text-primary);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    overflow-x: hidden;
-    transition: background-color 0.2s ease, color 0.2s ease;
-  }
-}
-
-/* ── Enterprise Automatic Dark Overrides for standard utilities ── */
-.dark .bg-white {
-  background-color: #141b2d !important;
-}
-
-.dark .bg-\[\#f6f5f4\] {
-  background-color: #0b0f17 !important;
-}
-
-.dark .bg-\[\#F9FAFB\] {
-  background-color: #0f172a !important;
-}
-
-.dark .bg-\[\#F3F4F6\] {
-  background-color: #1e293b !important;
-}
-
-.dark .border-\[\#EAECF0\] {
-  border-color: #1e293b !important;
-}
-
-.dark .border-\[\#F3F4F6\] {
-  border-color: #1e293b !important;
-}
-
-.dark .border-\[\#e6e6e6\] {
-  border-color: #334155 !important;
-}
-
-.dark .text-\[\#000000\],
-.dark .text-\[\#111827\] {
-  color: #f8fafc !important;
-}
-
-.dark .text-\[\#31302e\],
-.dark .text-\[\#374151\] {
-  color: #cbd5e1 !important;
-}
-
-.dark .text-\[\#615d59\],
-.dark .text-\[\#6B7280\],
-.dark .text-\[\#9CA3AF\] {
-  color: #94a3b8 !important;
-}
-
-.dark input,
-.dark select,
-.dark textarea {
-  background-color: #0f172a !important;
-  color: #f8fafc !important;
-  border-color: #334155 !important;
-}
-
-.dark input::placeholder,
-.dark textarea::placeholder {
-  color: #64748b !important;
 }
 
 @layer utilities {
@@ -124,7 +109,7 @@
   }
 
   .animate-shimmer {
-    background: linear-gradient(90deg, #1e293b 0%, #334155 50%, #1e293b 100%);
+    @apply bg-muted;
     background-size: 200% 100%;
     animation: skeleton-shimmer 1.5s infinite;
   }
