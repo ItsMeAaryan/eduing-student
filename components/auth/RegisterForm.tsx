@@ -92,8 +92,8 @@ export default function RegisterForm() {
     setLoading(true)
     try {
       const cred = await createUserWithEmailAndPassword(auth, formData.email, formData.password)
-      
-      const userData = {
+
+      const baseData = {
         uid: cred.user.uid,
         fullName: formData.fullName,
         email: formData.email,
@@ -111,21 +111,27 @@ export default function RegisterForm() {
         nationality: formData.nationality,
         role: 'student',
         isVerified: false,
-        profileCompletion: 20, 
+        profileCompletion: 20,
         createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
+        updatedAt: serverTimestamp(),
       }
 
-      await setDoc(doc(db, 'users', cred.user.uid), userData)
-      
-      router.push('/student/dashboard')
+      // Write to `users` for role-based auth checks (LoginForm reads this)
+      await setDoc(doc(db, 'users', cred.user.uid), baseData)
+
+      // Write to `student_profiles` — the collection read by StudentDataProvider
+      // for all profile data across the portal (dashboard, AI, SOP, resume, etc.)
+      await setDoc(doc(db, 'student_profiles', cred.user.uid), baseData)
+
+      // Send new students to onboarding to complete their profile
+      router.push('/student/onboarding')
     } catch (err: any) {
       alert(err.message || "Registration failed")
       setLoading(false)
     }
   }
 
-  const inputClasses = "w-full bg-white/[0.02] border border-white/10 rounded-[12px] px-4 h-[48px] text-[14px] text-white focus:border-brand-indigo focus:bg-brand-indigo/5 focus:ring-4 focus:ring-brand-indigo/10 outline-none transition-all duration-200 placeholder:text-white/30"
+  const inputClasses = "w-full bg-card/[0.02] border border-white/10 rounded-[12px] px-4 h-[48px] text-[14px] text-white focus:border-brand-indigo focus:bg-brand-indigo/5 focus:ring-4 focus:ring-brand-indigo/10 outline-none transition-all duration-200 placeholder:text-white/30"
   const labelClasses = "block font-sans text-[13px] font-medium text-white/70 mb-1.5"
 
   return (
@@ -133,7 +139,7 @@ export default function RegisterForm() {
       {/* Premium Step Indicator */}
       <div className="mb-6 w-full relative">
         <div className="flex justify-between items-center relative mb-4">
-          <div className="absolute top-1/2 left-0 right-0 h-[2px] bg-white/5 -translate-y-1/2 z-0 rounded-full overflow-hidden">
+          <div className="absolute top-1/2 left-0 right-0 h-[2px] bg-card/5 -translate-y-1/2 z-0 rounded-full overflow-hidden">
             <motion.div 
               className="h-full bg-gradient-to-r from-brand-indigo to-brand-indigoLight"
               initial={{ width: 0 }}
@@ -227,7 +233,7 @@ export default function RegisterForm() {
                     <span className={labelClasses}>Gender</span>
                     <div className="flex gap-3" role="group" aria-label="Gender Identity">
                       {['male', 'female', 'other'].map(g => (
-                        <button key={g} onClick={() => updateFormData({ gender: g as any })} className={`flex-1 py-2.5 rounded-[12px] border text-[13px] font-medium capitalize transition-all ${formData.gender === g ? 'bg-white/10 border-white/30 text-white shadow-inner' : 'bg-[#13131F]/50 border-white/5 text-white/50 hover:border-white/20 hover:text-white/80'}`}>
+                        <button key={g} onClick={() => updateFormData({ gender: g as any })} className={`flex-1 py-2.5 rounded-[12px] border text-[13px] font-medium capitalize transition-all ${formData.gender === g ? 'bg-card/10 border-white/30 text-white shadow-inner' : 'bg-[#13131F]/50 border-white/5 text-white/50 hover:border-white/20 hover:text-white/80'}`}>
                           {g}
                         </button>
                       ))}
@@ -326,7 +332,7 @@ export default function RegisterForm() {
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
             onClick={handleBack} 
-            className="flex-1 h-[48px] rounded-[14px] bg-transparent border border-white/10 hover:bg-white/[0.03] hover:border-white/20 text-white/70 hover:text-white font-display font-medium text-[14px] transition-all"
+            className="flex-1 h-[48px] rounded-[14px] bg-transparent border border-white/10 hover:bg-card/[0.03] hover:border-white/20 text-white/70 hover:text-white font-display font-medium text-[14px] transition-all"
           >
             Back
           </motion.button>
