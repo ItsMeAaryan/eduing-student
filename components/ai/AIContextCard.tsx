@@ -32,7 +32,7 @@ export function AIContextCard({
       </div>
       
       {progress !== undefined && (
-        <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden mb-3">
+        <div className="w-full h-1.5 bg-card/5 rounded-full overflow-hidden mb-3">
           <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${progress}%` }} />
         </div>
       )}

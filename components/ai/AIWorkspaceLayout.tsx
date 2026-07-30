@@ -18,7 +18,7 @@ interface AIWorkspaceLayoutProps {
 }
 
 const THEME_COLORS: Record<AIThemeColor, { hex: string; bg: string; text: string; border: string }> = {
-  indigo: { hex: '#4F6BFF', bg: 'bg-[#EEF2FF]', text: 'text-[#4F6BFF]', border: 'border-[#C7D2FE]' },
+  indigo: { hex: '#4F6BFF', bg: 'bg-primary/10', text: 'text-[#4F6BFF]', border: 'border-[#C7D2FE]' },
   emerald: { hex: '#10B981', bg: 'bg-[#ECFDF5]', text: 'text-[#10B981]', border: 'border-[#A7F3D0]' },
   amber: { hex: '#F59E0B', bg: 'bg-[#FFFBEB]', text: 'text-[#F59E0B]', border: 'border-[#FDE68A]' },
   rose: { hex: '#F43F5E', bg: 'bg-[#FFF1F2]', text: 'text-[#F43F5E]', border: 'border-[#FECDD3]' },
@@ -53,13 +53,13 @@ export function AIWorkspaceLayout({
 
           {/* Title + AI badge */}
           <div>
-            <h1 className="text-[18px] font-semibold text-[#111827] dark:text-slate-100 tracking-tight leading-none">{title}</h1>
+            <h1 className="text-[18px] font-semibold text-foreground dark:text-slate-100 tracking-tight leading-none">{title}</h1>
             <div className="flex items-center gap-1.5 mt-1">
               <span
                 className="w-1.5 h-1.5 rounded-full animate-pulse"
                 style={{ background: theme.hex }}
               />
-              <span className="text-[11px] text-[#9CA3AF] font-medium">
+              <span className="text-[11px] text-muted-foreground font-medium">
                 Powered by EDUING AI
               </span>
               <Sparkles size={9} style={{ color: theme.hex }} className="opacity-70" />
