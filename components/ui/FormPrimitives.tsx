@@ -11,7 +11,7 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
   ({ value, onChange, onSearch, placeholder = 'Search...', containerClassName = '', className = '', ...props }, ref) => {
     return (
       <div className={`relative flex-1 min-w-[200px] ${containerClassName}`}>
-        <Search size={15} className="absolute left-[14px] top-1/2 -translate-y-1/2 text-[#9CA3AF]" strokeWidth={1.8} />
+        <Search size={15} className="absolute left-[14px] top-1/2 -translate-y-1/2 text-muted-foreground" strokeWidth={1.8} />
         <input
           ref={ref}
           type="text"
@@ -21,7 +21,7 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
             onSearch?.(e.target.value);
           }}
           placeholder={placeholder}
-          className={`w-full h-[40px] pl-[40px] pr-[16px] bg-white border border-[#EAECF0] rounded-[10px] text-[13.5px] text-[#111827] placeholder:text-[#9CA3AF] focus:outline-none focus:border-[#4F6BFF] focus:ring-2 focus:ring-[#4F6BFF]/10 transition-all ${className}`}
+          className={`w-full h-[40px] pl-[40px] pr-[16px] bg-card border border-border rounded-[10px] text-[13.5px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#4F6BFF] focus:ring-2 focus:ring-[#4F6BFF]/10 transition-all ${className}`}
           {...props}
         />
       </div>
@@ -45,11 +45,11 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
   className = '',
 }) => {
   const variantStyles = {
-    default: 'bg-[#F3F4F6] text-[#6B7280]',
+    default: 'bg-secondary text-muted-foreground',
     success: 'bg-[#F0FDF4] text-[#059669]',
     warning: 'bg-[#FFFBEB] text-[#D97706]',
     danger: 'bg-[#FEF2F2] text-[#DC2626]',
-    info: 'bg-[#EEF2FF] text-[#4F6BFF]',
+    info: 'bg-primary/10 text-[#4F6BFF]',
     purple: 'bg-[#F5F3FF] text-[#7C3AED]',
   };
 
@@ -78,10 +78,10 @@ export const FormSection: React.FC<FormSectionProps> = ({
   className = '',
 }) => {
   return (
-    <div className={`bg-white border border-[#EAECF0] rounded-[14px] p-[24px] flex flex-col gap-[20px] ${className}`}>
+    <div className={`bg-card border border-border rounded-[14px] p-[24px] flex flex-col gap-[20px] ${className}`}>
       <div>
-        <h3 className="text-[16px] font-semibold text-[#111827]">{title}</h3>
-        {description && <p className="text-[13px] text-[#6B7280] mt-[2px]">{description}</p>}
+        <h3 className="text-[16px] font-semibold text-foreground">{title}</h3>
+        {description && <p className="text-[13px] text-muted-foreground mt-[2px]">{description}</p>}
       </div>
       <div className="flex flex-col gap-[16px]">{children}</div>
     </div>

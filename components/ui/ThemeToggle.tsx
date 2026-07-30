@@ -27,7 +27,7 @@ export default function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <div className="w-[34px] h-[34px] rounded-[8px] border border-[#EAECF0] dark:border-slate-800 bg-white dark:bg-slate-900" />
+      <div className="w-[34px] h-[34px] rounded-[8px] border border-border dark:border-slate-800 bg-card dark:bg-slate-900" />
     )
   }
 
@@ -43,11 +43,11 @@ export default function ThemeToggle() {
     <div className="relative inline-block" ref={dropdownRef}>
       <button
         onClick={() => setOpen(v => !v)}
-        className="w-[34px] h-[34px] rounded-[8px] border border-[#EAECF0] dark:border-slate-800 bg-white dark:bg-slate-900 text-[#6B7280] dark:text-slate-400 hover:bg-[#F9FAFB] dark:hover:bg-slate-800 flex items-center justify-center transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#0075de]"
+        className="w-[34px] h-[34px] rounded-[8px] border border-border dark:border-slate-800 bg-card dark:bg-slate-900 text-muted-foreground dark:text-slate-400 hover:bg-muted dark:hover:bg-slate-800 flex items-center justify-center transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary"
         aria-label="Toggle theme"
         title={`Current theme: ${theme}`}
       >
-        <ActiveIcon size={15} strokeWidth={1.8} className="text-[#0075de] dark:text-[#388bfd]" />
+        <ActiveIcon size={15} strokeWidth={1.8} className="text-primary dark:text-[#388bfd]" />
       </button>
 
       <AnimatePresence>
@@ -57,7 +57,7 @@ export default function ThemeToggle() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 4 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 mt-[6px] w-[130px] rounded-[10px] bg-white dark:bg-slate-900 border border-[#EAECF0] dark:border-slate-800 shadow-xl z-50 p-[4px]"
+            className="absolute right-0 mt-[6px] w-[130px] rounded-[10px] bg-card dark:bg-slate-900 border border-border dark:border-slate-800 shadow-xl z-50 p-[4px]"
           >
             {options.map(opt => {
               const IconComp = opt.icon
@@ -71,8 +71,8 @@ export default function ThemeToggle() {
                   }}
                   className={`w-full flex items-center gap-[8px] px-[10px] py-[6px] rounded-[6px] text-[12px] font-medium transition-colors ${
                     isSelected
-                      ? 'bg-[#EEF2FF] dark:bg-slate-800 text-[#0075de] dark:text-[#388bfd]'
-                      : 'text-[#374151] dark:text-slate-300 hover:bg-[#F9FAFB] dark:hover:bg-slate-800/60'
+                      ? 'bg-primary/10 dark:bg-slate-800 text-primary dark:text-[#388bfd]'
+                      : 'text-foreground dark:text-slate-300 hover:bg-muted dark:hover:bg-slate-800/60'
                   }`}
                 >
                   <IconComp size={13} strokeWidth={1.8} />
