@@ -145,7 +145,7 @@ export default function FilterSidebar({ filters, setFilters, onCloseMobile }: Pr
             </button>
             <button
               onClick={() => setFilters(prev => ({ ...prev, requiresEntranceExam: null }))}
-              className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-colors ${filters.requiresEntranceExam === null ? "bg-white/10 text-white" : "text-textSecondary hover:text-white"}`}
+              className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-colors ${filters.requiresEntranceExam === null ? "bg-card/10 text-white" : "text-textSecondary hover:text-white"}`}
             >
               Any
             </button>

@@ -12,7 +12,7 @@ export default function ReviewsTab({ university }: Props) {
 
   if (!reviewsList || reviewsList.length === 0) {
     return (
-      <div className="text-center py-20 bg-white/5 border border-white/10 rounded-3xl animate-in fade-in slide-in-from-bottom-4">
+      <div className="text-center py-20 bg-card/5 border border-white/10 rounded-3xl animate-in fade-in slide-in-from-bottom-4">
         <Star size={48} className="mx-auto text-textSecondary mb-4 opacity-50" />
         <h3 className="text-xl font-bold text-white mb-2">No reviews yet</h3>
         <p className="text-textSecondary">Be the first to review {(university as any).name}.</p>
@@ -24,7 +24,7 @@ export default function ReviewsTab({ university }: Props) {
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
       
       {/* Aggregate Score */}
-      <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-8 flex flex-col md:flex-row items-center md:items-start gap-8">
+      <div className="bg-card/[0.02] border border-white/5 rounded-3xl p-8 flex flex-col md:flex-row items-center md:items-start gap-8">
         
         <div className="flex flex-col items-center justify-center shrink-0">
           <div className="text-6xl font-black text-white mb-2">{rating?.toFixed(1) || "0.0"}</div>
@@ -47,7 +47,7 @@ export default function ReviewsTab({ university }: Props) {
           ].map((cat, idx) => (
             <div key={idx} className="flex items-center text-sm">
               <span className="w-32 text-textSecondary shrink-0">{cat.label}</span>
-              <div className="flex-grow bg-white/10 h-2 rounded-full mx-4 overflow-hidden">
+              <div className="flex-grow bg-card/10 h-2 rounded-full mx-4 overflow-hidden">
                 <div className="bg-primary h-full rounded-full" style={{ width: `${(cat.score / 5) * 100}%` }}></div>
               </div>
               <span className="w-8 text-right font-medium text-white">{cat.score.toFixed(1)}</span>
@@ -66,7 +66,7 @@ export default function ReviewsTab({ university }: Props) {
         </div>
 
         {reviewsList.map((review) => (
-          <div key={review.id} className="bg-white/5 border border-white/10 rounded-2xl p-6">
+          <div key={review.id} className="bg-card/5 border border-white/10 rounded-2xl p-6">
             <div className="flex justify-between items-start mb-4">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold">

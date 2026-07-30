@@ -19,7 +19,7 @@ export default function ContactTab({ university }: Props) {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-        <div className="md:col-span-1 space-y-6 bg-white/[0.02] border border-white/5 rounded-3xl p-6 h-fit">
+        <div className="md:col-span-1 space-y-6 bg-card/[0.02] border border-white/5 rounded-3xl p-6 h-fit">
           <h3 className="text-xl font-bold text-white mb-2">
             Contact Info
           </h3>
@@ -110,7 +110,7 @@ export default function ContactTab({ university }: Props) {
         </div>
 
         <div className="md:col-span-2">
-          <div className="w-full h-full min-h-[400px] bg-white/5 border border-white/10 rounded-3xl overflow-hidden relative flex flex-col items-center justify-center text-center p-6">
+          <div className="w-full h-full min-h-[400px] bg-card/5 border border-white/10 rounded-3xl overflow-hidden relative flex flex-col items-center justify-center text-center p-6">
 
             <MapPin
               size={48}

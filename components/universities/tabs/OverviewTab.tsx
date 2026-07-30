@@ -27,27 +27,27 @@ export default function OverviewTab({ university }: Props) {
         <section>
           <h3 className="text-xl font-bold text-white mb-4">Key Facts</h3>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+            <div className="bg-card/5 border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
               <Calendar className="text-primary mb-2" size={24} />
               <span className="text-xs text-textSecondary mb-1">Founded</span>
               <span className="text-white font-semibold">{keyFacts.foundedYear}</span>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+            <div className="bg-card/5 border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
               <Building className="text-primary mb-2" size={24} />
               <span className="text-xs text-textSecondary mb-1">Type</span>
               <span className="text-white font-semibold">{keyFacts.type}</span>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+            <div className="bg-card/5 border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
               <Award className="text-primary mb-2" size={24} />
               <span className="text-xs text-textSecondary mb-1">Accreditation</span>
               <span className="text-white font-semibold">{keyFacts.accreditation}</span>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+            <div className="bg-card/5 border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
               <Users className="text-primary mb-2" size={24} />
               <span className="text-xs text-textSecondary mb-1">Students</span>
               <span className="text-white font-semibold">{keyFacts.totalStudents.toLocaleString()}</span>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+            <div className="bg-card/5 border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
               <Map className="text-primary mb-2" size={24} />
               <span className="text-xs text-textSecondary mb-1">Campus Size</span>
               <span className="text-white font-semibold">{keyFacts.campusSize}</span>

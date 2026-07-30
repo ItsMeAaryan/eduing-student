@@ -48,7 +48,7 @@ export default function UniversityCard({ university, index }: Props) {
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-4">
-          <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden shrink-0 relative">
+          <div className="w-16 h-16 rounded-full bg-card/5 border border-white/10 flex items-center justify-center overflow-hidden shrink-0 relative">
             {uni.logoUrl ? (
               <Image
                 src={uni.logoUrl}
@@ -109,7 +109,7 @@ export default function UniversityCard({ university, index }: Props) {
           ))}
 
           {uni.programs && uni.programs.length > 3 && (
-            <span className="px-2.5 py-1 text-xs font-medium bg-white/5 text-textSecondary border border-white/10 rounded-md">
+            <span className="px-2.5 py-1 text-xs font-medium bg-card/5 text-textSecondary border border-white/10 rounded-md">
               +{uni.programs.length - 3} more
             </span>
           )}
@@ -139,7 +139,7 @@ export default function UniversityCard({ university, index }: Props) {
       <div className="grid grid-cols-2 gap-3 mt-auto pt-4 border-t border-white/5">
         <Link
           href={`/student/universities/${uni.uid}`}
-          className="text-center py-2.5 rounded-xl text-sm font-semibold text-white border border-white/20 hover:bg-white/5 transition-colors block"
+          className="text-center py-2.5 rounded-xl text-sm font-semibold text-white border border-white/20 hover:bg-card/5 transition-colors block"
         >
           View Details
         </Link>

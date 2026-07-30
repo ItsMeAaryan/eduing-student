@@ -18,7 +18,7 @@ export default function ProgramsTab({ university }: Props) {
 
   if (!programsList || programsList.length === 0) {
     return (
-      <div className="text-center py-20 bg-white/5 border border-white/10 rounded-3xl animate-in fade-in slide-in-from-bottom-4">
+      <div className="text-center py-20 bg-card/5 border border-white/10 rounded-3xl animate-in fade-in slide-in-from-bottom-4">
         <h3 className="text-xl font-bold text-white mb-2">Programs not announced</h3>
         <p className="text-textSecondary">This university has not listed their programs yet.</p>
       </div>
@@ -55,7 +55,7 @@ export default function ProgramsTab({ university }: Props) {
             className={`px-5 py-2 rounded-xl text-sm font-medium transition-colors ${
               activeFilter === level 
                 ? "bg-primary text-white" 
-                : "bg-white/5 text-textSecondary hover:bg-white/10 hover:text-white"
+                : "bg-card/5 text-textSecondary hover:bg-card/10 hover:text-white"
             }`}
           >
             {level}
@@ -66,12 +66,12 @@ export default function ProgramsTab({ university }: Props) {
       {/* Program List */}
       <div className="space-y-4">
         {filteredPrograms.map((program) => (
-          <div key={program.id} className="bg-white/[0.02] border border-white/5 hover:border-primary/30 rounded-2xl p-6 transition-all group flex flex-col md:flex-row gap-6 md:items-center">
+          <div key={program.id} className="bg-card/[0.02] border border-white/5 hover:border-primary/30 rounded-2xl p-6 transition-all group flex flex-col md:flex-row gap-6 md:items-center">
             
             <div className="flex-grow space-y-4">
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-white/10 text-white rounded">
+                  <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-card/10 text-white rounded">
                     {program.level}
                   </span>
                   {program.entranceExamRequired && (
@@ -104,7 +104,7 @@ export default function ProgramsTab({ university }: Props) {
                 </div>
               </div>
 
-              <div className="text-sm bg-white/5 p-3 rounded-xl border border-white/10 flex items-start">
+              <div className="text-sm bg-card/5 p-3 rounded-xl border border-white/10 flex items-start">
                 <FileText size={16} className="text-primary shrink-0 mr-2 mt-0.5" />
                 <div>
                   <span className="font-semibold text-white mr-1">Eligibility:</span>
@@ -125,7 +125,7 @@ export default function ProgramsTab({ university }: Props) {
         ))}
 
         {filteredPrograms.length === 0 && (
-          <div className="text-center py-12 text-textSecondary bg-white/5 rounded-2xl border border-white/5">
+          <div className="text-center py-12 text-textSecondary bg-card/5 rounded-2xl border border-white/5">
             No programs found for &quot;{activeFilter}&quot;.
           </div>
         )}

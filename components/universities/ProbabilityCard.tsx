@@ -28,7 +28,7 @@ export function ProbabilityCard({ university }: { university: any }) {
       case 'Moderate': return 'text-amber-400 bg-amber-500/10 border-amber-500/20';
       case 'Low': return 'text-orange-400 bg-orange-500/10 border-orange-500/20';
       case 'Very Low': return 'text-red-400 bg-red-500/10 border-red-500/20';
-      default: return 'text-white/60 bg-white/5 border-white/10';
+      default: return 'text-white/60 bg-card/5 border-white/10';
     }
   };
 
@@ -47,7 +47,7 @@ export function ProbabilityCard({ university }: { university: any }) {
           <PieChart className="text-indigo-400" /> Admission Probability
         </h3>
         
-        <div className="flex flex-col items-center justify-center p-6 bg-white/5 rounded-3xl border border-white/5 text-center">
+        <div className="flex flex-col items-center justify-center p-6 bg-card/5 rounded-3xl border border-white/5 text-center">
           <ShieldAlert size={32} className="text-amber-500 mb-4" />
           <h4 className="text-sm font-black text-white mb-2">Insufficient Data</h4>
           <p className="text-xs text-white/50 mb-6 max-w-[240px]">We need more information before estimating your admission probability.</p>
@@ -100,7 +100,7 @@ export function ProbabilityCard({ university }: { university: any }) {
             <h4 className="text-[10px] font-black text-white/46 uppercase tracking-widest mb-3">Strengths</h4>
             <div className="space-y-2">
               {probabilityData.strengths.slice(0, 3).map((strength, i) => (
-                <div key={i} className="flex items-start gap-2 text-xs font-medium text-white/80 bg-white/5 p-2 rounded-lg border border-white/5">
+                <div key={i} className="flex items-start gap-2 text-xs font-medium text-white/80 bg-card/5 p-2 rounded-lg border border-white/5">
                   <CheckCircle2 size={14} className="text-emerald-400 shrink-0 mt-0.5" /> {strength}
                 </div>
               ))}
