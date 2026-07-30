@@ -223,11 +223,11 @@ export default function ApplicationDetailsPage() {
           {/* SIDEBAR METADATA */}
           <aside className="space-y-32">
             <div className="bg-primary rounded-card p-32 text-center shadow-sm relative overflow-hidden group">
-               <div className="absolute top-0 right-0 w-[128px] h-[128px] bg-white/10 rotate-45 translate-x-[64px] -translate-y-[64px] transition-transform group-hover:scale-110" />
+               <div className="absolute top-0 right-0 w-[128px] h-[128px] bg-card/10 rotate-45 translate-x-[64px] -translate-y-[64px] transition-transform group-hover:scale-110" />
                <Download size={40} strokeWidth={1.5} className="mx-auto mb-24 text-white" />
                <H4 className="mb-8 text-white">Admission Receipt</H4>
                <Caption className="text-white/60 font-bold uppercase tracking-widest mb-32">Official PDF Confirmation</Caption>
-               <Button variant="secondary" className="w-full !bg-white !text-black !border-transparent hover:!bg-white/90 uppercase tracking-widest text-[10px]">
+               <Button variant="secondary" className="w-full !bg-card !text-black !border-transparent hover:!bg-card/90 uppercase tracking-widest text-[10px]">
                  Download Dossier
                </Button>
             </div>

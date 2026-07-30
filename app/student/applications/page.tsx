@@ -44,7 +44,7 @@ const COLUMNS = [
 /* ── Dot sparkline (reuse same pattern as dashboard) ─────── */
 function MiniBar({ pct, color }: { pct: number; color: string }) {
   return (
-    <div className="w-full h-[5px] bg-[#F3F4F6] rounded-full overflow-hidden">
+    <div className="w-full h-[5px] bg-secondary rounded-full overflow-hidden">
       <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: color }} />
     </div>
   )
@@ -88,7 +88,7 @@ export default function ApplicationsPage() {
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="w-[36px] h-[36px] border-4 border-[#EAECF0] border-t-[#4F6BFF] rounded-full animate-spin" />
+      <div className="w-[36px] h-[36px] border-4 border-border border-t-[#4F6BFF] rounded-full animate-spin" />
     </div>
   )
 
@@ -107,38 +107,38 @@ export default function ApplicationsPage() {
             { label: 'Offers',    value: offersReceived, color: '#7C3AED', bg: '#F5F3FF', sub: 'Accepted',         Icon: Award },
             { label: 'Deadlines', value: upcomingDdls,   color: '#D97706', bg: '#FFFBEB', sub: 'Upcoming',         Icon: Clock },
           ].map(({ label, value, color, bg, sub, Icon }) => (
-            <div key={label} className="bg-white border border-[#EAECF0] rounded-[14px] p-[18px] flex items-start gap-[12px]" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+            <div key={label} className="bg-card border border-border rounded-[14px] p-[18px] flex items-start gap-[12px]" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
               <div className="w-[36px] h-[36px] rounded-[10px] flex items-center justify-center shrink-0" style={{ background: bg }}>
                 <Icon size={16} style={{ color }} strokeWidth={1.8} />
               </div>
               <div>
-                <div className="text-[10px] text-[#9CA3AF] mb-[1px]">{label}</div>
+                <div className="text-[10px] text-muted-foreground mb-[1px]">{label}</div>
                 <div className="text-[22px] font-black leading-none mb-[1px]" style={{ color }}>{value}</div>
-                <div className="text-[10px] text-[#9CA3AF]">{sub}</div>
+                <div className="text-[10px] text-muted-foreground">{sub}</div>
               </div>
             </div>
           ))}
         </div>
 
         {/* ── TOOLBAR: search + view toggle ────────────────── */}
-        <div className="bg-white border border-[#EAECF0] rounded-[14px] overflow-hidden">
-          <div className="flex items-center justify-between px-[20px] py-[14px] border-b border-[#EAECF0]">
-            <span className="text-[15px] font-semibold text-[#111827]">Applications</span>
+        <div className="bg-card border border-border rounded-[14px] overflow-hidden">
+          <div className="flex items-center justify-between px-[20px] py-[14px] border-b border-border">
+            <span className="text-[15px] font-semibold text-foreground">Applications</span>
             <div className="flex items-center gap-[8px]">
               <div className="relative">
-                <Search size={13} className="absolute left-[10px] top-1/2 -translate-y-1/2 text-[#9CA3AF]" strokeWidth={1.8} />
+                <Search size={13} className="absolute left-[10px] top-1/2 -translate-y-1/2 text-muted-foreground" strokeWidth={1.8} />
                 <input type="text" placeholder="Search applications"
                   value={search} onChange={e => setSearch(e.target.value)}
-                  className="w-[200px] h-[32px] pl-[28px] pr-[10px] bg-[#F9FAFB] border border-[#EAECF0] rounded-[8px] text-[13px] text-[#111827] placeholder:text-[#9CA3AF] focus:outline-none focus:border-[#4F6BFF] transition-colors" />
+                  className="w-[200px] h-[32px] pl-[28px] pr-[10px] bg-muted border border-border rounded-[8px] text-[13px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#4F6BFF] transition-colors" />
               </div>
-              <button className="flex items-center gap-[5px] px-[12px] h-[32px] rounded-[8px] border border-[#EAECF0] text-[12px] font-medium text-[#374151] bg-white hover:bg-[#F3F4F6] transition-colors">
+              <button className="flex items-center gap-[5px] px-[12px] h-[32px] rounded-[8px] border border-border text-[12px] font-medium text-foreground bg-card hover:bg-secondary transition-colors">
                 Sort by<ChevronDown size={11} />
               </button>
               {/* View toggle */}
-              <div className="flex items-center bg-[#F9FAFB] border border-[#EAECF0] rounded-[8px] p-[3px]">
+              <div className="flex items-center bg-muted border border-border rounded-[8px] p-[3px]">
                 {([['list', List], ['board', LayoutGrid]] as const).map(([m, Icon]) => (
                   <button key={m} onClick={() => setViewMode(m as any)}
-                    className={`w-[28px] h-[26px] flex items-center justify-center rounded-[6px] transition-colors ${viewMode === m ? 'bg-white shadow-sm text-[#111827]' : 'text-[#9CA3AF] hover:text-[#111827]'}`}>
+                    className={`w-[28px] h-[26px] flex items-center justify-center rounded-[6px] transition-colors ${viewMode === m ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
                     <Icon size={13} strokeWidth={1.8} />
                   </button>
                 ))}
@@ -164,10 +164,10 @@ export default function ApplicationsPage() {
           {filteredApps.length > 0 && viewMode === 'list' && (
             <table className="w-full text-left">
               <thead>
-                <tr className="bg-[#F9FAFB] border-b border-[#EAECF0]">
+                <tr className="bg-muted border-b border-border">
                   <th className="px-[20px] py-[12px] w-[40px]"><input type="checkbox" className="w-[14px] h-[14px] rounded-[3px]" /></th>
                   {['University','Program','Status','Progress','Deadline'].map(h => (
-                    <th key={h} className="px-[16px] py-[12px] text-[12px] font-semibold text-[#6B7280] uppercase tracking-[0.05em] whitespace-nowrap">{h}</th>
+                    <th key={h} className="px-[16px] py-[12px] text-[12px] font-semibold text-muted-foreground uppercase tracking-[0.05em] whitespace-nowrap">{h}</th>
                   ))}
                   <th className="w-[40px]" />
                 </tr>
@@ -178,20 +178,20 @@ export default function ApplicationsPage() {
                   const badge = STATUS_BADGE[st] || STATUS_BADGE.draft
                   const progress = app.progress || 40
                   return (
-                    <tr key={i} className="border-b border-[#F3F4F6] hover:bg-[#F9FAFB] transition-colors group cursor-pointer" onClick={() => setSelectedApp(app)}>
+                    <tr key={i} className="border-b border-border hover:bg-muted transition-colors group cursor-pointer" onClick={() => setSelectedApp(app)}>
                       <td className="px-[20px] py-[14px]" onClick={e => e.stopPropagation()}>
                         <input type="checkbox" className="w-[14px] h-[14px] rounded-[3px]" />
                       </td>
                       <td className="px-[16px] py-[14px]">
                         <div className="flex items-center gap-[12px]">
-                          <div className="w-[32px] h-[32px] rounded-full bg-[#EEF2FF] flex items-center justify-center shrink-0 border border-[#EAECF0]">
+                          <div className="w-[32px] h-[32px] rounded-full bg-primary/10 flex items-center justify-center shrink-0 border border-border">
                             <Building2 size={14} className="text-[#4F6BFF]" strokeWidth={1.8} />
                           </div>
-                          <span className="text-[14px] font-medium text-[#111827] truncate max-w-[160px]">{app.universityName || 'University'}</span>
+                          <span className="text-[14px] font-medium text-foreground truncate max-w-[160px]">{app.universityName || 'University'}</span>
                         </div>
                       </td>
                       <td className="px-[16px] py-[14px]">
-                        <span className="text-[14px] text-[#6B7280] truncate max-w-[140px] block">{app.program || app.programName || 'Program'}</span>
+                        <span className="text-[14px] text-muted-foreground truncate max-w-[140px] block">{app.program || app.programName || 'Program'}</span>
                       </td>
                       <td className="px-[16px] py-[14px]">
                         <span className="text-[12px] font-semibold px-[10px] py-[3px] rounded-full" style={{ color: badge.color, backgroundColor: badge.bg }}>{badge.label}</span>
@@ -199,14 +199,14 @@ export default function ApplicationsPage() {
                       <td className="px-[16px] py-[14px] w-[160px]">
                         <div className="flex items-center gap-[8px]">
                           <div className="flex-1"><MiniBar pct={progress} color="#4F6BFF" /></div>
-                          <span className="text-[12px] text-[#6B7280] shrink-0">{progress}%</span>
+                          <span className="text-[12px] text-muted-foreground shrink-0">{progress}%</span>
                         </div>
                       </td>
                       <td className="px-[16px] py-[14px]">
-                        <span className="text-[13px] text-[#6B7280]">{app.deadline ? new Date(app.deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}</span>
+                        <span className="text-[13px] text-muted-foreground">{app.deadline ? new Date(app.deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}</span>
                       </td>
                       <td className="px-[16px] py-[14px] text-right">
-                        <button className="opacity-0 group-hover:opacity-100 transition-opacity text-[#D1D5DB] hover:text-[#6B7280]" onClick={e => { e.stopPropagation(); setSelectedApp(app) }}>
+                        <button className="opacity-0 group-hover:opacity-100 transition-opacity text-[#D1D5DB] hover:text-muted-foreground" onClick={e => { e.stopPropagation(); setSelectedApp(app) }}>
                           <MoreHorizontal size={16} strokeWidth={1.5} />
                         </button>
                       </td>
@@ -224,13 +224,13 @@ export default function ApplicationsPage() {
                 const colApps = filteredApps.filter((a: any) => normalizeStatus(a.status) === col.id)
                 const badge = STATUS_BADGE[col.id]
                 return (
-                  <div key={col.id} className="min-w-[260px] max-w-[260px] shrink-0 bg-[#F9FAFB] rounded-[14px] p-[12px] border border-[#EAECF0]">
+                  <div key={col.id} className="min-w-[260px] max-w-[260px] shrink-0 bg-muted rounded-[14px] p-[12px] border border-border">
                     <div className="flex items-center justify-between mb-[12px] px-[4px]">
                       <div className="flex items-center gap-[8px]">
                         <span className="w-[8px] h-[8px] rounded-full" style={{ backgroundColor: badge.color }} />
-                        <span className="text-[13px] font-semibold text-[#111827]">{col.label}</span>
+                        <span className="text-[13px] font-semibold text-foreground">{col.label}</span>
                       </div>
-                      <span className="text-[12px] font-medium text-[#9CA3AF] bg-white border border-[#EAECF0] px-[8px] py-[2px] rounded-full">{colApps.length}</span>
+                      <span className="text-[12px] font-medium text-muted-foreground bg-card border border-border px-[8px] py-[2px] rounded-full">{colApps.length}</span>
                     </div>
                     <div className="flex flex-col gap-[10px]">
                       {colApps.map((app: any, i: number) => (
@@ -238,15 +238,15 @@ export default function ApplicationsPage() {
                           role="button"
                           tabIndex={0}
                           onKeyDown={(e) => { if (e.key === 'Enter') setSelectedApp(app) }}
-                          className="bg-white border border-[#EAECF0] rounded-[10px] p-[14px] cursor-pointer hover:border-[#4F6BFF]/40 transition-colors group">
+                          className="bg-card border border-border rounded-[10px] p-[14px] cursor-pointer hover:border-[#4F6BFF]/40 transition-colors group">
                           <div className="flex items-start justify-between mb-[10px]">
-                            <div className="w-[30px] h-[30px] rounded-full bg-[#EEF2FF] flex items-center justify-center text-[13px] font-bold text-[#4F6BFF]">
+                            <div className="w-[30px] h-[30px] rounded-full bg-primary/10 flex items-center justify-center text-[13px] font-bold text-[#4F6BFF]">
                               {(app.universityName || 'U').charAt(0)}
                             </div>
                             <MoreHorizontal size={14} strokeWidth={1.5} className="text-[#D1D5DB]" />
                           </div>
-                          <p className="text-[13px] font-semibold text-[#111827] leading-tight mb-[4px] truncate">{app.universityName}</p>
-                          <p className="text-[12px] text-[#9CA3AF] truncate mb-[10px]">{app.program || app.programName}</p>
+                          <p className="text-[13px] font-semibold text-foreground leading-tight mb-[4px] truncate">{app.universityName}</p>
+                          <p className="text-[12px] text-muted-foreground truncate mb-[10px]">{app.program || app.programName}</p>
                           <MiniBar pct={app.progress || 40} color={badge.color} />
                         </div>
                       ))}
@@ -271,21 +271,21 @@ export default function ApplicationsPage() {
                 aria-label={`Application details for ${selectedApp.universityName}`}
                 initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
                 transition={{ type: 'spring', damping: 28, stiffness: 220 }}
-                className="fixed top-0 right-0 bottom-0 w-full max-w-[560px] bg-white border-l border-[#EAECF0] z-50 flex flex-col shadow-xl overflow-y-auto"
+                className="fixed top-0 right-0 bottom-0 w-full max-w-[560px] bg-card border-l border-border z-50 flex flex-col shadow-xl overflow-y-auto"
               >
                 {/* Drawer header */}
-                <div className="sticky top-0 bg-white border-b border-[#EAECF0] px-[24px] py-[20px] flex items-center justify-between shrink-0 z-10">
+                <div className="sticky top-0 bg-card border-b border-border px-[24px] py-[20px] flex items-center justify-between shrink-0 z-10">
                   <div className="flex items-center gap-[14px]">
-                    <div className="w-[40px] h-[40px] rounded-[10px] bg-[#EEF2FF] flex items-center justify-center text-[16px] font-bold text-[#4F6BFF]">
+                    <div className="w-[40px] h-[40px] rounded-[10px] bg-primary/10 flex items-center justify-center text-[16px] font-bold text-[#4F6BFF]">
                       {(selectedApp.universityName || 'U').charAt(0)}
                     </div>
                     <div>
-                      <p className="text-[15px] font-semibold text-[#111827]">{selectedApp.universityName}</p>
-                      <p className="text-[13px] text-[#9CA3AF]">{selectedApp.program || selectedApp.programName}</p>
+                      <p className="text-[15px] font-semibold text-foreground">{selectedApp.universityName}</p>
+                      <p className="text-[13px] text-muted-foreground">{selectedApp.program || selectedApp.programName}</p>
                     </div>
                   </div>
                   <button onClick={() => setSelectedApp(null)}
-                    className="w-[32px] h-[32px] flex items-center justify-center rounded-[8px] border border-[#EAECF0] text-[#9CA3AF] hover:bg-[#F3F4F6] transition-colors">
+                    className="w-[32px] h-[32px] flex items-center justify-center rounded-[8px] border border-border text-muted-foreground hover:bg-secondary transition-colors">
                     <X size={16} strokeWidth={1.8} />
                   </button>
                 </div>
@@ -301,26 +301,26 @@ export default function ApplicationsPage() {
                       { label: 'Deadline', value: selectedApp.deadline || 'Nov 15, 2026' },
                       { label: 'Match',    value: '85%' },
                     ].map(({ label, value }) => (
-                      <div key={label} className="bg-[#F9FAFB] border border-[#EAECF0] rounded-[8px] p-[14px]">
-                        <p className="text-[11px] text-[#9CA3AF] uppercase tracking-[0.06em] mb-[4px]">{label}</p>
-                        <p className="text-[15px] font-semibold text-[#111827]">{value}</p>
+                      <div key={label} className="bg-muted border border-border rounded-[8px] p-[14px]">
+                        <p className="text-[11px] text-muted-foreground uppercase tracking-[0.06em] mb-[4px]">{label}</p>
+                        <p className="text-[15px] font-semibold text-foreground">{value}</p>
                       </div>
                     ))}
                   </div>
 
                   {/* AI Analysis */}
-                  <div className="bg-white border border-[#EAECF0] rounded-[14px] p-[20px]">
+                  <div className="bg-card border border-border rounded-[14px] p-[20px]">
                     <div className="flex items-center gap-[8px] mb-[14px]">
                       <Sparkles size={16} strokeWidth={1.8} className="text-[#4F6BFF]" />
-                      <span className="text-[14px] font-semibold text-[#111827]">AI Analysis</span>
+                      <span className="text-[14px] font-semibold text-foreground">AI Analysis</span>
                     </div>
                     <div className="flex flex-col gap-[12px]">
-                      <div className="flex items-center gap-[10px] text-[13px] text-[#374151]">
+                      <div className="flex items-center gap-[10px] text-[13px] text-foreground">
                         <AlertCircle size={14} strokeWidth={1.8} className="text-[#D97706] shrink-0" />
                         Missing: Letter of Recommendation
                       </div>
-                      <div className="h-px bg-[#F3F4F6]" />
-                      <div className="flex items-center gap-[10px] text-[13px] text-[#374151]">
+                      <div className="h-px bg-secondary" />
+                      <div className="flex items-center gap-[10px] text-[13px] text-foreground">
                         <Zap size={14} strokeWidth={1.8} className="text-[#4F6BFF] shrink-0" />
                         Next: Draft SOP using AI Builder
                       </div>
@@ -328,9 +328,9 @@ export default function ApplicationsPage() {
                   </div>
 
                   {/* Timeline */}
-                  <div className="bg-white border border-[#EAECF0] rounded-[14px] p-[20px]">
-                    <p className="text-[14px] font-semibold text-[#111827] mb-[16px]">Timeline</p>
-                    <div className="relative pl-[20px] border-l border-[#EAECF0] ml-[6px] flex flex-col gap-[20px]">
+                  <div className="bg-card border border-border rounded-[14px] p-[20px]">
+                    <p className="text-[14px] font-semibold text-foreground mb-[16px]">Timeline</p>
+                    <div className="relative pl-[20px] border-l border-border ml-[6px] flex flex-col gap-[20px]">
                       {[
                         { title: 'Application Started',  date: 'Oct 12, 2025', done: true  },
                         { title: 'Documents Uploaded',   date: 'Oct 15, 2025', done: true  },
@@ -339,23 +339,23 @@ export default function ApplicationsPage() {
                         { title: 'Decision',             date: 'Pending',      done: false },
                       ].map(({ title, date, done, active }) => (
                         <div key={title} className="relative">
-                          <div className={`absolute -left-[25px] top-[4px] w-[10px] h-[10px] rounded-full border-2 bg-white ${done ? 'border-[#059669]' : active ? 'border-[#4F6BFF]' : 'border-[#EAECF0]'}`} />
-                          <p className={`text-[13px] font-medium ${done || active ? 'text-[#111827]' : 'text-[#9CA3AF]'}`}>{title}</p>
-                          <p className="text-[12px] text-[#9CA3AF]">{date}</p>
+                          <div className={`absolute -left-[25px] top-[4px] w-[10px] h-[10px] rounded-full border-2 bg-card ${done ? 'border-[#059669]' : active ? 'border-[#4F6BFF]' : 'border-border'}`} />
+                          <p className={`text-[13px] font-medium ${done || active ? 'text-foreground' : 'text-muted-foreground'}`}>{title}</p>
+                          <p className="text-[12px] text-muted-foreground">{date}</p>
                         </div>
                       ))}
                     </div>
                   </div>
 
                   {/* Documents */}
-                  <div className="bg-white border border-[#EAECF0] rounded-[14px] p-[20px]">
-                    <p className="text-[14px] font-semibold text-[#111827] mb-[14px]">Required Documents</p>
+                  <div className="bg-card border border-border rounded-[14px] p-[20px]">
+                    <p className="text-[14px] font-semibold text-foreground mb-[14px]">Required Documents</p>
                     <div className="flex flex-col gap-[10px]">
                       {['Transcripts','Statement of Purpose','Passport Copy'].map((doc, i) => (
-                        <div key={doc} className="flex items-center justify-between py-[10px] border-b border-[#F3F4F6] last:border-b-0">
+                        <div key={doc} className="flex items-center justify-between py-[10px] border-b border-border last:border-b-0">
                           <div className="flex items-center gap-[10px]">
-                            <FileText size={15} strokeWidth={1.8} className="text-[#9CA3AF]" />
-                            <span className="text-[13px] text-[#374151]">{doc}</span>
+                            <FileText size={15} strokeWidth={1.8} className="text-muted-foreground" />
+                            <span className="text-[13px] text-foreground">{doc}</span>
                           </div>
                           {i === 0
                             ? <span className="text-[12px] font-semibold text-[#059669] flex items-center gap-[4px]"><CheckCircle2 size={13} strokeWidth={2} />Uploaded</span>
@@ -368,9 +368,9 @@ export default function ApplicationsPage() {
                 </div>
 
                 {/* Drawer footer */}
-                <div className="sticky bottom-0 bg-white border-t border-[#EAECF0] p-[20px] flex gap-[10px]">
+                <div className="sticky bottom-0 bg-card border-t border-border p-[20px] flex gap-[10px]">
                   <button className="flex-1 h-[38px] bg-[#4F6BFF] text-white rounded-[8px] text-[13px] font-semibold hover:bg-[#3D56E0] transition-colors">Continue Application</button>
-                  <button onClick={() => setSelectedApp(null)} className="h-[38px] px-[16px] border border-[#EAECF0] rounded-[8px] text-[13px] font-medium text-[#374151] hover:bg-[#F3F4F6] transition-colors">Close</button>
+                  <button onClick={() => setSelectedApp(null)} className="h-[38px] px-[16px] border border-border rounded-[8px] text-[13px] font-medium text-foreground hover:bg-secondary transition-colors">Close</button>
                 </div>
               </motion.div>
             </>
