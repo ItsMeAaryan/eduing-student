@@ -88,7 +88,7 @@ export default function NotificationsDrawer({ isOpen, onClose }: Props) {
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 28, stiffness: 220 }}
-            className="fixed top-0 right-0 bottom-0 w-full sm:w-[380px] bg-white border-l border-[#EAECF0] shadow-[0_0_40px_rgba(0,0,0,0.10)] z-[51] flex flex-col"
+            className="fixed top-0 right-0 bottom-0 w-full sm:w-[380px] bg-white dark:bg-slate-900 border-l border-[#EAECF0] dark:border-slate-800 shadow-[0_0_40px_rgba(0,0,0,0.10)] z-[51] flex flex-col transition-colors"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-[20px] py-[16px] border-b border-[#EAECF0] h-[64px]">

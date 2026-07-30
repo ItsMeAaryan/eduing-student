@@ -43,7 +43,7 @@ export default function DocPreviewPanel({ doc, onClose }: { doc: Doc; onClose: (
   return (
     <motion.div initial={{ x:'100%' }} animate={{ x:0 }} exit={{ x:'100%' }}
       transition={{ type:'spring', damping:28, stiffness:220 }}
-      className="fixed top-0 right-0 bottom-0 w-[400px] bg-white border-l border-[#EAECF0] z-50 flex flex-col shadow-2xl">
+      className="fixed top-0 right-0 bottom-0 w-[400px] bg-white dark:bg-slate-900 border-l border-[#EAECF0] dark:border-slate-800 z-50 flex flex-col shadow-2xl transition-colors">
 
       {/* Header */}
       <div className="flex items-center justify-between px-[20px] py-[14px] border-b border-[#EAECF0] shrink-0">

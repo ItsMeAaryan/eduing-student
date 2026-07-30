@@ -1,5 +1,5 @@
+'use client';
 import React from 'react';
-import { motion } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
 
 export type AIThemeColor = 'indigo' | 'emerald' | 'amber' | 'rose' | 'cyan' | 'purple';
@@ -8,112 +8,75 @@ interface AIWorkspaceLayoutProps {
   title: string;
   icon: React.ReactNode;
   headerActions?: React.ReactNode;
+  children?: React.ReactNode;
+  themeColor?: AIThemeColor;
+  subtitle?: string;
+  // Legacy panel props — ignored, each page manages its own layout now
   leftPanel?: React.ReactNode;
   centerPanel?: React.ReactNode;
   rightPanel?: React.ReactNode;
-  children?: React.ReactNode;
-  themeColor?: AIThemeColor;
 }
 
+const THEME_COLORS: Record<AIThemeColor, { hex: string; bg: string; text: string; border: string }> = {
+  indigo: { hex: '#4F6BFF', bg: 'bg-[#EEF2FF]', text: 'text-[#4F6BFF]', border: 'border-[#C7D2FE]' },
+  emerald: { hex: '#10B981', bg: 'bg-[#ECFDF5]', text: 'text-[#10B981]', border: 'border-[#A7F3D0]' },
+  amber: { hex: '#F59E0B', bg: 'bg-[#FFFBEB]', text: 'text-[#F59E0B]', border: 'border-[#FDE68A]' },
+  rose: { hex: '#F43F5E', bg: 'bg-[#FFF1F2]', text: 'text-[#F43F5E]', border: 'border-[#FECDD3]' },
+  cyan: { hex: '#06B6D4', bg: 'bg-[#ECFEFF]', text: 'text-[#06B6D4]', border: 'border-[#A5F3FC]' },
+  purple: { hex: '#8B5CF6', bg: 'bg-[#F5F3FF]', text: 'text-[#8B5CF6]', border: 'border-[#DDD6FE]' },
+};
+
+/**
+ * AIWorkspaceLayout — now a lightweight native page header.
+ * No dark wrapper. No full-screen container. Portal background shows through.
+ * Each page controls its own card/panel layout below.
+ */
 export function AIWorkspaceLayout({
   title,
   icon,
   headerActions,
-  leftPanel,
-  centerPanel,
-  rightPanel,
   children,
-  themeColor = 'indigo'
+  themeColor = 'indigo',
+  subtitle,
 }: AIWorkspaceLayoutProps) {
-
-  const themes = {
-    indigo: {
-      bg: 'bg-indigo-500/10',
-      text: 'text-indigo-400',
-      border: 'border-indigo-500/20'
-    },
-    emerald: {
-      bg: 'bg-emerald-500/10',
-      text: 'text-emerald-400',
-      border: 'border-emerald-500/20'
-    },
-    amber: {
-      bg: 'bg-amber-500/10',
-      text: 'text-amber-400',
-      border: 'border-amber-500/20'
-    },
-    rose: {
-      bg: 'bg-rose-500/10',
-      text: 'text-rose-400',
-      border: 'border-rose-500/20'
-    },
-    cyan: {
-      bg: 'bg-cyan-500/10',
-      text: 'text-cyan-400',
-      border: 'border-cyan-500/20'
-    },
-    purple: {
-      bg: 'bg-purple-500/10',
-      text: 'text-purple-400',
-      border: 'border-purple-500/20'
-    }
-  };
-
-  const currentTheme = themes[themeColor];
+  const theme = THEME_COLORS[themeColor];
 
   return (
-    <div className="min-h-screen bg-[#09090B] text-white font-sans flex flex-col h-screen overflow-hidden">
-      {/* Top Navbar */}
-      <div className="h-16 border-b border-white/5 flex items-center justify-between px-6 bg-[#09090B] shrink-0 z-20">
+    <div className="flex flex-col gap-5">
+      {/* ── Page Header ─────────────────────────────────────────── */}
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 ${currentTheme.bg} rounded-xl flex items-center justify-center ${currentTheme.text} shadow-inner`}>
+          {/* Icon */}
+          <div className={`w-10 h-10 ${theme.bg} ${theme.border} border rounded-[12px] flex items-center justify-center ${theme.text} shrink-0`}>
             {icon}
           </div>
+
+          {/* Title + AI badge */}
           <div>
-            <h1 className="text-sm font-display font-semibold tracking-wide text-white">{title}</h1>
-            <div className={`text-[10px] ${currentTheme.text} font-bold uppercase tracking-widest flex items-center gap-1 mt-0.5`}>
-              <Sparkles size={10} /> Powered by EDUING AI
+            <h1 className="text-[18px] font-semibold text-[#111827] dark:text-slate-100 tracking-tight leading-none">{title}</h1>
+            <div className="flex items-center gap-1.5 mt-1">
+              <span
+                className="w-1.5 h-1.5 rounded-full animate-pulse"
+                style={{ background: theme.hex }}
+              />
+              <span className="text-[11px] text-[#9CA3AF] font-medium">
+                Powered by EDUING AI
+              </span>
+              <Sparkles size={9} style={{ color: theme.hex }} className="opacity-70" />
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          {headerActions}
-        </div>
-      </div>
 
-      <div className="flex-1 flex overflow-hidden relative">
-        {/* Subtle background glow based on theme - Global for the workspace */}
-        <div className={`absolute top-[20%] left-1/2 -translate-x-1/2 w-[600px] h-[600px] ${currentTheme.bg} blur-[120px] rounded-full mix-blend-screen opacity-10 pointer-events-none z-0`} />
-
-        {children ? (
-          <div className="flex-1 w-full h-full relative z-10 overflow-hidden flex flex-col">
-            {children}
+        {/* Actions */}
+        {headerActions && (
+          <div className="flex items-center gap-2">
+            {headerActions}
           </div>
-        ) : (
-          <>
-            {/* Left Panel */}
-            {leftPanel && (
-              <div className="w-64 border-r border-white/5 bg-[#111113] p-4 flex flex-col gap-6 overflow-y-auto shrink-0 custom-scrollbar z-10">
-                {leftPanel}
-              </div>
-            )}
-
-            {/* Center Panel */}
-            <div className="flex-1 overflow-y-auto p-6 lg:p-12 custom-scrollbar flex flex-col relative z-10">
-              <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col relative">
-                {centerPanel}
-              </div>
-            </div>
-
-            {/* Right Panel */}
-            {rightPanel && (
-              <div className="w-80 border-l border-white/5 bg-[#111113] flex flex-col shrink-0 z-10">
-                {rightPanel}
-              </div>
-            )}
-          </>
         )}
       </div>
+
+      {/* ── Page Content ─────────────────────────────────────────── */}
+      {children}
     </div>
   );
 }
