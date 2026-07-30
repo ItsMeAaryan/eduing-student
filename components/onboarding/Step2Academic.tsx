@@ -11,7 +11,7 @@ export default function Step2Academic({ data, updateData }: Props) {
   return (
     <div className="space-y-8">
       {/* 10th Standard */}
-      <div className="bg-white/[0.02] border border-white/5 p-6 rounded-2xl space-y-6">
+      <div className="bg-card/[0.02] border border-white/5 p-6 rounded-2xl space-y-6">
         <h3 className="text-lg font-semibold text-white border-b border-white/10 pb-3">10th Standard</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -66,7 +66,7 @@ export default function Step2Academic({ data, updateData }: Props) {
       </div>
 
       {/* 12th Standard */}
-      <div className="bg-white/[0.02] border border-white/5 p-6 rounded-2xl space-y-6">
+      <div className="bg-card/[0.02] border border-white/5 p-6 rounded-2xl space-y-6">
         <h3 className="text-lg font-semibold text-white border-b border-white/10 pb-3">12th Standard / Diploma</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -129,7 +129,7 @@ export default function Step2Academic({ data, updateData }: Props) {
                   className={`px-6 py-2.5 rounded-xl border transition-all ${
                     data.stream === stream 
                       ? "bg-primary/20 border-primary text-primary font-medium" 
-                      : "bg-white/5 border-border text-textSecondary hover:bg-white/10"
+                      : "bg-card/5 border-border text-textSecondary hover:bg-card/10"
                   }`}
                 >
                   {stream}

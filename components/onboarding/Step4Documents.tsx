@@ -108,7 +108,7 @@ export default function Step4Documents({ data, updateData }: Props) {
           const currentProgress = progress[doc.id] || 0;
 
           return (
-            <div key={doc.id} className="bg-white/[0.02] border border-white/5 p-5 rounded-2xl">
+            <div key={doc.id} className="bg-card/[0.02] border border-white/5 p-5 rounded-2xl">
               <div className="flex justify-between items-center mb-4">
                 <div>
                   <h4 className="font-medium text-white">{doc.title}</h4>
@@ -118,7 +118,7 @@ export default function Step4Documents({ data, updateData }: Props) {
               </div>
 
               {fileUrl ? (
-                <div className="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/10">
+                <div className="flex items-center justify-between bg-card/5 p-3 rounded-xl border border-white/10">
                   <div className="flex items-center truncate mr-2">
                     <File size={16} className="text-primary mr-2 flex-shrink-0" />
                     <a href={fileUrl} target="_blank" rel="noreferrer" className="text-sm text-blue-400 hover:underline truncate">
@@ -132,7 +132,7 @@ export default function Step4Documents({ data, updateData }: Props) {
               ) : (
                 <div 
                   className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors ${
-                    isUploading ? "border-primary/50 bg-primary/5" : "border-border hover:border-primary/50 bg-white/5 cursor-pointer"
+                    isUploading ? "border-primary/50 bg-primary/5" : "border-border hover:border-primary/50 bg-card/5 cursor-pointer"
                   }`}
                   onDrop={(e) => handleDrop(e, doc.id)}
                   onDragOver={handleDragOver}

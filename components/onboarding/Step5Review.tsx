@@ -24,8 +24,8 @@ export default function Step5Review({ data, goToStep }: Props) {
       </div>
 
       {/* Personal Info Summary */}
-      <div className="bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden">
-        <div className="bg-white/5 px-6 py-4 border-b border-white/5 flex justify-between items-center">
+      <div className="bg-card/[0.02] border border-white/5 rounded-2xl overflow-hidden">
+        <div className="bg-card/5 px-6 py-4 border-b border-white/5 flex justify-between items-center">
           <h4 className="font-semibold text-white">Personal Information</h4>
           <button onClick={() => goToStep(1)} className="text-sm text-primary hover:text-blue-400 flex items-center">
             <Edit2 size={14} className="mr-1" /> Edit
@@ -56,8 +56,8 @@ export default function Step5Review({ data, goToStep }: Props) {
       </div>
 
       {/* Academic Background Summary */}
-      <div className="bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden">
-        <div className="bg-white/5 px-6 py-4 border-b border-white/5 flex justify-between items-center">
+      <div className="bg-card/[0.02] border border-white/5 rounded-2xl overflow-hidden">
+        <div className="bg-card/5 px-6 py-4 border-b border-white/5 flex justify-between items-center">
           <h4 className="font-semibold text-white">Academic Background</h4>
           <button onClick={() => goToStep(2)} className="text-sm text-primary hover:text-blue-400 flex items-center">
             <Edit2 size={14} className="mr-1" /> Edit
@@ -102,8 +102,8 @@ export default function Step5Review({ data, goToStep }: Props) {
       </div>
 
       {/* Exams Summary */}
-      <div className="bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden">
-        <div className="bg-white/5 px-6 py-4 border-b border-white/5 flex justify-between items-center">
+      <div className="bg-card/[0.02] border border-white/5 rounded-2xl overflow-hidden">
+        <div className="bg-card/5 px-6 py-4 border-b border-white/5 flex justify-between items-center">
           <h4 className="font-semibold text-white">Entrance Exams</h4>
           <button onClick={() => goToStep(3)} className="text-sm text-primary hover:text-blue-400 flex items-center">
             <Edit2 size={14} className="mr-1" /> Edit
@@ -126,8 +126,8 @@ export default function Step5Review({ data, goToStep }: Props) {
       </div>
 
       {/* Documents Summary */}
-      <div className="bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden">
-        <div className="bg-white/5 px-6 py-4 border-b border-white/5 flex justify-between items-center">
+      <div className="bg-card/[0.02] border border-white/5 rounded-2xl overflow-hidden">
+        <div className="bg-card/5 px-6 py-4 border-b border-white/5 flex justify-between items-center">
           <h4 className="font-semibold text-white">Documents</h4>
           <button onClick={() => goToStep(4)} className="text-sm text-primary hover:text-blue-400 flex items-center">
             <Edit2 size={14} className="mr-1" /> Edit

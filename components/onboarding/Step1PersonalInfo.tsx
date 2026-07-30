@@ -36,7 +36,7 @@ export default function Step1PersonalInfo({ data, updateData }: Props) {
     <div className="space-y-6">
       <div className="flex flex-col items-center mb-8">
         <div 
-          className="relative w-32 h-32 rounded-full border-2 border-dashed border-border bg-white/5 flex items-center justify-center overflow-hidden cursor-pointer hover:border-primary transition-colors group"
+          className="relative w-32 h-32 rounded-full border-2 border-dashed border-border bg-card/5 flex items-center justify-center overflow-hidden cursor-pointer hover:border-primary transition-colors group"
           onClick={() => fileInputRef.current?.click()}
           role="button"
           tabIndex={0}
@@ -105,7 +105,7 @@ export default function Step1PersonalInfo({ data, updateData }: Props) {
               className={`px-6 py-2.5 rounded-xl border transition-all ${
                 data.gender === gender 
                   ? "bg-primary/20 border-primary text-primary font-medium" 
-                  : "bg-white/5 border-border text-textSecondary hover:bg-white/10"
+                  : "bg-card/5 border-border text-textSecondary hover:bg-card/10"
               }`}
             >
               {gender}

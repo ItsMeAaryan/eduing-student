@@ -46,7 +46,7 @@ export default function Step3Exams({ data, updateData }: Props) {
               className={`p-4 rounded-xl border transition-all ${
                 isSelected 
                   ? "bg-primary/10 border-primary/50" 
-                  : "bg-white/5 border-border hover:bg-white/10"
+                  : "bg-card/5 border-border hover:bg-card/10"
               }`}
             >
               <div 
