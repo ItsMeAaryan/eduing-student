@@ -1,6 +1,16 @@
-// DEPRECATED: This file contains hardcoded data.
-// All new code should use hooks/useUniversities instead.
-// This file will be removed once all components are migrated.
+/**
+ * @deprecated This file contains a hardcoded university dataset that is no longer used.
+ * All university data must come from Firestore via `hooks/useUniversities` (real-time)
+ * or `StudentDataProvider.universities` (already subscribed globally).
+ *
+ * DO NOT import from this file in any new code.
+ * This file is retained only to avoid breaking legacy type references and
+ * will be deleted once all dependents are confirmed migrated.
+ *
+ * @see hooks/useUniversities.ts
+ * @see lib/firebase/universities.ts  (subscribeToUniversities)
+ * @see components/providers/StudentDataProvider.tsx
+ */
 
 export interface University {
   id: string; name: string; shortName: string; location: string; state: string; country: string;
