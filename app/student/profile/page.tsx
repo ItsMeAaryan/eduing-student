@@ -34,7 +34,7 @@ export default function ProfilePage() {
 
   if (!profile) return (
     <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="w-[36px] h-[36px] border-4 border-[#EAECF0] border-t-[#4F6BFF] rounded-full animate-spin" />
+      <div className="w-[36px] h-[36px] border-4 border-border border-t-[#4F6BFF] rounded-full animate-spin" />
     </div>
   )
 
@@ -122,24 +122,24 @@ export default function ProfilePage() {
             { label: 'Applications',     value: uniqueApps?.length || 0, sub: 'Active' },
             { label: 'Offers',           value: selectedOffers?.length || 0, sub: 'Received', color: '#4F6BFF' },
           ].map((c, i) => (
-            <div key={i} className="bg-white border border-[#EAECF0] rounded-[14px] p-[20px]">
+            <div key={i} className="bg-card border border-border rounded-[14px] p-[20px]">
               <div className="flex items-start justify-between mb-[10px]">
-                <span className="text-[14px] text-[#6B7280]">{c.label}</span>
+                <span className="text-[14px] text-muted-foreground">{c.label}</span>
               </div>
-              <div className="text-[28px] font-bold text-[#111827] leading-none mb-[6px]" style={{ color: c.color || '#111827' }}>{c.value}</div>
-              <span className="text-[12px] text-[#9CA3AF]">{c.sub}</span>
+              <div className="text-[28px] font-bold text-foreground leading-none mb-[6px]" style={{ color: c.color || '#111827' }}>{c.value}</div>
+              <span className="text-[12px] text-muted-foreground">{c.sub}</span>
             </div>
           ))}
         </div>
 
         {/* ── PROFILE HERO ─ */}
-        <div className="bg-white border border-[#EAECF0] rounded-[14px] p-[20px] flex flex-col md:flex-row items-center gap-[24px]">
-          <div className="w-[80px] h-[80px] rounded-full border border-[#EAECF0] bg-[#F9FAFB] flex items-center justify-center shrink-0 overflow-hidden relative">
+        <div className="bg-card border border-border rounded-[14px] p-[20px] flex flex-col md:flex-row items-center gap-[24px]">
+          <div className="w-[80px] h-[80px] rounded-full border border-border bg-muted flex items-center justify-center shrink-0 overflow-hidden relative">
             {profile.profilePhotoURL ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={profile.profilePhotoURL} alt="Profile" className="w-full h-full object-cover" />
             ) : (
-              <User size={32} className="text-[#9CA3AF]" strokeWidth={1.5} />
+              <User size={32} className="text-muted-foreground" strokeWidth={1.5} />
             )}
             <button className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity" aria-label="Upload photo">
               <Upload size={16} className="text-white" strokeWidth={2} />
@@ -147,40 +147,40 @@ export default function ProfilePage() {
           </div>
 
           <div className="flex-1 flex flex-col gap-[6px] text-center md:text-left">
-            <h2 className="text-[20px] font-semibold text-[#111827]">{profile.fullName || user?.displayName || 'Student Profile'}</h2>
-            <p className="text-[13px] text-[#6B7280]">{user?.email}</p>
+            <h2 className="text-[20px] font-semibold text-foreground">{profile.fullName || user?.displayName || 'Student Profile'}</h2>
+            <p className="text-[13px] text-muted-foreground">{user?.email}</p>
             <div className="flex items-center justify-center md:justify-start gap-[12px] mt-[4px]">
-              <div className="flex items-center gap-[4px] bg-[#EEF2FF] text-[#4F6BFF] px-[8px] py-[2px] rounded-full text-[12px] font-semibold">
+              <div className="flex items-center gap-[4px] bg-primary/10 text-[#4F6BFF] px-[8px] py-[2px] rounded-full text-[12px] font-semibold">
                 <Sparkles size={12} strokeWidth={2} />
                 Profile Engine Active
               </div>
-              <div className="flex items-center gap-[4px] bg-[#F3F4F6] text-[#6B7280] px-[8px] py-[2px] rounded-full text-[12px] font-medium">
+              <div className="flex items-center gap-[4px] bg-secondary text-muted-foreground px-[8px] py-[2px] rounded-full text-[12px] font-medium">
                 {profile.entranceExam || 'B.Tech Aspiring'}
               </div>
             </div>
           </div>
 
           <div className="shrink-0 flex flex-col items-center md:items-end gap-[8px]">
-            <span className="text-[12px] text-[#6B7280]">Profile Completion</span>
+            <span className="text-[12px] text-muted-foreground">Profile Completion</span>
             <div className="flex items-center gap-[12px]">
-              <div className="w-[120px] h-[6px] bg-[#F3F4F6] rounded-full overflow-hidden">
+              <div className="w-[120px] h-[6px] bg-secondary rounded-full overflow-hidden">
                 <div className="h-full bg-[#059669] rounded-full" style={{ width: `${strength}%` }} />
               </div>
-              <span className="text-[15px] font-bold text-[#111827]">{strength}%</span>
+              <span className="text-[15px] font-bold text-foreground">{strength}%</span>
             </div>
           </div>
         </div>
 
         {/* ── DATA GRID ─────────────────────────────────── */}
-        <div className="bg-white border border-[#EAECF0] rounded-[14px] overflow-hidden">
-          <div className="flex items-center justify-between px-[20px] py-[14px] border-b border-[#EAECF0]">
-            <span className="text-[15px] font-semibold text-[#111827]">{activeTab} Details</span>
+        <div className="bg-card border border-border rounded-[14px] overflow-hidden">
+          <div className="flex items-center justify-between px-[20px] py-[14px] border-b border-border">
+            <span className="text-[15px] font-semibold text-foreground">{activeTab} Details</span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-[1px] bg-[#E5E7EB]">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-[1px] bg-secondary/80">
             {displayData.map((f, i) => (
-              <div key={i} className="bg-white p-[20px] flex flex-col gap-[6px] hover:bg-[#F9FAFB] transition-colors group">
-                <p className="text-[12px] font-medium text-[#9CA3AF] uppercase tracking-[0.04em]">{f.label}</p>
+              <div key={i} className="bg-card p-[20px] flex flex-col gap-[6px] hover:bg-muted transition-colors group">
+                <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-[0.04em]">{f.label}</p>
 
                 {editingKey === f.key ? (
                   <div className="flex items-center gap-[8px] mt-[4px]">
@@ -188,7 +188,7 @@ export default function ProfilePage() {
                       type="text"
                       value={editValue}
                       onChange={e => setEditValue(e.target.value)}
-                      className="flex-1 h-[32px] px-[10px] bg-[#F9FAFB] border border-[#4F6BFF] rounded-[6px] text-[13px] text-[#111827] focus:outline-none"
+                      className="flex-1 h-[32px] px-[10px] bg-muted border border-[#4F6BFF] rounded-[6px] text-[13px] text-foreground focus:outline-none"
                     />
                     <button
                       onClick={() => handleSaveField(f.key)}
@@ -200,7 +200,7 @@ export default function ProfilePage() {
                     </button>
                     <button
                       onClick={() => setEditingKey(null)}
-                      className="w-[32px] h-[32px] rounded-[6px] border border-[#EAECF0] text-[#6B7280] flex items-center justify-center hover:bg-[#F3F4F6] transition-colors"
+                      className="w-[32px] h-[32px] rounded-[6px] border border-border text-muted-foreground flex items-center justify-center hover:bg-secondary transition-colors"
                       aria-label="Cancel editing"
                     >
                       <X size={14} strokeWidth={2} />
@@ -208,7 +208,7 @@ export default function ProfilePage() {
                   </div>
                 ) : (
                   <div className="flex items-center justify-between min-h-[32px]">
-                    <p className="text-[14px] font-medium text-[#111827]">{f.value}</p>
+                    <p className="text-[14px] font-medium text-foreground">{f.value}</p>
                     {!(f as any).readonly && (
                       <button
                         onClick={() => handleStartEdit(f.key, f.value)}

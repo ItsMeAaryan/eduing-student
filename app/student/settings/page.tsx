@@ -27,9 +27,9 @@ export default function SettingsPage() {
         <SegmentedTabs tabs={TABS} active={activeTab} onChange={setActiveTab} />
 
         {/* ── SETTINGS CARDS ────────────────────────────── */}
-        <div className="bg-white dark:bg-slate-900 border border-[#EAECF0] dark:border-slate-800 rounded-[14px] overflow-hidden transition-colors">
-          <div className="flex items-center justify-between px-[20px] py-[14px] border-b border-[#EAECF0] dark:border-slate-800">
-            <span className="text-[15px] font-semibold text-[#111827] dark:text-slate-100">{activeTab} Settings</span>
+        <div className="bg-card dark:bg-slate-900 border border-border dark:border-slate-800 rounded-[14px] overflow-hidden transition-colors">
+          <div className="flex items-center justify-between px-[20px] py-[14px] border-b border-border dark:border-slate-800">
+            <span className="text-[15px] font-semibold text-foreground dark:text-slate-100">{activeTab} Settings</span>
           </div>
 
           <div className="p-[20px] flex flex-col gap-[20px]">
@@ -46,8 +46,8 @@ export default function SettingsPage() {
               <div className="flex flex-col gap-[24px]">
                 {/* Theme Switcher Section */}
                 <div>
-                  <h3 className="text-[14px] font-bold text-[#000000] dark:text-slate-100 mb-[4px]">Theme Mode</h3>
-                  <p className="text-[12px] text-[#615d59] dark:text-slate-400 mb-[12px]">Choose your preferred visual theme interface</p>
+                  <h3 className="text-[14px] font-bold text-foreground dark:text-slate-100 mb-[4px]">Theme Mode</h3>
+                  <p className="text-[12px] text-muted-foreground dark:text-slate-400 mb-[12px]">Choose your preferred visual theme interface</p>
 
                   <div className="grid grid-cols-3 gap-[12px] max-w-[480px]">
                     {[
@@ -63,18 +63,18 @@ export default function SettingsPage() {
                           onClick={() => setTheme(opt.key)}
                           className={`p-[14px] rounded-[10px] border flex flex-col items-start gap-[8px] transition-all text-left ${
                             isSelected
-                              ? 'border-[#0075de] bg-[#EEF2FF] dark:bg-slate-800/80 ring-2 ring-[#0075de]/20'
-                              : 'border-[#EAECF0] dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-[#0075de]/40'
+                              ? 'border-primary bg-primary/10 dark:bg-slate-800/80 ring-2 ring-primary/20'
+                              : 'border-border dark:border-slate-800 bg-card dark:bg-slate-900 hover:border-primary/40'
                           }`}
                         >
                           <div className={`w-[32px] h-[32px] rounded-[8px] flex items-center justify-center ${
-                            isSelected ? 'bg-[#0075de] text-white' : 'bg-[#F9FAFB] dark:bg-slate-800 text-[#615d59] dark:text-slate-400'
+                            isSelected ? 'bg-primary text-white' : 'bg-muted dark:bg-slate-800 text-muted-foreground dark:text-slate-400'
                           }`}>
                             <IconComp size={16} />
                           </div>
                           <div>
-                            <p className="text-[13px] font-bold text-[#000000] dark:text-slate-100">{opt.label}</p>
-                            <p className="text-[10px] text-[#615d59] dark:text-slate-400 leading-snug mt-[2px]">{opt.desc}</p>
+                            <p className="text-[13px] font-bold text-foreground dark:text-slate-100">{opt.label}</p>
+                            <p className="text-[10px] text-muted-foreground dark:text-slate-400 leading-snug mt-[2px]">{opt.desc}</p>
                           </div>
                         </button>
                       )
@@ -83,13 +83,13 @@ export default function SettingsPage() {
                 </div>
 
                 {/* Accent Color Placeholder */}
-                <div className="pt-[16px] border-t border-[#EAECF0] dark:border-slate-800">
+                <div className="pt-[16px] border-t border-border dark:border-slate-800">
                   <div className="flex items-center justify-between mb-[8px]">
                     <div>
-                      <h3 className="text-[14px] font-bold text-[#000000] dark:text-slate-100">Accent Color</h3>
-                      <p className="text-[12px] text-[#615d59] dark:text-slate-400">Custom brand accent colors (Future-ready)</p>
+                      <h3 className="text-[14px] font-bold text-foreground dark:text-slate-100">Accent Color</h3>
+                      <p className="text-[12px] text-muted-foreground dark:text-slate-400">Custom brand accent colors (Future-ready)</p>
                     </div>
-                    <span className="text-[10px] font-semibold px-[8px] py-[2px] rounded-full bg-[#0075de]/10 text-[#0075de]">Default: Notion Blue</span>
+                    <span className="text-[10px] font-semibold px-[8px] py-[2px] rounded-full bg-primary/10 text-primary">Default: Notion Blue</span>
                   </div>
                   <div className="flex gap-[10px]">
                     {['#0075de', '#1aae39', '#dd5b00', '#8B5CF6', '#2a9d99'].map(c => (
@@ -99,21 +99,21 @@ export default function SettingsPage() {
                 </div>
 
                 {/* Density & Motion Placeholders */}
-                <div className="grid grid-cols-2 gap-[16px] pt-[16px] border-t border-[#EAECF0] dark:border-slate-800">
-                  <div className="p-[14px] rounded-[10px] border border-[#EAECF0] dark:border-slate-800 bg-[#F9FAFB] dark:bg-slate-800/40">
+                <div className="grid grid-cols-2 gap-[16px] pt-[16px] border-t border-border dark:border-slate-800">
+                  <div className="p-[14px] rounded-[10px] border border-border dark:border-slate-800 bg-muted dark:bg-slate-800/40">
                     <div className="flex items-center gap-[8px] mb-[4px]">
-                      <Layers size={15} className="text-[#0075de]" />
-                      <h4 className="text-[13px] font-bold text-[#000000] dark:text-slate-100">Interface Density</h4>
+                      <Layers size={15} className="text-primary" />
+                      <h4 className="text-[13px] font-bold text-foreground dark:text-slate-100">Interface Density</h4>
                     </div>
-                    <p className="text-[11px] text-[#615d59] dark:text-slate-400">Comfortable (Default)</p>
+                    <p className="text-[11px] text-muted-foreground dark:text-slate-400">Comfortable (Default)</p>
                   </div>
 
-                  <div className="p-[14px] rounded-[10px] border border-[#EAECF0] dark:border-slate-800 bg-[#F9FAFB] dark:bg-slate-800/40">
+                  <div className="p-[14px] rounded-[10px] border border-border dark:border-slate-800 bg-muted dark:bg-slate-800/40">
                     <div className="flex items-center gap-[8px] mb-[4px]">
-                      <Activity size={15} className="text-[#0075de]" />
-                      <h4 className="text-[13px] font-bold text-[#000000] dark:text-slate-100">Motion Effects</h4>
+                      <Activity size={15} className="text-primary" />
+                      <h4 className="text-[13px] font-bold text-foreground dark:text-slate-100">Motion Effects</h4>
                     </div>
-                    <p className="text-[11px] text-[#615d59] dark:text-slate-400">Full Animations Enabled</p>
+                    <p className="text-[11px] text-muted-foreground dark:text-slate-400">Full Animations Enabled</p>
                   </div>
                 </div>
               </div>
@@ -136,7 +136,7 @@ export default function SettingsPage() {
                   <Row title="Two-Factor Authentication" sub="Add an extra layer of security" action="Enable" icon={Fingerprint} />
                 </div>
                 <div>
-                  <p className="text-[14px] font-semibold text-[#111827] dark:text-slate-100 mb-[12px]">Active Sessions</p>
+                  <p className="text-[14px] font-semibold text-foreground dark:text-slate-100 mb-[12px]">Active Sessions</p>
                   <div className="flex flex-col gap-[12px]">
                     <SessionCard device="MacBook Pro" browser="Chrome · India" icon={Monitor} current />
                     <SessionCard device="iPhone 14 Pro" browser="Safari · India" icon={Smartphone} />
@@ -163,22 +163,22 @@ export default function SettingsPage() {
 
 function Row({ title, sub, action, icon: Icon, danger }: any) {
   return (
-    <div className="flex items-center justify-between py-[12px] border-b border-[#F3F4F6] dark:border-slate-800 last:border-b-0">
+    <div className="flex items-center justify-between py-[12px] border-b border-border dark:border-slate-800 last:border-b-0">
       <div className="flex items-center gap-[12px]">
         {Icon && (
-          <div className="w-[32px] h-[32px] rounded-full bg-[#EEF2FF] dark:bg-slate-800 flex items-center justify-center border border-[#EAECF0] dark:border-slate-700">
-            <Icon size={14} className="text-[#0075de]" strokeWidth={1.8} />
+          <div className="w-[32px] h-[32px] rounded-full bg-primary/10 dark:bg-slate-800 flex items-center justify-center border border-border dark:border-slate-700">
+            <Icon size={14} className="text-primary" strokeWidth={1.8} />
           </div>
         )}
         <div>
-          <p className="text-[14px] font-medium text-[#111827] dark:text-slate-100">{title}</p>
-          <p className="text-[13px] text-[#6B7280] dark:text-slate-400">{sub}</p>
+          <p className="text-[14px] font-medium text-foreground dark:text-slate-100">{title}</p>
+          <p className="text-[13px] text-muted-foreground dark:text-slate-400">{sub}</p>
         </div>
       </div>
       <button className={`text-[12px] font-semibold px-[12px] h-[30px] rounded-[6px] border transition-colors ${
         danger
-          ? 'bg-[#ef4444]/10 text-[#ef4444] border-[#ef4444]/20 hover:bg-[#ef4444]/20'
-          : 'bg-white dark:bg-slate-800 text-[#374151] dark:text-slate-300 border-[#EAECF0] dark:border-slate-700 hover:bg-[#F9FAFB] dark:hover:bg-slate-700'
+          ? 'bg-destructive/10 text-destructive border-[#ef4444]/20 hover:bg-destructive/20'
+          : 'bg-card dark:bg-slate-800 text-foreground dark:text-slate-300 border-border dark:border-slate-700 hover:bg-muted dark:hover:bg-slate-700'
       }`}>
         {action}
       </button>
@@ -189,16 +189,16 @@ function Row({ title, sub, action, icon: Icon, danger }: any) {
 function Toggle({ title, sub, defaultOn }: { title: string; sub: string; defaultOn?: boolean }) {
   const [on, setOn] = useState(!!defaultOn)
   return (
-    <div className="flex items-center justify-between py-[10px] border-b border-[#F3F4F6] dark:border-slate-800 last:border-b-0">
+    <div className="flex items-center justify-between py-[10px] border-b border-border dark:border-slate-800 last:border-b-0">
       <div>
-        <p className="text-[14px] font-medium text-[#111827] dark:text-slate-100">{title}</p>
-        <p className="text-[12px] text-[#6B7280] dark:text-slate-400">{sub}</p>
+        <p className="text-[14px] font-medium text-foreground dark:text-slate-100">{title}</p>
+        <p className="text-[12px] text-muted-foreground dark:text-slate-400">{sub}</p>
       </div>
       <button
         onClick={() => setOn(v => !v)}
-        className={`w-[44px] h-[24px] rounded-full p-[2px] transition-colors ${on ? 'bg-[#0075de]' : 'bg-[#E5E7EB] dark:bg-slate-700'}`}
+        className={`w-[44px] h-[24px] rounded-full p-[2px] transition-colors ${on ? 'bg-primary' : 'bg-secondary/80 dark:bg-slate-700'}`}
       >
-        <div className={`w-[20px] h-[20px] rounded-full bg-white transition-transform ${on ? 'translate-x-[20px]' : 'translate-x-0'}`} />
+        <div className={`w-[20px] h-[20px] rounded-full bg-card transition-transform ${on ? 'translate-x-[20px]' : 'translate-x-0'}`} />
       </button>
     </div>
   )
@@ -206,18 +206,18 @@ function Toggle({ title, sub, defaultOn }: { title: string; sub: string; default
 
 function SessionCard({ device, browser, icon: Icon, current }: any) {
   return (
-    <div className="flex items-center justify-between p-[12px] bg-[#F9FAFB] dark:bg-slate-800/40 border border-[#EAECF0] dark:border-slate-800 rounded-[10px]">
+    <div className="flex items-center justify-between p-[12px] bg-muted dark:bg-slate-800/40 border border-border dark:border-slate-800 rounded-[10px]">
       <div className="flex items-center gap-[12px]">
-        <Icon size={18} className="text-[#6B7280] dark:text-slate-400" />
+        <Icon size={18} className="text-muted-foreground dark:text-slate-400" />
         <div>
-          <p className="text-[13px] font-semibold text-[#111827] dark:text-slate-100">{device}</p>
-          <p className="text-[11px] text-[#6B7280] dark:text-slate-400">{browser}</p>
+          <p className="text-[13px] font-semibold text-foreground dark:text-slate-100">{device}</p>
+          <p className="text-[11px] text-muted-foreground dark:text-slate-400">{browser}</p>
         </div>
       </div>
       {current ? (
-        <span className="text-[10px] font-bold px-[8px] py-[2px] rounded-full bg-[#1aae39]/10 text-[#1aae39]">This device</span>
+        <span className="text-[10px] font-bold px-[8px] py-[2px] rounded-full bg-success/10 text-success">This device</span>
       ) : (
-        <button className="text-[11px] text-[#ef4444] font-medium hover:underline">Log out</button>
+        <button className="text-[11px] text-destructive font-medium hover:underline">Log out</button>
       )}
     </div>
   )
