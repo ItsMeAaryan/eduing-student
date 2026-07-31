@@ -32,10 +32,16 @@ import {
   Check,
   Star,
   Users,
-  Search
+  Search,
+  User,
+  BookOpen,
+  Globe,
+  Upload,
 } from 'lucide-react'
 import { useStudentData } from '@/components/providers/StudentDataProvider'
 import Link from 'next/link'
+import { generateAdmissionChecklist } from '@/lib/utils/checklistEngine'
+import { generateDeadlineInsights } from '@/lib/utils/deadlineEngine'
 
 /* =========================================================================
    STYLING CONSTANTS (STRICTLY FROM DESIGN.md)
@@ -51,10 +57,61 @@ const STICKER_GREEN = "bg-success/10 text-success border border-success/20"
 const STICKER_SKY = "bg-primary/10 text-primary border border-primary/20"
 
 /* =========================================================================
+   SECTION 0: VERIFICATION STATUS BANNER
+   ========================================================================= */
+function VerificationStatusBanner({ status }: { status: string }) {
+  const config: Record<string, { color: string; icon: React.ElementType; cta?: string; ctaLink?: string; message: string }> = {
+    'Profile Incomplete': {
+      color: 'bg-[#dd5b00]/10 border-[#dd5b00]/20 text-[#dd5b00]',
+      icon: AlertCircle,
+      message: 'Your profile is incomplete. Complete it to unlock university recommendations and admission insights.',
+      cta: 'Complete Profile',
+      ctaLink: '/student/profile',
+    },
+    'Profile Complete': {
+      color: 'bg-primary/10 border-primary/20 text-primary',
+      icon: ShieldCheck,
+      message: 'Profile complete! Upload your documents to unlock full verification.',
+      cta: 'Upload Documents',
+      ctaLink: '/student/documents',
+    },
+    'Documents Pending': {
+      color: 'bg-amber-500/10 border-amber-500/20 text-amber-600',
+      icon: Clock,
+      message: 'Your documents are under review. We\'ll notify you once verified.',
+    },
+    'Documents Verified': {
+      color: 'bg-success/10 border-success/20 text-success',
+      icon: CheckCircle2,
+      message: 'Profile & documents verified! You\'re fully set to apply to universities.',
+    },
+  }
+
+  const c = config[status]
+  if (!c) return null
+  const Icon = c.icon
+
+  return (
+    <div className={`flex items-center justify-between gap-[12px] px-[16px] py-[10px] rounded-[10px] border ${c.color} text-[13px]`}>
+      <div className="flex items-center gap-[8px]">
+        <Icon size={15} className="shrink-0" />
+        <span className="font-medium">{status}</span>
+        <span className="text-[12px] opacity-80 hidden sm:inline">— {c.message}</span>
+      </div>
+      {c.cta && c.ctaLink && (
+        <Link href={c.ctaLink} className="shrink-0 font-semibold text-[12px] underline underline-offset-2 whitespace-nowrap">
+          {c.cta} →
+        </Link>
+      )}
+    </div>
+  )
+}
+
+/* =========================================================================
    SECTION 1: WELCOME AREA & QUICK AI SUMMARY
    ========================================================================= */
 function WelcomeArea({ profile, profileScore, appsCount }: { profile: any; profileScore: number; appsCount: number }) {
-  const name = profile?.fullName ? profile.fullName.split(' ')[0] : 'Prince'
+  const name = profile?.fullName ? profile.fullName.split(' ')[0] : 'Student'
 
   const getGreeting = () => {
     const hour = new Date().getHours()
@@ -78,22 +135,85 @@ function WelcomeArea({ profile, profileScore, appsCount }: { profile: any; profi
 }
 
 /* =========================================================================
-   SECTION 2: TODAY'S FOCUS (PRIMARY ACTIONABLE TASKS)
+   SECTION 2: TODAY'S FOCUS (DATA-DRIVEN FROM checklistEngine)
    ========================================================================= */
-function TodaysFocus() {
-  const [tasks, setTasks] = useState([
-    { id: 1, title: 'Upload Official Academic Transcript', category: 'Documents', due: 'Today', priority: 'Urgent', link: '/student/documents', icon: FileText, completed: false, tagColor: STICKER_ORANGE },
-    { id: 2, title: 'Complete Statement of Purpose First Draft', category: 'SOP', due: 'Tomorrow', priority: 'High', link: '/student/sop', icon: Sparkles, completed: false, tagColor: STICKER_PURPLE },
-    { id: 3, title: 'Submit MIT Graduate Application', category: 'Application', due: 'In 3 Days', priority: 'High', link: '/student/applications', icon: Send, completed: false, tagColor: STICKER_SKY },
-    { id: 4, title: 'Apply for Global Excellence Scholarship', category: 'Scholarship', due: 'Aug 5', priority: 'Medium', link: '/student/scholarships', icon: Award, completed: false, tagColor: STICKER_GREEN },
-    { id: 5, title: 'Complete AI Mock Interview Session', category: 'Practice', due: 'This Week', priority: 'Normal', link: '/student/interview', icon: Video, completed: false, tagColor: STICKER_TEAL },
-  ])
+function TodaysFocus({
+  profile,
+  userDocuments,
+  applications,
+  savedPrograms,
+  deadlines,
+  isOnboardingComplete,
+}: {
+  profile: any
+  userDocuments: Record<string, any>
+  applications: any[]
+  savedPrograms: any[]
+  deadlines: any[]
+  isOnboardingComplete: boolean
+}) {
+  // Convert userDocuments map into a list for the checklist engine
+  const docsList = Object.entries(userDocuments).map(([id, d]) => ({ id, ...d }))
 
-  const toggleTask = (id: number) => {
-    setTasks(prev => prev.map(t => t.id === id ? { ...t, completed: !t.completed } : t))
+  const checklist = useMemo(() =>
+    generateAdmissionChecklist({
+      profile,
+      documents: docsList,
+      applications,
+      savedPrograms,
+      deadlines,
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [profile, userDocuments, applications, savedPrograms, deadlines]
+  )
+
+  const tasks = checklist.tasks
+  const [checked, setChecked] = useState<Set<string>>(new Set())
+
+  const toggle = (id: string) => {
+    setChecked(prev => {
+      const n = new Set(prev)
+      n.has(id) ? n.delete(id) : n.add(id)
+      return n
+    })
   }
 
-  const completedCount = tasks.filter(t => t.completed).length
+  const completedCount = checked.size
+
+  const iconMap: Record<string, React.ElementType> = {
+    Document: FileText,
+    Profile: User,
+    Application: Send,
+    Deadline: Calendar,
+    Bookmark: Bookmark,
+  }
+
+  const priorityColor: Record<string, string> = {
+    Critical: STICKER_ORANGE,
+    High: STICKER_SKY,
+    Medium: STICKER_PURPLE,
+    Low: STICKER_TEAL,
+  }
+
+  if (tasks.length === 0) {
+    return (
+      <div className={CARD_STYLE}>
+        <div className="flex items-center gap-[10px] mb-[16px]">
+          <div className="w-[28px] h-[28px] rounded-[8px] bg-primary/10 flex items-center justify-center text-primary">
+            <Target size={16} strokeWidth={2} />
+          </div>
+          <h2 className="text-[16px] font-bold text-foreground tracking-tight">Today&apos;s Focus</h2>
+        </div>
+        <div className="flex flex-col items-center justify-center py-[32px] gap-[10px] text-center">
+          <div className="w-[44px] h-[44px] rounded-full bg-success/10 flex items-center justify-center">
+            <CheckCircle2 size={20} className="text-success" />
+          </div>
+          <p className="text-[14px] font-semibold text-foreground">All caught up!</p>
+          <p className="text-[12px] text-muted-foreground max-w-[240px]">No pending actions right now. Keep exploring universities and check back soon.</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className={CARD_STYLE}>
@@ -110,65 +230,62 @@ function TodaysFocus() {
 
         <div className="flex items-center gap-[8px]">
           <div className="w-[120px] h-[6px] bg-secondary rounded-full overflow-hidden hidden sm:block">
-            <div className="h-full bg-primary transition-all duration-500 rounded-full" style={{ width: `${(completedCount / tasks.length) * 100}%` }} />
+            <div className="h-full bg-primary transition-all duration-500 rounded-full" style={{ width: `${tasks.length > 0 ? (completedCount / tasks.length) * 100 : 0}%` }} />
           </div>
-          <span className="text-[12px] font-semibold text-primary">{Math.round((completedCount / tasks.length) * 100)}%</span>
+          <span className="text-[12px] font-semibold text-primary">{tasks.length > 0 ? Math.round((completedCount / tasks.length) * 100) : 0}%</span>
         </div>
       </div>
 
       <div className="flex flex-col gap-[10px]">
-        {tasks.map(task => (
-          <div
-            key={task.id}
-            className={`p-[14px] rounded-[10px] border transition-all flex items-center justify-between gap-[12px] ${
-              task.completed
-                ? 'bg-muted border-border opacity-60'
-                : 'bg-card border-border hover:border-primary/30 hover:shadow-xs'
-            }`}
-          >
-            <div className="flex items-center gap-[12px] min-w-0">
-              <button
-                onClick={() => toggleTask(task.id)}
-                className={`w-[20px] h-[20px] rounded-[6px] border flex items-center justify-center transition-colors cursor-pointer shrink-0 ${
-                  task.completed ? 'bg-success border-success text-white' : 'border-border hover:border-primary'
-                }`}
-                aria-label={`Mark ${task.title} as completed`}
-              >
-                {task.completed && <Check size={14} strokeWidth={3} />}
-              </button>
+        {tasks.map(task => {
+          const isChecked = checked.has(task.id)
+          const Icon = iconMap[task.iconType] || Target
+          return (
+            <div
+              key={task.id}
+              className={`p-[14px] rounded-[10px] border transition-all flex items-center justify-between gap-[12px] ${
+                isChecked
+                  ? 'bg-muted border-border opacity-60'
+                  : 'bg-card border-border hover:border-primary/30 hover:shadow-xs'
+              }`}
+            >
+              <div className="flex items-center gap-[12px] min-w-0">
+                <button
+                  onClick={() => toggle(task.id)}
+                  className={`w-[20px] h-[20px] rounded-[6px] border flex items-center justify-center transition-colors cursor-pointer shrink-0 ${
+                    isChecked ? 'bg-success border-success text-white' : 'border-border hover:border-primary'
+                  }`}
+                  aria-label={`Mark ${task.title} as completed`}
+                >
+                  {isChecked && <Check size={14} strokeWidth={3} />}
+                </button>
 
-              <div className="min-w-0">
-                <div className="flex items-center gap-[8px] flex-wrap">
-                  <span className={`text-[13.5px] font-semibold truncate ${task.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
-                    {task.title}
-                  </span>
-                  <span className={`text-[10px] font-semibold px-[8px] py-[2px] rounded-full ${task.tagColor}`}>
-                    {task.category}
-                  </span>
-                </div>
-                <div className="flex items-center gap-[12px] text-[11px] text-muted-foreground mt-[2px]">
-                  <span className="flex items-center gap-[4px]">
-                    <Clock size={11} className="text-muted-foreground" />
-                    Due: {task.due}
-                  </span>
-                  <span className={`font-semibold ${
-                    task.priority === 'Urgent' ? 'text-[#dd5b00]' : task.priority === 'High' ? 'text-primary' : 'text-muted-foreground'
-                  }`}>
-                    {task.priority} Priority
-                  </span>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-[8px] flex-wrap">
+                    <span className={`text-[13.5px] font-semibold truncate ${isChecked ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                      {task.title}
+                    </span>
+                    <span className={`text-[10px] font-semibold px-[8px] py-[2px] rounded-full ${priorityColor[task.priority] || STICKER_SKY}`}>
+                      {task.priority}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-[12px] text-[11px] text-muted-foreground mt-[2px]">
+                    <span className="flex items-center gap-[4px]">
+                      <Clock size={11} className="text-muted-foreground" />
+                      ~{task.estimatedTime} min
+                    </span>
+                    <span className="text-muted-foreground truncate">{task.description}</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <Link
-              href={task.link}
-              className={BUTTON_UTILITY}
-            >
-              Action
-              <ChevronRight size={12} />
-            </Link>
-          </div>
-        ))}
+              <Link href={task.actionUrl} className={BUTTON_UTILITY}>
+                {task.actionLabel}
+                <ChevronRight size={12} />
+              </Link>
+            </div>
+          )
+        })}
       </div>
     </div>
   )
@@ -177,7 +294,6 @@ function TodaysFocus() {
 /* =========================================================================
    SECTION 3: APPLICATION PIPELINE
    ========================================================================= */
-/* Map a Firestore application status to the stage label used by the pipeline UI */
 function getStageLabel(status: string): string {
   switch (status) {
     case 'draft': return 'Draft'
@@ -204,7 +320,6 @@ function ApplicationPipeline({ apps }: { apps: any[] }) {
     { label: 'Rejected',    count: apps.filter(a => a.status === 'rejected').length,                                      color: '#ef4444' },
   ]
 
-  // Normalize real apps into the shape the UI expects
   const normalizedApps = apps.map(a => ({
     id: a.id,
     name: a.universityName || a.university || 'Unknown University',
@@ -256,23 +371,24 @@ function ApplicationPipeline({ apps }: { apps: any[] }) {
 
       {/* Pipeline Active List */}
       <div className="flex flex-col gap-[10px]">
-        {filteredApps.length === 0 ? (
+        {apps.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-[32px] gap-[10px] text-center">
             <div className="w-[44px] h-[44px] rounded-full bg-muted flex items-center justify-center">
               <Building2 size={20} className="text-muted-foreground" />
             </div>
-            <p className="text-[14px] font-semibold text-foreground">
-              {selectedStage ? `No applications in ${selectedStage} stage` : 'No applications yet'}
+            <p className="text-[14px] font-semibold text-foreground">No applications yet</p>
+            <p className="text-[12px] text-muted-foreground max-w-[260px]">
+              Start exploring universities and submit your first application to see your pipeline here.
             </p>
-            <p className="text-[12px] text-muted-foreground max-w-[240px]">
-              {selectedStage ? 'Try another stage or clear the filter.' : 'Start exploring universities and apply to get your pipeline moving.'}
-            </p>
-            {!selectedStage && (
-              <Link href="/student/universities" className={BUTTON_PRIMARY}>
-                Explore Universities
-                <ArrowRight size={14} />
-              </Link>
-            )}
+            <Link href="/student/universities" className={BUTTON_PRIMARY}>
+              Explore Universities
+              <ArrowRight size={14} />
+            </Link>
+          </div>
+        ) : filteredApps.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-[24px] gap-[8px] text-center">
+            <p className="text-[14px] font-semibold text-foreground">No applications in {selectedStage} stage</p>
+            <p className="text-[12px] text-muted-foreground">Try another stage or clear the filter.</p>
           </div>
         ) : (
           filteredApps.map((app) => (
@@ -314,24 +430,37 @@ function ApplicationPipeline({ apps }: { apps: any[] }) {
 }
 
 /* =========================================================================
-   SECTION 4: PROFILE STRENGTH WORKSPACE
+   SECTION 4: PROFILE STRENGTH WORKSPACE (DYNAMIC)
    ========================================================================= */
-function ProfileStrengthWorkspace({ profileScore }: { profileScore: number }) {
-  const missingItems = [
-    { title: 'Academic Transcripts', impact: '+12% Readiness', link: '/student/documents' },
-    { title: 'Letter of Recommendation (LOR)', impact: '+10% Readiness', link: '/student/documents' },
-    { title: 'Statement of Purpose (SOP)', impact: '+15% Readiness', link: '/student/sop' },
+function ProfileStrengthWorkspace({ profileStrength }: { profileStrength: any }) {
+  const { percentage, grade, missingFields, categoryBreakdown } = profileStrength
+
+  // Show top 3 missing high-priority items as recommended actions
+  const topMissing = (missingFields || []).slice(0, 3)
+
+  const gradeColor =
+    percentage >= 80 ? 'bg-success/15 text-success' :
+    percentage >= 60 ? 'bg-primary/15 text-primary' :
+    percentage >= 40 ? 'bg-amber-500/15 text-amber-600' :
+    'bg-[#dd5b00]/15 text-[#dd5b00]'
+
+  const breakdown = [
+    { label: 'Personal',     pct: categoryBreakdown?.personal    ?? 0 },
+    { label: 'Academics',    pct: categoryBreakdown?.academics   ?? 0 },
+    { label: 'Test Scores',  pct: categoryBreakdown?.testScores  ?? 0 },
+    { label: 'Preferences',  pct: categoryBreakdown?.preferences ?? 0 },
+    { label: 'Documents',    pct: categoryBreakdown?.documents   ?? 0 },
   ]
 
   return (
     <div className={CARD_STYLE}>
       <div className="flex items-center justify-between pb-[16px] mb-[16px] border-b border-border">
         <div>
-          <h2 className="text-[16px] font-bold text-foreground tracking-tight">Profile Strength & Readiness</h2>
+          <h2 className="text-[16px] font-bold text-foreground tracking-tight">Profile Strength &amp; Readiness</h2>
           <p className="text-[12px] text-muted-foreground">Complete missing requirements to maximize admission probability</p>
         </div>
-        <span className="text-[11px] font-bold bg-success/15 text-success px-[8px] py-[2px] rounded-full">
-          High Alignment
+        <span className={`text-[11px] font-bold px-[8px] py-[2px] rounded-full ${gradeColor}`}>
+          {grade}
         </span>
       </div>
 
@@ -345,77 +474,68 @@ function ProfileStrengthWorkspace({ profileScore }: { profileScore: number }) {
                 <circle
                   cx="45" cy="45" r="38" stroke="#0075de" strokeWidth="8" fill="transparent"
                   strokeDasharray="239"
-                  strokeDashoffset={239 - (239 * profileScore) / 100}
+                  strokeDashoffset={239 - (239 * percentage) / 100}
                   strokeLinecap="round"
                   className="transition-all duration-1000"
                 />
               </svg>
               <div className="absolute flex flex-col items-center">
-                <span className="text-[20px] font-extrabold text-foreground leading-none">{profileScore}%</span>
+                <span className="text-[20px] font-extrabold text-foreground leading-none">{percentage}%</span>
                 <span className="text-[10px] font-semibold text-muted-foreground mt-[2px]">Score</span>
               </div>
             </div>
-            <p className="text-[11px] font-semibold text-foreground mt-[10px] text-center leading-tight">Expected +28% Admission Boost</p>
+            <p className="text-[11px] font-semibold text-foreground mt-[10px] text-center leading-tight">
+              {percentage < 100 ? `${100 - percentage}% more to unlock full insights` : 'Profile Complete!'}
+            </p>
           </div>
 
-          {/* Missing Requirements List */}
+          {/* Missing Requirements */}
           <div className="md:col-span-2 flex flex-col gap-[10px]">
             <p className="text-[12px] font-bold uppercase text-muted-foreground tracking-wider">Recommended Completion Actions</p>
-            {missingItems.map((item, idx) => (
-              <div key={idx} className="p-[10px] bg-card text-card-foreground border border-border rounded-[8px] flex items-center justify-between gap-[12px]">
-                <div className="flex items-center gap-[8px]">
-                  <AlertCircle size={14} className="text-[#dd5b00] shrink-0" />
-                  <span className="text-[13px] font-medium text-foreground">{item.title}</span>
-                </div>
-                <div className="flex items-center gap-[10px]">
-                  <span className="text-[11px] font-semibold text-success whitespace-nowrap">{item.impact}</span>
-                  <Link href={item.link} className={BUTTON_UTILITY + " shrink-0"}>
-                    Fix
-                  </Link>
-                </div>
+            {topMissing.length === 0 ? (
+              <div className="flex items-center gap-[8px] p-[10px] bg-success/10 border border-success/20 rounded-[8px]">
+                <CheckCircle2 size={14} className="text-success" />
+                <span className="text-[13px] font-medium text-foreground">All key fields completed!</span>
               </div>
-            ))}
+            ) : (
+              topMissing.map((item: any, idx: number) => (
+                <div key={idx} className="p-[10px] bg-card text-card-foreground border border-border rounded-[8px] flex items-center justify-between gap-[12px]">
+                  <div className="flex items-center gap-[8px]">
+                    <AlertCircle size={14} className={item.priority === 'High' ? 'text-[#dd5b00] shrink-0' : 'text-amber-500 shrink-0'} />
+                    <span className="text-[13px] font-medium text-foreground">{item.label}</span>
+                  </div>
+                  <div className="flex items-center gap-[10px]">
+                    <span className={`text-[10px] font-semibold px-[6px] py-[1px] rounded-full ${item.priority === 'High' ? STICKER_ORANGE : STICKER_SKY}`}>
+                      {item.priority}
+                    </span>
+                    <Link href={item.link || '/student/profile'} className={BUTTON_UTILITY + " shrink-0"}>
+                      Fix
+                    </Link>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
-        {/* Profile Completion Breakdown */}
+        {/* Profile Completion Breakdown — all live from categoryBreakdown */}
         <div className="pt-[16px] border-t border-border grid grid-cols-2 gap-[16px]">
-          <div>
-            <div className="flex items-center justify-between mb-[6px]">
-              <span className="text-[11px] font-semibold text-foreground">Academics</span>
-              <span className="text-[11px] text-muted-foreground">85%</span>
+          {breakdown.map(({ label, pct }) => (
+            <div key={label}>
+              <div className="flex items-center justify-between mb-[6px]">
+                <span className="text-[11px] font-semibold text-foreground">{label}</span>
+                <span className={`text-[11px] ${pct === 100 ? 'text-success' : pct === 0 ? 'text-[#dd5b00]' : 'text-muted-foreground'}`}>
+                  {pct === 0 ? 'Pending' : `${pct}%`}
+                </span>
+              </div>
+              <div className="w-full h-[6px] bg-secondary rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-700 ${pct === 100 ? 'bg-success' : pct < 30 ? 'bg-[#dd5b00]' : 'bg-primary'}`}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
             </div>
-            <div className="w-full h-[6px] bg-secondary rounded-full overflow-hidden">
-              <div className="h-full bg-primary rounded-full" style={{ width: '85%' }} />
-            </div>
-          </div>
-          <div>
-            <div className="flex items-center justify-between mb-[6px]">
-              <span className="text-[11px] font-semibold text-foreground">Test Scores</span>
-              <span className="text-[11px] text-[#dd5b00]">Pending</span>
-            </div>
-            <div className="w-full h-[6px] bg-secondary rounded-full overflow-hidden">
-              <div className="h-full bg-[#dd5b00] rounded-full" style={{ width: '30%' }} />
-            </div>
-          </div>
-          <div>
-            <div className="flex items-center justify-between mb-[6px]">
-              <span className="text-[11px] font-semibold text-foreground">Work Experience</span>
-              <span className="text-[11px] text-success">100%</span>
-            </div>
-            <div className="w-full h-[6px] bg-secondary rounded-full overflow-hidden">
-              <div className="h-full bg-success rounded-full" style={{ width: '100%' }} />
-            </div>
-          </div>
-          <div>
-            <div className="flex items-center justify-between mb-[6px]">
-              <span className="text-[11px] font-semibold text-foreground">Documents</span>
-              <span className="text-[11px] text-muted-foreground">60%</span>
-            </div>
-            <div className="w-full h-[6px] bg-secondary rounded-full overflow-hidden">
-              <div className="h-full bg-primary rounded-full" style={{ width: '60%' }} />
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </div>
@@ -423,46 +543,78 @@ function ProfileStrengthWorkspace({ profileScore }: { profileScore: number }) {
 }
 
 /* =========================================================================
-   SECTION 5: AI RECOMMENDATIONS HUB
+   SECTION 5: AI RECOMMENDATIONS HUB (GUARDED)
    ========================================================================= */
-function AIRecommendationsHub() {
+function AIRecommendationsHub({ profileScore }: { profileScore: number }) {
+  if (profileScore < 40) {
+    return (
+      <div className={CARD_STYLE}>
+        <div className="flex items-center justify-between pb-[16px] mb-[16px] border-b border-border">
+          <div className="flex items-center gap-[10px]">
+            <div className="w-[28px] h-[28px] rounded-[8px] bg-primary/10 flex items-center justify-center text-primary">
+              <Sparkles size={16} strokeWidth={2} />
+            </div>
+            <div>
+              <h2 className="text-[16px] font-bold text-foreground tracking-tight">EDING AI Recommendations</h2>
+              <p className="text-[12px] text-muted-foreground">Personalized smart suggestions tailored to your profile</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col items-center justify-center py-[32px] gap-[12px] text-center">
+          <div className="w-[48px] h-[48px] rounded-full bg-primary/10 flex items-center justify-center">
+            <Sparkles size={22} className="text-primary" />
+          </div>
+          <p className="text-[14px] font-semibold text-foreground">AI Recommendations Locked</p>
+          <p className="text-[12px] text-muted-foreground max-w-[300px] leading-relaxed">
+            Complete at least 40% of your profile — including academic scores and preferences — to unlock personalised university, scholarship, and career recommendations.
+          </p>
+          <Link href="/student/profile" className={BUTTON_PRIMARY}>
+            Complete Profile
+            <ArrowRight size={14} />
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
   const recommendations = [
     {
-      title: 'Stanford University — MS CS',
-      desc: 'Based on your 3.8 GPA & Tech Projects',
-      tag: '96% Fit Match',
-      type: 'University',
-      action: 'Apply Now',
-      link: '/student/universities',
-      color: STICKER_SKY
-    },
-    {
-      title: 'Global Tech Leaders Fellowship',
-      desc: 'Full Tuition Grant ($25,000 Award)',
-      tag: 'Eligible',
-      type: 'Scholarship',
-      action: 'Quick Apply',
-      link: '/student/scholarships',
-      color: STICKER_GREEN
-    },
-    {
-      title: 'Optimize Resume for ATS',
-      desc: 'Add quantitative metrics to project section',
-      tag: '+12 Score Boost',
+      title: 'Optimize Your Resume',
+      desc: 'Add quantitative metrics to boost ATS score',
+      tag: 'Resume',
       type: 'Resume',
-      action: 'Fix in AI Resume',
+      action: 'Open AI Resume',
       link: '/student/resume',
       color: STICKER_PURPLE
     },
     {
-      title: 'Practice Ivy League Mock Interview',
-      desc: '5 customized behavioral questions ready',
+      title: 'Practice Mock Interview',
+      desc: 'AI-driven behavioral questions ready for you',
       tag: 'AI Practice',
       type: 'Interview',
       action: 'Start Practice',
       link: '/student/interview',
       color: STICKER_TEAL
-    }
+    },
+    {
+      title: 'Draft Your Statement of Purpose',
+      desc: 'AI copilot will help you write a compelling SOP',
+      tag: 'SOP',
+      type: 'Writing',
+      action: 'Write with AI',
+      link: '/student/sop',
+      color: STICKER_SKY
+    },
+    {
+      title: 'Explore Scholarships',
+      desc: 'Discover merit-based grants matching your profile',
+      tag: 'Scholarship',
+      type: 'Scholarship',
+      action: 'View Matches',
+      link: '/student/scholarships',
+      color: STICKER_GREEN
+    },
   ]
 
   return (
@@ -508,15 +660,40 @@ function AIRecommendationsHub() {
 }
 
 /* =========================================================================
-   SECTION 6: UPCOMING DEADLINES TIMELINE
+   SECTION 6: UPCOMING DEADLINES TIMELINE (DATA-DRIVEN)
    ========================================================================= */
-function UpcomingDeadlinesTimeline() {
-  const deadlines = [
-    { period: 'Today', title: 'Upload Final Semester Marksheet', target: 'Document Portal', time: '11:59 PM', urgent: true },
-    { period: 'Tomorrow', title: 'Global Excellence Scholarship Portal Closes', target: 'Scholarships', time: 'Aug 01, 2026', urgent: true },
-    { period: 'This Week', title: 'MIT Early Decision Deadline', target: 'Application', time: 'Aug 05, 2026', urgent: false },
-    { period: 'Next Month', title: 'Stanford MS CS Document Submissions', target: 'Application', time: 'Sep 01, 2026', urgent: false }
-  ]
+function UpcomingDeadlinesTimeline({
+  deadlines,
+  applications,
+  documents,
+  profileScore,
+}: {
+  deadlines: any[]
+  applications: any[]
+  documents: any[]
+  profileScore: number
+}) {
+  const { insights } = useMemo(() =>
+    generateDeadlineInsights({ deadlines, applications, documents, profileScore }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [deadlines, applications, profileScore]
+  )
+
+  // Only show upcoming (non-completed) deadlines
+  const upcoming = insights
+    .filter(d => d.priority !== 'Completed' && d.daysRemaining >= 0)
+    .slice(0, 4)
+
+  const formatDate = (date: Date) => {
+    const today = new Date(); today.setHours(0,0,0,0)
+    const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1)
+    const dDate = new Date(date); dDate.setHours(0,0,0,0)
+
+    if (dDate.getTime() === today.getTime()) return 'Today'
+    if (dDate.getTime() === tomorrow.getTime()) return 'Tomorrow'
+    if ((dDate.getTime() - today.getTime()) / 86400000 <= 7) return 'This Week'
+    return dDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  }
 
   return (
     <div className={CARD_STYLE}>
@@ -530,56 +707,111 @@ function UpcomingDeadlinesTimeline() {
         </Link>
       </div>
 
-      <div className="relative pl-[16px] border-l border-border flex flex-col gap-[16px]">
-        {deadlines.map((item, idx) => (
-          <div key={idx} className="relative flex items-start justify-between gap-[12px]">
-            {/* Timeline node */}
-            <div className={`absolute -left-[21px] top-[4px] w-[10px] h-[10px] rounded-full border-[2px] bg-card ${
-              item.urgent ? 'border-[#dd5b00]' : 'border-primary'
-            }`} />
-
-            <div>
-              <div className="flex items-center gap-[8px] mb-[2px]">
-                <span className={`text-[10px] font-bold uppercase px-[6px] py-[1px] rounded-md ${
-                  item.urgent ? STICKER_ORANGE : STICKER_SKY
-                }`}>
-                  {item.period}
-                </span>
-                <span className="text-[11px] font-semibold text-muted-foreground">{item.time}</span>
-              </div>
-              <p className="text-[13.5px] font-semibold text-foreground">{item.title}</p>
-              <p className="text-[11px] text-muted-foreground">{item.target}</p>
-            </div>
-
-            <Link href="/student/calendar" className={BUTTON_UTILITY}>
-              Calendar
-            </Link>
+      {upcoming.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-[32px] gap-[10px] text-center">
+          <div className="w-[44px] h-[44px] rounded-full bg-muted flex items-center justify-center">
+            <Calendar size={20} className="text-muted-foreground" />
           </div>
-        ))}
-      </div>
+          <p className="text-[14px] font-semibold text-foreground">No application deadlines yet.</p>
+          <p className="text-[12px] text-muted-foreground max-w-[240px]">
+            Start applying to universities — your deadlines will appear here automatically.
+          </p>
+          <Link href="/student/universities" className={BUTTON_PRIMARY}>
+            Explore Universities
+            <ArrowRight size={14} />
+          </Link>
+        </div>
+      ) : (
+        <div className="relative pl-[16px] border-l border-border flex flex-col gap-[16px]">
+          {upcoming.map((item, idx) => (
+            <div key={item.id} className="relative flex items-start justify-between gap-[12px]">
+              {/* Timeline node */}
+              <div className={`absolute -left-[21px] top-[4px] w-[10px] h-[10px] rounded-full border-[2px] bg-card ${
+                item.priority === 'Critical' ? 'border-[#dd5b00]' : 'border-primary'
+              }`} />
+
+              <div>
+                <div className="flex items-center gap-[8px] mb-[2px]">
+                  <span className={`text-[10px] font-bold uppercase px-[6px] py-[1px] rounded-md ${
+                    item.priority === 'Critical' ? STICKER_ORANGE : STICKER_SKY
+                  }`}>
+                    {formatDate(item.date)}
+                  </span>
+                  <span className="text-[11px] font-semibold text-muted-foreground">
+                    {item.daysRemaining === 0 ? 'Due Today' : `${item.daysRemaining}d left`}
+                  </span>
+                </div>
+                <p className="text-[13.5px] font-semibold text-foreground">{item.title}</p>
+                <p className="text-[11px] text-muted-foreground">{item.universityName}</p>
+              </div>
+
+              <Link href={item.appId ? '/student/applications' : '/student/calendar'} className={BUTTON_UTILITY}>
+                {item.appId ? 'View App' : 'Calendar'}
+              </Link>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
 
 /* =========================================================================
-   SECTION 8: GAMIFIED ACHIEVEMENTS
+   SECTION 8: GAMIFIED ACHIEVEMENTS (DATA-DRIVEN)
    ========================================================================= */
-function GamifiedAchievements() {
+function GamifiedAchievements({
+  profileScore,
+  applications,
+  userDocuments,
+  scholarships,
+}: {
+  profileScore: number
+  applications: any[]
+  userDocuments: Record<string, any>
+  scholarships: any[]
+}) {
+  const docCount = Object.keys(userDocuments).length
+  const hasSubmittedApp = applications.some(a => a.status && a.status !== 'draft')
+  const hasCompletedInterview = false // would come from a 'mock_sessions' collection
+  const isScholarshipEligible = scholarships.length > 0
+
   const achievements = [
-    { title: 'Profile 80% Unlocked', desc: 'Added transcripts & test scores', icon: Target, unlocked: true },
-    { title: 'First Application Sent', desc: 'Submitted to top 50 school', icon: Send, unlocked: true },
-    { title: 'Interview Ready', desc: 'Completed 3 AI mock sessions', icon: Video, unlocked: true },
-    { title: 'Scholarship Eligible', desc: 'Matched with 5+ merit grants', icon: Award, unlocked: false },
+    {
+      title: 'Profile 80% Unlocked',
+      desc: 'Completed core profile fields',
+      icon: Target,
+      unlocked: profileScore >= 80,
+    },
+    {
+      title: 'First Application Sent',
+      desc: 'Submitted to at least one university',
+      icon: Send,
+      unlocked: hasSubmittedApp,
+    },
+    {
+      title: 'Documents Uploaded',
+      desc: 'Uploaded at least 2 documents',
+      icon: FileText,
+      unlocked: docCount >= 2,
+    },
+    {
+      title: 'Scholarship Eligible',
+      desc: 'Matched with scholarship programs',
+      icon: Award,
+      unlocked: isScholarshipEligible,
+    },
   ]
+
+  const unlockedCount = achievements.filter(a => a.unlocked).length
 
   return (
     <div className={CARD_STYLE}>
       <div className="flex items-center justify-between pb-[16px] mb-[16px] border-b border-border">
         <div className="flex items-center gap-[8px]">
           <Flame className="text-[#dd5b00]" size={18} />
-          <h2 className="text-[16px] font-bold text-foreground tracking-tight">Milestones & Achievements</h2>
+          <h2 className="text-[16px] font-bold text-foreground tracking-tight">Milestones &amp; Achievements</h2>
         </div>
-        <span className="text-[12px] font-semibold text-primary">3 of 4 Unlocked</span>
+        <span className="text-[12px] font-semibold text-primary">{unlockedCount} of {achievements.length} Unlocked</span>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-[12px]">
@@ -612,15 +844,66 @@ function GamifiedAchievements() {
 }
 
 /* =========================================================================
-   SECTION 9: INSIGHTS & ANALYTICS
+   SECTION 9: ADMISSION INSIGHTS & PROBABILITIES (GUARDED)
    ========================================================================= */
-function StudentInsightsAnalytics() {
+function StudentInsightsAnalytics({
+  profileScore,
+  applications,
+  profileStrength,
+}: {
+  profileScore: number
+  applications: any[]
+  profileStrength: any
+}) {
+  if (profileScore < 40) {
+    return (
+      <div className={CARD_STYLE}>
+        <div className="flex items-center justify-between pb-[16px] mb-[16px] border-b border-border">
+          <div className="flex items-center gap-[8px]">
+            <BarChart3 className="text-primary" size={18} />
+            <h2 className="text-[16px] font-bold text-foreground tracking-tight">Admission Insights &amp; Probabilities</h2>
+          </div>
+          <span className="text-[11px] font-bold bg-primary/15 text-primary px-[8px] py-[2px] rounded-full">
+            AI Engine Predictive
+          </span>
+        </div>
+
+        <div className="flex flex-col items-center justify-center py-[28px] gap-[10px] text-center">
+          <div className="w-[44px] h-[44px] rounded-full bg-muted flex items-center justify-center">
+            <BarChart3 size={20} className="text-muted-foreground" />
+          </div>
+          <p className="text-[14px] font-semibold text-foreground">Complete your profile to unlock admission insights.</p>
+          <p className="text-[12px] text-muted-foreground max-w-[280px]">
+            We need your academic scores (12th marks or CGPA) and at least 40% profile completion to predict your admission probability.
+          </p>
+          <Link href="/student/profile" className={BUTTON_PRIMARY}>
+            Update Profile
+            <ArrowRight size={14} />
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  // Enough data — compute real stats from Firebase data
+  const activeApps = applications.filter(a => a.status && a.status !== 'rejected')
+  const acceptedApps = applications.filter(a => a.status === 'accepted' || a.status === 'selected')
+
+  const pipelineHealth =
+    applications.length === 0 ? 'No Applications' :
+    activeApps.length >= 3 ? 'Optimal' :
+    activeApps.length >= 1 ? 'Building' : 'Needs Attention'
+
+  const acceptanceChance =
+    profileScore >= 80 ? 'High' :
+    profileScore >= 60 ? 'Moderate' : 'Developing'
+
   return (
     <div className={CARD_STYLE}>
       <div className="flex items-center justify-between pb-[16px] mb-[16px] border-b border-border">
         <div className="flex items-center gap-[8px]">
           <BarChart3 className="text-primary" size={18} />
-          <h2 className="text-[16px] font-bold text-foreground tracking-tight">Admission Insights & Probabilities</h2>
+          <h2 className="text-[16px] font-bold text-foreground tracking-tight">Admission Insights &amp; Probabilities</h2>
         </div>
         <span className="text-[11px] font-bold bg-primary/15 text-primary px-[8px] py-[2px] rounded-full">
           AI Engine Predictive
@@ -629,21 +912,29 @@ function StudentInsightsAnalytics() {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-[16px]">
         <div className="p-[14px] bg-muted border border-border rounded-[10px]">
-          <p className="text-[11px] font-semibold text-muted-foreground uppercase">Acceptance Chance</p>
-          <p className="text-[24px] font-extrabold text-success leading-tight mt-[4px]">78% High</p>
-          <p className="text-[11px] text-muted-foreground mt-[2px]">Top target universities</p>
+          <p className="text-[11px] font-semibold text-muted-foreground uppercase">Profile Readiness</p>
+          <p className={`text-[24px] font-extrabold leading-tight mt-[4px] ${profileScore >= 80 ? 'text-success' : profileScore >= 60 ? 'text-primary' : 'text-amber-600'}`}>
+            {profileScore}%
+          </p>
+          <p className="text-[11px] text-muted-foreground mt-[2px]">{acceptanceChance} readiness level</p>
         </div>
 
         <div className="p-[14px] bg-muted border border-border rounded-[10px]">
           <p className="text-[11px] font-semibold text-muted-foreground uppercase">Pipeline Health</p>
-          <p className="text-[24px] font-extrabold text-primary leading-tight mt-[4px]">Optimal</p>
-          <p className="text-[11px] text-muted-foreground mt-[2px]">4 active applications</p>
+          <p className={`text-[24px] font-extrabold leading-tight mt-[4px] ${pipelineHealth === 'Optimal' ? 'text-success' : pipelineHealth === 'Building' ? 'text-primary' : 'text-muted-foreground'}`}>
+            {pipelineHealth}
+          </p>
+          <p className="text-[11px] text-muted-foreground mt-[2px]">{activeApps.length} active application{activeApps.length !== 1 ? 's' : ''}</p>
         </div>
 
         <div className="p-[14px] bg-muted border border-border rounded-[10px]">
-          <p className="text-[11px] font-semibold text-muted-foreground uppercase">University Fit Index</p>
-          <p className="text-[24px] font-extrabold text-[#391c57] leading-tight mt-[4px]">92% Match</p>
-          <p className="text-[11px] text-muted-foreground mt-[2px]">Aligned with career goals</p>
+          <p className="text-[11px] font-semibold text-muted-foreground uppercase">Offers Received</p>
+          <p className={`text-[24px] font-extrabold leading-tight mt-[4px] ${acceptedApps.length > 0 ? 'text-success' : 'text-foreground'}`}>
+            {acceptedApps.length}
+          </p>
+          <p className="text-[11px] text-muted-foreground mt-[2px]">
+            {acceptedApps.length > 0 ? 'Congratulations!' : 'Keep applying to universities'}
+          </p>
         </div>
       </div>
     </div>
@@ -651,10 +942,15 @@ function StudentInsightsAnalytics() {
 }
 
 /* =========================================================================
-   SECTION 11: UNIVERSITY RECOMMENDATIONS CAROUSEL
+   SECTION 11: UNIVERSITY RECOMMENDATIONS GRID (GUARDED)
    ========================================================================= */
-function UniversityRecommendationsGrid({ universities }: { universities: any[] }) {
-  // Sort by aiMatch (Firestore field) desc, fall back to placementRate, then take top 3
+function UniversityRecommendationsGrid({
+  universities,
+  hasMinimumProfileForRecommendations,
+}: {
+  universities: any[]
+  hasMinimumProfileForRecommendations: boolean
+}) {
   const topUnis = useMemo(() => {
     return [...universities]
       .sort((a, b) => ((b.aiMatch ?? b.placementRate ?? 0) - (a.aiMatch ?? a.placementRate ?? 0)))
@@ -666,19 +962,33 @@ function UniversityRecommendationsGrid({ universities }: { universities: any[] }
       <div className="flex items-center justify-between pb-[16px] mb-[16px] border-b border-border">
         <div>
           <h2 className="text-[16px] font-bold text-foreground tracking-tight">Top University Recommendations</h2>
-          <p className="text-[12px] text-muted-foreground">AI-matched universities based on your profile & test scores</p>
+          <p className="text-[12px] text-muted-foreground">AI-matched universities based on your profile &amp; test scores</p>
         </div>
         <Link href="/student/universities" className="text-[12px] font-semibold text-primary hover:underline">
           Explore All →
         </Link>
       </div>
 
-      {topUnis.length === 0 ? (
+      {!hasMinimumProfileForRecommendations ? (
         <div className="flex flex-col items-center justify-center py-[32px] gap-[10px] text-center">
           <div className="w-[44px] h-[44px] rounded-full bg-muted flex items-center justify-center">
             <GraduationCap size={20} className="text-muted-foreground" />
           </div>
-          <p className="text-[14px] font-semibold text-foreground">No universities available</p>
+          <p className="text-[14px] font-semibold text-foreground">Complete your profile to receive personalized university recommendations.</p>
+          <p className="text-[12px] text-muted-foreground max-w-[280px]">
+            Add your academic scores and study preferences so our AI can match you with the best-fit universities.
+          </p>
+          <Link href="/student/profile" className={BUTTON_PRIMARY}>
+            Complete Profile
+            <ArrowRight size={14} />
+          </Link>
+        </div>
+      ) : topUnis.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-[32px] gap-[10px] text-center">
+          <div className="w-[44px] h-[44px] rounded-full bg-muted flex items-center justify-center">
+            <GraduationCap size={20} className="text-muted-foreground" />
+          </div>
+          <p className="text-[14px] font-semibold text-foreground">No universities available yet</p>
           <p className="text-[12px] text-muted-foreground max-w-[220px]">Check back later — our team is continuously adding new institutions.</p>
         </div>
       ) : (
@@ -754,12 +1064,12 @@ function FloatingAIAssistantWidget() {
             </div>
 
             <p className="text-[12px] text-muted-foreground leading-relaxed">
-              💡 <strong>Today&apos;s AI Advice:</strong> Submitting your SOP early increases review turnaround time by 40%. Want me to review your SOP now?
+              💡 <strong>Need help?</strong> Ask our AI Copilot anything — from university selection to SOP writing and interview prep.
             </p>
 
             <div className="flex flex-col gap-[6px]">
               <Link href="/student/sop" className={BUTTON_PRIMARY + " w-full justify-center text-[12px] h-[32px]"}>
-                Review SOP with AI
+                Write SOP with AI
               </Link>
               <Link href="/student/copilot" className={BUTTON_SECONDARY + " w-full justify-center text-[12px] h-[32px]"}>
                 Ask Copilot Anything
@@ -784,7 +1094,26 @@ function FloatingAIAssistantWidget() {
    MAIN STUDENT DASHBOARD COMPONENT
    ========================================================================= */
 export default function StudentDashboard() {
-  const { loading, error, uniqueApps, profile, profileScore, universities } = useStudentData()
+  const {
+    loading,
+    error,
+    uniqueApps,
+    profile,
+    profileScore,
+    profileStrength,
+    universities,
+    userDocuments,
+    docUploaded,
+    docVerified,
+    docPending,
+    verificationStatus,
+    isOnboardingComplete,
+    hasMinimumProfileForRecommendations,
+    deadlines,
+    documents,
+    savedPrograms,
+    scholarships,
+  } = useStudentData()
 
   if (loading) {
     return (
@@ -804,22 +1133,42 @@ export default function StudentDashboard() {
 
   const safeApps = uniqueApps || []
   const safeUnis = universities || []
+  const safeUserDocs = userDocuments || {}
+  const safeScholarships = scholarships || []
 
   return (
     <div className="flex flex-col gap-[24px] pb-[40px]">
       {/* SECTION 1: Welcome Area */}
-      <WelcomeArea profile={profile} profileScore={profileScore || 73} appsCount={safeApps.length} />
+      <WelcomeArea profile={profile} profileScore={profileScore || 0} appsCount={safeApps.length} />
+
+      {/* Verification Status Banner */}
+      <VerificationStatusBanner status={verificationStatus || 'Profile Incomplete'} />
 
       {/* Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-[24px]">
-        <ProfileStrengthWorkspace profileScore={profileScore || 73} />
-        <UniversityRecommendationsGrid universities={safeUnis} />
+        <ProfileStrengthWorkspace profileStrength={profileStrength || { percentage: 0, grade: 'Incomplete', missingFields: [], categoryBreakdown: { personal: 0, academics: 0, testScores: 0, preferences: 0, documents: 0 } }} />
+        <UniversityRecommendationsGrid
+          universities={safeUnis}
+          hasMinimumProfileForRecommendations={hasMinimumProfileForRecommendations || false}
+        />
       </div>
 
       {/* Row 2 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-[24px]">
-        <TodaysFocus />
-        <UpcomingDeadlinesTimeline />
+        <TodaysFocus
+          profile={profile}
+          userDocuments={safeUserDocs}
+          applications={safeApps}
+          savedPrograms={savedPrograms || []}
+          deadlines={deadlines || []}
+          isOnboardingComplete={isOnboardingComplete || false}
+        />
+        <UpcomingDeadlinesTimeline
+          deadlines={deadlines || []}
+          applications={safeApps}
+          documents={documents || []}
+          profileScore={profileScore || 0}
+        />
       </div>
 
       {/* Row 3 */}
@@ -827,9 +1176,21 @@ export default function StudentDashboard() {
 
       {/* Row 4 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-[24px]">
-        <GamifiedAchievements />
-        <StudentInsightsAnalytics />
+        <GamifiedAchievements
+          profileScore={profileScore || 0}
+          applications={safeApps}
+          userDocuments={safeUserDocs}
+          scholarships={safeScholarships}
+        />
+        <StudentInsightsAnalytics
+          profileScore={profileScore || 0}
+          applications={safeApps}
+          profileStrength={profileStrength}
+        />
       </div>
+
+      {/* Row 5: AI Recommendations */}
+      <AIRecommendationsHub profileScore={profileScore || 0} />
 
       {/* Floating AI Assistant Widget */}
       <FloatingAIAssistantWidget />
