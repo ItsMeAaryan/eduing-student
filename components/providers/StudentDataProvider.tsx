@@ -18,6 +18,8 @@ export function StudentDataProvider({ children }: { children: React.ReactNode })
   const [payments, setPayments] = useState<any[]>([])
   const [universities, setUniversities] = useState<any[]>([])
   const [scholarships, setScholarships] = useState<any[]>([])
+  // Real-time documents subcollection: { [docId]: { fileUrl, status, uploadedAt } }
+  const [userDocuments, setUserDocuments] = useState<Record<string, any>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -35,12 +37,12 @@ export function StudentDataProvider({ children }: { children: React.ReactNode })
       // Profile
       const unsubProfile = onSnapshot(
         doc(db, 'student_profiles', user.uid),
-        (snap) => { 
+        (snap) => {
           setProfile(snap.exists() ? snap.data() : {})
           loadingProfile = false
           checkLoading()
         },
-        (err) => { 
+        (err) => {
           console.error(err)
           loadingProfile = false
           setError('Failed to load profile')
@@ -54,10 +56,10 @@ export function StudentDataProvider({ children }: { children: React.ReactNode })
       const mergeApps = () => {
         const seen = new Set()
         const apps = []
-        for (const doc of [...appsList1, ...appsList2]) {
-          if (!seen.has(doc.id)) {
-            seen.add(doc.id)
-            apps.push(doc)
+        for (const d of [...appsList1, ...appsList2]) {
+          if (!seen.has(d.id)) {
+            seen.add(d.id)
+            apps.push(d)
           }
         }
         setApplications(apps)
@@ -83,6 +85,17 @@ export function StudentDataProvider({ children }: { children: React.ReactNode })
           mergeApps()
         },
         (err) => console.error('Apps error 2:', err)
+      )
+
+      // User Documents subcollection (real-time)
+      const unsubDocs = onSnapshot(
+        collection(db, 'users', user.uid, 'documents'),
+        (snap) => {
+          const docsMap: Record<string, any> = {}
+          snap.docs.forEach(d => { docsMap[d.id] = d.data() })
+          setUserDocuments(docsMap)
+        },
+        (err) => console.error('Documents error:', err)
       )
 
       // Notifications
@@ -120,27 +133,65 @@ export function StudentDataProvider({ children }: { children: React.ReactNode })
         (err) => console.error('Scholarships error:', err)
       )
 
-      return () => { unsubProfile(); unsubApps1(); unsubApps2(); unsubNotifs(); unsubPayments(); unsubUnis(); unsubScholarships() }
+      return () => {
+        unsubProfile()
+        unsubApps1()
+        unsubApps2()
+        unsubDocs()
+        unsubNotifs()
+        unsubPayments()
+        unsubUnis()
+        unsubScholarships()
+      }
     })
     return unsub
   }, [router])
 
-  // Computed data
+  // ── Computed data ────────────────────────────────────────────────────────────
   const deadlines = normalizeArray(profile?.deadlines)
   const documents = normalizeArray(profile?.documents)
   const aiMatches = normalizeArray(profile?.aiMatches)
   const savedPrograms = normalizeArray(profile?.savedPrograms)
-  
-  // Calculate completion percentage robustly
-  const profileStrength = calculateProfileStrength(profile, profile?.documents || {});
-  const profileScore = profileStrength.percentage;
 
-  const safeApps = Array.isArray(applications) ? applications : []
+  // Profile strength — uses the real subcollection documents map
+  const profileStrength = calculateProfileStrength(profile, userDocuments)
+  const profileScore = profileStrength.percentage
+
+  // ── Document counts from subcollection ────────────────────────────────────
+  const docEntries = Object.values(userDocuments) as any[]
+  const docUploaded = docEntries.length
+  const docVerified = docEntries.filter(d => d?.status === 'verified').length
+  const docPending  = docEntries.filter(d => d?.status === 'uploaded').length
+
+  // ── Verification status ───────────────────────────────────────────────────
+  // Profile is "complete" for portal purposes when score ≥ 60
+  const isProfileDataComplete = profileScore >= 60
+  const isDocsVerified  = docVerified > 0 && docVerified === docUploaded && docUploaded >= 3
+  const isDocsPending   = docUploaded > 0 && !isDocsVerified
+
+  type VerificationStatus = 'Profile Incomplete' | 'Profile Complete' | 'Documents Pending' | 'Documents Verified'
+  let verificationStatus: VerificationStatus = 'Profile Incomplete'
+  if (isDocsVerified)           verificationStatus = 'Documents Verified'
+  else if (isDocsPending)       verificationStatus = 'Documents Pending'
+  else if (isProfileDataComplete) verificationStatus = 'Profile Complete'
+
+  // ── Onboarding / readiness flags ──────────────────────────────────────────
+  // Onboarding is considered complete when the user set profileComplete=true
+  // (written by the onboarding page on finish) AND has at least a name
+  const isOnboardingComplete: boolean =
+    !!profile?.profileComplete && !!profile?.fullName
+
+  // Recommendations unlock when there is enough profile data to meaningfully match
+  const hasMinimumProfileForRecommendations: boolean =
+    profileScore >= 40 &&
+    (!!profile?.twelfthPercentage || !!profile?.cgpa || !!profile?.testScores)
+
+  // ── Application helpers ───────────────────────────────────────────────────
+  const safeApps  = Array.isArray(applications) ? applications : []
   const safeNotifs = Array.isArray(notifications) ? notifications : []
-  
+
   const selectedOffers = safeApps.filter(a => a?.status === 'selected')
-  
-  // Latest incomplete application
+
   const activeApp = safeApps
     .filter(a => a?.status !== 'rejected' && a?.status !== 'selected')
     .sort((a, b) => (b?.progress || 0) - (a?.progress || 0))[0] || safeApps[0] || null
@@ -156,16 +207,28 @@ export function StudentDataProvider({ children }: { children: React.ReactNode })
     scholarships,
     loading,
     error,
-    
+
+    // Documents
+    userDocuments,
+    docUploaded,
+    docVerified,
+    docPending,
+
     // Computed
     deadlines,
     documents,
     aiMatches,
     savedPrograms,
     profileScore,
+    profileStrength,
     selectedOffers,
     activeApp,
-    uniqueApps
+    uniqueApps,
+
+    // Status & flags
+    verificationStatus,
+    isOnboardingComplete,
+    hasMinimumProfileForRecommendations,
   }
 
   return <StudentDataContext.Provider value={value}>{children}</StudentDataContext.Provider>
