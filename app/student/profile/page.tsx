@@ -1,10 +1,8 @@
+// app/student/profile/page.tsx
 'use client'
+
 import React, { useState, useMemo } from 'react'
-import {
-  User, Mail, Phone, Calendar, Globe, Building2, BookOpen, MapPin,
-  CheckCircle2, ShieldCheck, Download, SlidersHorizontal, ChevronDown, MoreHorizontal,
-  Upload, Sparkles, X, Check
-} from 'lucide-react'
+import { User, Check, X, Sparkles, Upload, AlertCircle } from 'lucide-react'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import { useAuth } from '@/hooks/useAuth'
 import { useStudentData } from '@/components/providers/StudentDataProvider'
@@ -13,19 +11,53 @@ import SegmentedTabs from '@/components/ui/SegmentedTabs'
 import { useToast } from '@/hooks/useToast'
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '@/lib/firebase/config'
+import Image from 'next/image'
 
 const TABS = ['Identity', 'Academic', 'Entrance Exams', 'Preferences']
+
+/* ── Helpers ──────────────────────────────────────────────────── */
+const CARD: React.CSSProperties = {
+  background: 'var(--bg-card)',
+  border: '1px solid var(--border)',
+  borderRadius: 10,
+  boxShadow: '0 0.175px 1px rgba(0,0,0,0.015), 0 0.8px 2.9px rgba(0,0,0,0.022), 0 2px 7.8px rgba(0,0,0,0.027)',
+  overflow: 'hidden',
+}
+
+function Dot({ color }: { color: string }) {
+  return (
+    <span style={{ display: 'inline-block', width: 5, height: 5, borderRadius: '50%', background: color, marginRight: 6, flexShrink: 0 }} />
+  )
+}
+
+function StatCard({ label, value, sub, color = 'var(--text-primary)' }: { label: string; value: string | number; sub: string; color?: string }) {
+  return (
+    <div style={{
+      background: 'var(--bg-card)',
+      border: '1px solid var(--border)',
+      borderRadius: 10,
+      padding: '18px 20px',
+      boxShadow: '0 0.175px 1px rgba(0,0,0,0.015), 0 0.8px 2.9px rgba(0,0,0,0.022)',
+    }}>
+      <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)', margin: '0 0 8px' }}>
+        {label}
+      </p>
+      <p style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-1px', color, margin: '0 0 4px', lineHeight: 1 }}>
+        {value}
+      </p>
+      <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: 0 }}>{sub}</p>
+    </div>
+  )
+}
 
 export default function ProfilePage() {
   const { user } = useAuth()
   const { profile, documents, uniqueApps, selectedOffers } = useStudentData()
   const [activeTab, setActiveTab] = useState('Identity')
-  const { toast } = useToast()
-
-  // Inline Editing State
   const [editingKey, setEditingKey] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
   const [saving, setSaving] = useState(false)
+  const { toast } = useToast()
 
   const strength = useMemo(() => {
     if (!profile) return 0
@@ -33,186 +65,294 @@ export default function ProfilePage() {
   }, [profile, documents])
 
   if (!profile) return (
-    <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="w-[36px] h-[36px] border-4 border-border border-t-[#4F6BFF] rounded-full animate-spin" />
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+      <div style={{
+        width: 32, height: 32, borderRadius: '50%',
+        border: '3px solid var(--border)',
+        borderTopColor: 'var(--accent)',
+        animation: 'spin 0.8s linear infinite',
+      }} />
     </div>
   )
 
   const docValues = Object.values(documents || {})
-  const verifiedDocs = docValues.filter((d: any) => d.status === 'verified').length
+  const verifiedDocs = docValues.filter((d: any) => d?.status === 'verified').length
 
   const identityFields = [
-    { key: 'fullName', label: 'Full Name', value: profile.fullName || user?.displayName || 'Not Set' },
-    { key: 'email', label: 'Email Address', value: user?.email || 'Not Set', readonly: true },
-    { key: 'phone', label: 'Phone Number', value: profile.phone || 'Not Set' },
-    { key: 'dob', label: 'Date of Birth', value: profile.dob || 'Not Set' },
+    { key: 'fullName', label: 'Full Name', value: profile.fullName || user?.displayName || '—' },
+    { key: 'email', label: 'Email', value: user?.email || '—', readonly: true },
+    { key: 'phone', label: 'Phone', value: profile.phone || '—' },
+    { key: 'dob', label: 'Date of Birth', value: profile.dob || '—' },
     { key: 'category', label: 'Category', value: profile.category || 'General' },
     { key: 'nationality', label: 'Nationality', value: profile.nationality || 'Indian' },
-    { key: 'address', label: 'Address', value: profile.address || 'Not Set' },
-    { key: 'guardianName', label: 'Guardian Name', value: profile.guardianName || 'Not Set' },
-    { key: 'guardianPhone', label: 'Guardian Phone', value: profile.guardianPhone || 'Not Set' },
+    { key: 'address', label: 'Address', value: profile.address || '—' },
+    { key: 'guardianName', label: 'Guardian Name', value: profile.guardianName || '—' },
+    { key: 'guardianPhone', label: 'Guardian Phone', value: profile.guardianPhone || '—' },
   ]
 
   const academicFields = [
     { key: 'tenthBoard', label: '10th Board', value: profile.tenthBoard || 'CBSE' },
     { key: 'tenthYear', label: '10th Year', value: profile.tenthYear || '2020' },
-    { key: 'tenthScore', label: '10th Score (%)', value: profile.tenthScore ? `${profile.tenthScore}%` : 'Not Set' },
+    { key: 'tenthScore', label: '10th Score', value: profile.tenthScore ? `${profile.tenthScore}%` : '—' },
     { key: 'twelfthBoard', label: '12th Board', value: profile.twelfthBoard || 'CBSE' },
     { key: 'twelfthYear', label: '12th Year', value: profile.twelfthYear || '2022' },
-    { key: 'twelfthScore', label: '12th Score (%)', value: profile.twelfthScore ? `${profile.twelfthScore}%` : 'Not Set' },
-    { key: 'bachelorDegree', label: 'Bachelor Degree', value: profile.bachelorDegree || 'Not Set' },
-    { key: 'bachelorCgpa', label: 'Bachelor CGPA', value: profile.bachelorCgpa || 'Not Set' },
-    { key: 'bachelorYear', label: 'Bachelor Year', value: profile.bachelorYear || 'Not Set' },
+    { key: 'twelfthScore', label: '12th Score', value: profile.twelfthScore ? `${profile.twelfthScore}%` : '—' },
+    { key: 'bachelorDegree', 'label': "Bachelor Degree", value: profile.bachelorDegree || '—' },
+    { key: 'bachelorCgpa', label: 'Bachelor CGPA', value: profile.bachelorCgpa || '—' },
+    { key: 'bachelorYear', label: 'Bachelor Year', value: profile.bachelorYear || '—' },
   ]
 
   const examFields = [
-    { key: 'jeeScore', label: 'JEE Main Score/Percentile', value: profile.jeeScore || 'Not Set' },
-    { key: 'cuetScore', label: 'CUET Score', value: profile.cuetScore || 'Not Set' },
-    { key: 'neetScore', label: 'NEET Score', value: profile.neetScore || 'Not Set' },
-    { key: 'gateScore', label: 'GATE Score', value: profile.gateScore || 'Not Set' },
-    { key: 'catPercentile', label: 'CAT Percentile', value: profile.catPercentile || 'Not Set' },
+    { key: 'jeeScore', label: 'JEE Main Score / Percentile', value: profile.jeeScore || '—' },
+    { key: 'cuetScore', label: 'CUET Score', value: profile.cuetScore || '—' },
+    { key: 'neetScore', label: 'NEET Score', value: profile.neetScore || '—' },
+    { key: 'gateScore', label: 'GATE Score', value: profile.gateScore || '—' },
+    { key: 'catPercentile', 'label': 'CAT Percentile', value: profile.catPercentile || '—' },
   ]
 
   const preferenceFields = [
     { key: 'targetDegree', label: 'Target Degree', value: profile.targetDegree || 'B.Tech' },
-    { key: 'targetLocation', label: 'Preferred State/Location', value: profile.targetLocation || 'All India' },
-    { key: 'maxBudget', label: 'Max Annual Tuition Budget', value: profile.maxBudget || '₹5.0 Lakhs' },
+    { key: 'targetLocation', label: 'Preferred Location', value: profile.targetLocation || 'All India' },
+    { key: 'maxBudget', label: 'Max Annual Budget', value: profile.maxBudget || '₹5.0 Lakhs' },
   ]
 
   const displayData =
     activeTab === 'Identity' ? identityFields :
-    activeTab === 'Academic' ? academicFields :
-    activeTab === 'Entrance Exams' ? examFields : preferenceFields
+      activeTab === 'Academic' ? academicFields :
+        activeTab === 'Entrance Exams' ? examFields : preferenceFields
 
-  const handleStartEdit = (key: string, currentVal: string) => {
+  const handleStartEdit = (key: string, val: string) => {
     setEditingKey(key)
-    setEditValue(currentVal === 'Not Set' ? '' : currentVal)
+    setEditValue(val === '—' ? '' : val)
   }
 
-  const handleSaveField = async (key: string) => {
+  const handleSave = async (key: string) => {
     if (!user) return
     setSaving(true)
     try {
-      const docRef = doc(db, 'student_profiles', user.uid)
-      await updateDoc(docRef, {
+      await updateDoc(doc(db, 'student_profiles', user.uid), {
         [key]: editValue,
         updatedAt: serverTimestamp(),
       })
-      toast.success('Field updated successfully!')
+      toast.success('Field updated.')
       setEditingKey(null)
-    } catch (err) {
-      toast.error('Failed to update field.')
+    } catch {
+      toast.error('Failed to update. Please try again.')
     } finally {
       setSaving(false)
     }
   }
 
+  const strengthColor =
+    strength >= 80 ? 'var(--green)' :
+      strength >= 50 ? 'var(--accent)' : 'var(--gold)'
+
   return (
     <ProtectedRoute allowedRoles={['student']}>
-      <div className="font-sans flex flex-col gap-[20px]">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20, fontFamily: 'Inter, system-ui, sans-serif' }}>
 
-        {/* ── SUB-NAV: profile section tabs only ─────────── */}
+        {/* ── STATS ROW ──────────────────────────────────────── */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+          <StatCard label="Profile Strength" value={`${strength}%`} sub="AI completion score" color={strengthColor} />
+          <StatCard label="Docs Verified" value={verifiedDocs} sub={`of ${docValues.length} uploaded`} color="var(--green)" />
+          <StatCard label="Applications" value={uniqueApps?.length || 0} sub="Submitted" />
+          <StatCard label="Offers" value={selectedOffers?.length || 0} sub="Received" color="var(--accent)" />
+        </div>
+
+        {/* ── HERO CARD ───────────────────────────────────────── */}
+        <div style={{
+          ...CARD,
+          padding: '20px 24px',
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 20,
+        }}>
+          {/* Avatar */}
+          <div style={{ position: 'relative', flexShrink: 0 }}>
+            <div style={{
+              width: 72, height: 72, borderRadius: '50%',
+              border: '1px solid var(--border)',
+              background: 'var(--bg)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              overflow: 'hidden', position: 'relative',
+            }}>
+              {profile.profilePhotoURL ? (
+                <Image src={profile.profilePhotoURL} alt="Profile" fill style={{ objectFit: 'cover' }} />
+              ) : (
+                <User size={28} style={{ color: 'var(--text-muted)' }} strokeWidth={1.5} />
+              )}
+              <button
+                aria-label="Upload profile photo"
+                style={{
+                  position: 'absolute', inset: 0,
+                  background: 'rgba(0,0,0,0.4)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  opacity: 0, transition: 'opacity 0.15s', border: 'none', cursor: 'pointer',
+                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = '1' }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = '0' }}
+              >
+                <Upload size={16} style={{ color: '#fff' }} strokeWidth={2} />
+              </button>
+            </div>
+          </div>
+
+          {/* Name + email */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <h2 style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 4px', letterSpacing: '-0.25px' }}>
+              {profile.fullName || user?.displayName || 'Student Profile'}
+            </h2>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '0 0 10px' }}>
+              {user?.email}
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                fontSize: 11, fontWeight: 600,
+                padding: '2px 8px', borderRadius: 999,
+                background: 'var(--accent-bg)', border: '1px solid var(--accent-border)',
+                color: 'var(--accent)',
+              }}>
+                <Dot color="var(--accent)" />
+                AI Engine Active
+              </span>
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                fontSize: 11, fontWeight: 600,
+                padding: '2px 8px', borderRadius: 999,
+                background: 'var(--bg)', border: '1px solid var(--border)',
+                color: 'var(--text-secondary)',
+              }}>
+                {profile.entranceExam || 'B.Tech Aspiring'}
+              </span>
+            </div>
+          </div>
+
+          {/* Profile bar */}
+          <div style={{ flexShrink: 0, textAlign: 'right' }}>
+            <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px' }}>
+              Completion
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ width: 100, height: 5, background: 'var(--border)', borderRadius: 3, overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${strength}%`, background: strengthColor, borderRadius: 3, transition: 'width 0.8s ease' }} />
+              </div>
+              <span style={{ fontSize: 15, fontWeight: 700, color: strengthColor, letterSpacing: '-0.5px' }}>
+                {strength}%
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* ── TABS ─────────────────────────────────────────────── */}
         <SegmentedTabs tabs={TABS} active={activeTab} onChange={setActiveTab} />
 
-        {/* ── STAT CARDS ────────────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[16px]">
-          {[
-            { label: 'Profile Strength', value: `${strength}%`, sub: 'AI Completion Score', color: strength > 80 ? '#059669' : '#D97706' },
-            { label: 'Docs Verified',    value: verifiedDocs,   sub: `Out of ${docValues.length}`, color: '#059669' },
-            { label: 'Applications',     value: uniqueApps?.length || 0, sub: 'Active' },
-            { label: 'Offers',           value: selectedOffers?.length || 0, sub: 'Received', color: '#4F6BFF' },
-          ].map((c, i) => (
-            <div key={i} className="bg-card border border-border rounded-[14px] p-[20px]">
-              <div className="flex items-start justify-between mb-[10px]">
-                <span className="text-[14px] text-muted-foreground">{c.label}</span>
-              </div>
-              <div className="text-[28px] font-bold text-foreground leading-none mb-[6px]" style={{ color: c.color || '#111827' }}>{c.value}</div>
-              <span className="text-[12px] text-muted-foreground">{c.sub}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* ── PROFILE HERO ─ */}
-        <div className="bg-card border border-border rounded-[14px] p-[20px] flex flex-col md:flex-row items-center gap-[24px]">
-          <div className="w-[80px] h-[80px] rounded-full border border-border bg-muted flex items-center justify-center shrink-0 overflow-hidden relative">
-            {profile.profilePhotoURL ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={profile.profilePhotoURL} alt="Profile" className="w-full h-full object-cover" />
-            ) : (
-              <User size={32} className="text-muted-foreground" strokeWidth={1.5} />
-            )}
-            <button className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity" aria-label="Upload photo">
-              <Upload size={16} className="text-white" strokeWidth={2} />
-            </button>
+        {/* ── DATA GRID ────────────────────────────────────────── */}
+        <div style={CARD}>
+          <div style={{
+            padding: '12px 20px',
+            borderBottom: '1px solid var(--border)',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          }}>
+            <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>
+              {activeTab} Details
+            </span>
+            <span style={{
+              fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em',
+              color: 'var(--text-muted)',
+            }}>
+              {displayData.filter(f => f.value !== '—').length}/{displayData.length} filled
+            </span>
           </div>
 
-          <div className="flex-1 flex flex-col gap-[6px] text-center md:text-left">
-            <h2 className="text-[20px] font-semibold text-foreground">{profile.fullName || user?.displayName || 'Student Profile'}</h2>
-            <p className="text-[13px] text-muted-foreground">{user?.email}</p>
-            <div className="flex items-center justify-center md:justify-start gap-[12px] mt-[4px]">
-              <div className="flex items-center gap-[4px] bg-primary/10 text-[#4F6BFF] px-[8px] py-[2px] rounded-full text-[12px] font-semibold">
-                <Sparkles size={12} strokeWidth={2} />
-                Profile Engine Active
-              </div>
-              <div className="flex items-center gap-[4px] bg-secondary text-muted-foreground px-[8px] py-[2px] rounded-full text-[12px] font-medium">
-                {profile.entranceExam || 'B.Tech Aspiring'}
-              </div>
-            </div>
-          </div>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+            gap: '1px',
+            background: 'var(--border)',
+          }}>
+            {displayData.map((field, i) => (
+              <div
+                key={i}
+                style={{
+                  background: 'var(--bg-card)',
+                  padding: '14px 20px',
+                  transition: 'background 0.1s',
+                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.background = 'var(--bg-card-hover)' }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.background = 'var(--bg-card)' }}
+              >
+                <p style={{
+                  fontSize: 11, fontWeight: 600, textTransform: 'uppercase',
+                  letterSpacing: '0.06em', color: 'var(--text-muted)',
+                  margin: '0 0 6px',
+                }}>
+                  {field.label}
+                </p>
 
-          <div className="shrink-0 flex flex-col items-center md:items-end gap-[8px]">
-            <span className="text-[12px] text-muted-foreground">Profile Completion</span>
-            <div className="flex items-center gap-[12px]">
-              <div className="w-[120px] h-[6px] bg-secondary rounded-full overflow-hidden">
-                <div className="h-full bg-[#059669] rounded-full" style={{ width: `${strength}%` }} />
-              </div>
-              <span className="text-[15px] font-bold text-foreground">{strength}%</span>
-            </div>
-          </div>
-        </div>
-
-        {/* ── DATA GRID ─────────────────────────────────── */}
-        <div className="bg-card border border-border rounded-[14px] overflow-hidden">
-          <div className="flex items-center justify-between px-[20px] py-[14px] border-b border-border">
-            <span className="text-[15px] font-semibold text-foreground">{activeTab} Details</span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-[1px] bg-secondary/80">
-            {displayData.map((f, i) => (
-              <div key={i} className="bg-card p-[20px] flex flex-col gap-[6px] hover:bg-muted transition-colors group">
-                <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-[0.04em]">{f.label}</p>
-
-                {editingKey === f.key ? (
-                  <div className="flex items-center gap-[8px] mt-[4px]">
+                {editingKey === field.key ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <input
-                      type="text"
+                      autoFocus
                       value={editValue}
                       onChange={e => setEditValue(e.target.value)}
-                      className="flex-1 h-[32px] px-[10px] bg-muted border border-[#4F6BFF] rounded-[6px] text-[13px] text-foreground focus:outline-none"
+                      onKeyDown={e => { if (e.key === 'Enter') handleSave(field.key); if (e.key === 'Escape') setEditingKey(null); }}
+                      style={{
+                        flex: 1, height: 30, padding: '0 8px',
+                        background: 'var(--bg-elevated)',
+                        border: '1px solid var(--accent)',
+                        borderRadius: 6, fontSize: 13,
+                        color: 'var(--text-primary)',
+                        outline: 'none',
+                        boxShadow: '0 0 0 2px var(--accent-bg)',
+                      }}
                     />
                     <button
-                      onClick={() => handleSaveField(f.key)}
+                      onClick={() => handleSave(field.key)}
                       disabled={saving}
-                      className="w-[32px] h-[32px] rounded-[6px] bg-[#059669] text-white flex items-center justify-center hover:bg-[#047857] transition-colors disabled:opacity-50"
                       aria-label="Save field"
+                      style={{
+                        width: 28, height: 28, borderRadius: 6,
+                        background: 'var(--green)', border: 'none',
+                        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
                     >
-                      <Check size={14} strokeWidth={2} />
+                      <Check size={13} style={{ color: '#fff' }} strokeWidth={2.5} />
                     </button>
                     <button
                       onClick={() => setEditingKey(null)}
-                      className="w-[32px] h-[32px] rounded-[6px] border border-border text-muted-foreground flex items-center justify-center hover:bg-secondary transition-colors"
                       aria-label="Cancel editing"
+                      style={{
+                        width: 28, height: 28, borderRadius: 6,
+                        background: 'var(--bg)', border: '1px solid var(--border)',
+                        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
                     >
-                      <X size={14} strokeWidth={2} />
+                      <X size={13} style={{ color: 'var(--text-muted)' }} strokeWidth={2} />
                     </button>
                   </div>
                 ) : (
-                  <div className="flex items-center justify-between min-h-[32px]">
-                    <p className="text-[14px] font-medium text-foreground">{f.value}</p>
-                    {!(f as any).readonly && (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: 28 }}>
+                    <span style={{
+                      fontSize: 14, fontWeight: field.value === '—' ? 400 : 500,
+                      color: field.value === '—' ? 'var(--text-faint)' : 'var(--text-primary)',
+                    }}>
+                      {field.value}
+                    </span>
+                    {!(field as any).readonly && (
                       <button
-                        onClick={() => handleStartEdit(f.key, f.value)}
-                        className="opacity-0 group-hover:opacity-100 text-[#4F6BFF] text-[12px] font-medium hover:underline transition-opacity"
+                        onClick={() => handleStartEdit(field.key, field.value)}
+                        style={{
+                          fontSize: 11, fontWeight: 500, color: 'var(--accent)',
+                          background: 'none', border: 'none', cursor: 'pointer',
+                          opacity: 0, transition: 'opacity 0.15s',
+                        }}
+                        className="group-hover:opacity-100"
+                        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = '1' }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = '0' }}
                       >
                         Edit
                       </button>
@@ -223,6 +363,24 @@ export default function ProfilePage() {
             ))}
           </div>
         </div>
+
+        {/* ── MISSING FIELDS ALERT ────────────────────────────── */}
+        {strength < 80 && (
+          <div style={{
+            display: 'flex', alignItems: 'flex-start', gap: 12,
+            padding: '14px 18px',
+            background: 'rgba(217,119,6,0.06)',
+            border: '1px solid rgba(217,119,6,0.2)',
+            borderRadius: 10,
+            fontSize: 13, color: 'var(--gold)',
+          }}>
+            <AlertCircle size={16} style={{ flexShrink: 0, marginTop: 1 }} strokeWidth={1.8} />
+            <div>
+              <span style={{ fontWeight: 600 }}>Profile {strength}% complete.</span>
+              {' '}Fill in the remaining fields to unlock full university recommendations and AI insights.
+            </div>
+          </div>
+        )}
 
       </div>
     </ProtectedRoute>
