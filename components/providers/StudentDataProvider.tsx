@@ -1,35 +1,82 @@
+// components/providers/StudentDataProvider.tsx
 'use client'
-import { createContext, useContext, useEffect, useState } from 'react'
-import { onAuthStateChanged } from 'firebase/auth'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
+import { onAuthStateChanged, Unsubscribe } from 'firebase/auth'
 import { collection, query, where, onSnapshot, doc } from 'firebase/firestore'
 import { auth, db } from '@/lib/firebase/config'
 import { useRouter } from 'next/navigation'
 import { calculateProfileStrength } from '@/lib/utils/profileStrength'
+import type { Application, Notification, Payment, University, Scholarship } from '@/types/firebase'
 
-const normalizeArray = (data: any) => Array.isArray(data) ? data : data ? Object.values(data) : [];
+const log = (...args: unknown[]) => {
+  if (process.env.NODE_ENV === 'development') console.error(...args)
+}
 
-export const StudentDataContext = createContext<any>(null)
+const normalizeArray = <T,>(data: unknown): T[] =>
+  Array.isArray(data) ? data : data && typeof data === 'object' ? Object.values(data as object) : []
+
+interface StudentDataContextValue {
+  profile: Record<string, any> | null
+  applications: Application[]
+  notifications: Notification[]
+  payments: Payment[]
+  universities: University[]
+  scholarships: Scholarship[]
+  loading: boolean
+  error: string
+  userDocuments: Record<string, any>
+  docUploaded: number
+  docVerified: number
+  docPending: number
+  deadlines: any[]
+  documents: any[]
+  aiMatches: any[]
+  savedPrograms: any[]
+  profileScore: number
+  profileStrength: any
+  selectedOffers: Application[]
+  activeApp: Application | null
+  uniqueApps: Application[]
+  verificationStatus: 'Profile Incomplete' | 'Profile Complete' | 'Documents Pending' | 'Documents Verified'
+  isOnboardingComplete: boolean
+  hasMinimumProfileForRecommendations: boolean
+}
+
+export const StudentDataContext = createContext<StudentDataContextValue | null>(null)
 
 export function StudentDataProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
-  const [profile, setProfile] = useState<any>(null)
-  const [applications, setApplications] = useState<any[]>([])
-  const [notifications, setNotifications] = useState<any[]>([])
-  const [payments, setPayments] = useState<any[]>([])
-  const [universities, setUniversities] = useState<any[]>([])
-  const [scholarships, setScholarships] = useState<any[]>([])
-  // Real-time documents subcollection: { [docId]: { fileUrl, status, uploadedAt } }
+  const [profile, setProfile] = useState<Record<string, any> | null>(null)
+  const [applications, setApplications] = useState<Application[]>([])
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [payments, setPayments] = useState<Payment[]>([])
+  const [universities, setUniversities] = useState<University[]>([])
+  const [scholarships, setScholarships] = useState<Scholarship[]>([])
   const [userDocuments, setUserDocuments] = useState<Record<string, any>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
+  // Store all Firestore unsubscribes so they survive auth callback scope
+  const firestoreUnsubs = useRef<Unsubscribe[]>([])
+
+  const clearFirestoreListeners = () => {
+    firestoreUnsubs.current.forEach(u => u())
+    firestoreUnsubs.current = []
+  }
+
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (user) => {
-      if (!user) { router.push('/auth/login'); return }
+    const unsubAuth = onAuthStateChanged(auth, (user) => {
+      // Clean up any previous listeners before setting up new ones
+      clearFirestoreListeners()
+
+      if (!user) {
+        setLoading(false)
+        router.push('/auth/login')
+        return
+      }
 
       let loadingProfile = true
       let loadingApps = true
-
       const checkLoading = () => {
         if (!loadingProfile && !loadingApps) setLoading(false)
       }
@@ -43,195 +90,136 @@ export function StudentDataProvider({ children }: { children: React.ReactNode })
           checkLoading()
         },
         (err) => {
-          console.error(err)
-          loadingProfile = false
+          log('Profile listener error:', err)
           setError('Failed to load profile')
+          loadingProfile = false
           checkLoading()
         }
       )
 
-      // Applications
-      let appsList1: any[] = []
-      let appsList2: any[] = []
+      // Applications (dual query for backward compat)
+      let appsList1: Application[] = []
+      let appsList2: Application[] = []
+      let appsFirstFired = false
+
       const mergeApps = () => {
-        const seen = new Set()
-        const apps = []
+        const seen = new Set<string>()
+        const merged: Application[] = []
         for (const d of [...appsList1, ...appsList2]) {
-          if (!seen.has(d.id)) {
-            seen.add(d.id)
-            apps.push(d)
-          }
+          if (!seen.has(d.id)) { seen.add(d.id); merged.push(d) }
         }
-        setApplications(apps)
-        if (loadingApps) {
-          loadingApps = false
-          checkLoading()
-        }
+        setApplications(merged)
+        if (!appsFirstFired) { appsFirstFired = true; loadingApps = false; checkLoading() }
       }
 
       const unsubApps1 = onSnapshot(
         query(collection(db, 'applications'), where('studentId', '==', user.uid)),
-        (snap) => {
-          appsList1 = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-          mergeApps()
-        },
-        (err) => console.error('Apps error 1:', err)
+        snap => { appsList1 = snap.docs.map(d => ({ id: d.id, ...d.data() } as Application)); mergeApps() },
+        err => log('Applications listener 1:', err)
       )
-
       const unsubApps2 = onSnapshot(
         query(collection(db, 'applications'), where('userId', '==', user.uid)),
-        (snap) => {
-          appsList2 = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-          mergeApps()
-        },
-        (err) => console.error('Apps error 2:', err)
+        snap => { appsList2 = snap.docs.map(d => ({ id: d.id, ...d.data() } as Application)); mergeApps() },
+        err => log('Applications listener 2:', err)
       )
 
-      // User Documents subcollection (real-time)
       const unsubDocs = onSnapshot(
         collection(db, 'users', user.uid, 'documents'),
-        (snap) => {
+        snap => {
           const docsMap: Record<string, any> = {}
           snap.docs.forEach(d => { docsMap[d.id] = d.data() })
           setUserDocuments(docsMap)
         },
-        (err) => console.error('Documents error:', err)
+        err => log('Documents listener:', err)
       )
 
-      // Notifications
       const unsubNotifs = onSnapshot(
         query(collection(db, 'notifications'), where('userId', '==', user.uid)),
-        (snap) => setNotifications(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
-        (err) => console.error('Notifs error:', err)
+        snap => setNotifications(snap.docs.map(d => ({ id: d.id, ...d.data() } as Notification))),
+        err => log('Notifications listener:', err)
       )
 
-      // Payments
       const unsubPayments = onSnapshot(
         query(collection(db, 'payments'), where('userId', '==', user.uid)),
-        (snap) => setPayments(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
-        (err) => console.error('Payments error:', err)
+        snap => setPayments(snap.docs.map(d => ({ id: d.id, ...d.data() } as Payment))),
+        err => log('Payments listener:', err)
       )
 
-      // Universities – real-time from Firestore (approved only)
       const unsubUnis = onSnapshot(
-        query(
-          collection(db, 'universities'),
-          where('approvalStatus', '==', 'approved')
-        ),
-        (snap) => {
-          setUniversities(snap.docs.map(d => ({ id: d.id, ...d.data() })))
-        },
-        (err) => console.error('Universities error:', err)
+        query(collection(db, 'universities'), where('approvalStatus', '==', 'approved')),
+        snap => setUniversities(snap.docs.map(d => ({ id: d.id, ...d.data() } as University))),
+        err => log('Universities listener:', err)
       )
 
-      // Scholarships – real-time from Firestore
       const unsubScholarships = onSnapshot(
         collection(db, 'scholarships'),
-        (snap) => {
-          setScholarships(snap.docs.map(d => ({ id: d.id, ...d.data() })))
-        },
-        (err) => console.error('Scholarships error:', err)
+        snap => setScholarships(snap.docs.map(d => ({ id: d.id, ...d.data() } as Scholarship))),
+        err => log('Scholarships listener:', err)
       )
 
-      return () => {
-        unsubProfile()
-        unsubApps1()
-        unsubApps2()
-        unsubDocs()
-        unsubNotifs()
-        unsubPayments()
-        unsubUnis()
-        unsubScholarships()
-      }
+      firestoreUnsubs.current = [
+        unsubProfile, unsubApps1, unsubApps2, unsubDocs,
+        unsubNotifs, unsubPayments, unsubUnis, unsubScholarships
+      ]
     })
-    return unsub
+
+    return () => {
+      unsubAuth()
+      clearFirestoreListeners()
+    }
   }, [router])
 
-  // ── Computed data ────────────────────────────────────────────────────────────
-  const deadlines = normalizeArray(profile?.deadlines)
-  const documents = normalizeArray(profile?.documents)
-  const aiMatches = normalizeArray(profile?.aiMatches)
-  const savedPrograms = normalizeArray(profile?.savedPrograms)
+  // Computed
+  const deadlines = normalizeArray<any>(profile?.deadlines)
+  const documents = normalizeArray<any>(profile?.documents)
+  const aiMatches = normalizeArray<any>(profile?.aiMatches)
+  const savedPrograms = normalizeArray<any>(profile?.savedPrograms)
 
-  // Profile strength — uses the real subcollection documents map
   const profileStrength = calculateProfileStrength(profile, userDocuments)
   const profileScore = profileStrength.percentage
 
-  // ── Document counts from subcollection ────────────────────────────────────
   const docEntries = Object.values(userDocuments) as any[]
   const docUploaded = docEntries.length
   const docVerified = docEntries.filter(d => d?.status === 'verified').length
-  const docPending  = docEntries.filter(d => d?.status === 'uploaded').length
+  const docPending = docEntries.filter(d => d?.status === 'uploaded').length
 
-  // ── Verification status ───────────────────────────────────────────────────
-  // Profile is "complete" for portal purposes when score ≥ 60
   const isProfileDataComplete = profileScore >= 60
-  const isDocsVerified  = docVerified > 0 && docVerified === docUploaded && docUploaded >= 3
-  const isDocsPending   = docUploaded > 0 && !isDocsVerified
+  const isDocsVerified = docVerified > 0 && docVerified === docUploaded && docUploaded >= 3
+  const isDocsPending = docUploaded > 0 && !isDocsVerified
 
   type VerificationStatus = 'Profile Incomplete' | 'Profile Complete' | 'Documents Pending' | 'Documents Verified'
   let verificationStatus: VerificationStatus = 'Profile Incomplete'
-  if (isDocsVerified)           verificationStatus = 'Documents Verified'
-  else if (isDocsPending)       verificationStatus = 'Documents Pending'
+  if (isDocsVerified) verificationStatus = 'Documents Verified'
+  else if (isDocsPending) verificationStatus = 'Documents Pending'
   else if (isProfileDataComplete) verificationStatus = 'Profile Complete'
 
-  // ── Onboarding / readiness flags ──────────────────────────────────────────
-  // Onboarding is considered complete when the user set profileComplete=true
-  // (written by the onboarding page on finish) AND has at least a name
-  const isOnboardingComplete: boolean =
-    !!profile?.profileComplete && !!profile?.fullName
+  const isOnboardingComplete = !!profile?.profileComplete && !!profile?.fullName
+  const hasMinimumProfileForRecommendations =
+    profileScore >= 40 && (!!profile?.twelfthPercentage || !!profile?.cgpa || !!profile?.testScores)
 
-  // Recommendations unlock when there is enough profile data to meaningfully match
-  const hasMinimumProfileForRecommendations: boolean =
-    profileScore >= 40 &&
-    (!!profile?.twelfthPercentage || !!profile?.cgpa || !!profile?.testScores)
-
-  // ── Application helpers ───────────────────────────────────────────────────
-  const safeApps  = Array.isArray(applications) ? applications : []
+  const safeApps = Array.isArray(applications) ? applications : []
   const safeNotifs = Array.isArray(notifications) ? notifications : []
-
   const selectedOffers = safeApps.filter(a => a?.status === 'selected')
-
   const activeApp = safeApps
     .filter(a => a?.status !== 'rejected' && a?.status !== 'selected')
-    .sort((a, b) => (b?.progress || 0) - (a?.progress || 0))[0] || safeApps[0] || null
+    .sort((a: any, b: any) => (b?.progress || 0) - (a?.progress || 0))[0] ?? safeApps[0] ?? null
+  const uniqueApps = safeApps.filter((v, i, arr) => arr.findIndex(t => t.id === v.id) === i)
 
-  const uniqueApps = safeApps.filter((v, i, a) => a.findIndex(t => t.id === v.id) === i)
-
-  const value = {
-    profile,
-    applications: safeApps,
-    notifications: safeNotifs,
+  const value: StudentDataContextValue = {
+    profile, applications: safeApps, notifications: safeNotifs,
     payments: Array.isArray(payments) ? payments : [],
-    universities,
-    scholarships,
-    loading,
-    error,
-
-    // Documents
-    userDocuments,
-    docUploaded,
-    docVerified,
-    docPending,
-
-    // Computed
-    deadlines,
-    documents,
-    aiMatches,
-    savedPrograms,
-    profileScore,
-    profileStrength,
-    selectedOffers,
-    activeApp,
-    uniqueApps,
-
-    // Status & flags
-    verificationStatus,
-    isOnboardingComplete,
-    hasMinimumProfileForRecommendations,
+    universities, scholarships, loading, error,
+    userDocuments, docUploaded, docVerified, docPending,
+    deadlines, documents, aiMatches, savedPrograms,
+    profileScore, profileStrength, selectedOffers, activeApp, uniqueApps,
+    verificationStatus, isOnboardingComplete, hasMinimumProfileForRecommendations,
   }
 
-  return <StudentDataContext.Provider value={value}>{children}</StudentDataContext.Provider>
+  return (
+    <StudentDataContext.Provider value={value}>
+      {children}
+    </StudentDataContext.Provider>
+  )
 }
 
 export function useStudentData() {
