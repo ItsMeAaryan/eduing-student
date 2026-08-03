@@ -1,3 +1,4 @@
+// hooks/useAIChat.ts
 import { useState, useCallback } from 'react';
 
 export interface ChatMessage {
@@ -14,7 +15,7 @@ export function useAIChat(initialMessages: ChatMessage[] = []) {
   const [error, setError] = useState<string | null>(null);
 
   const sendMessage = useCallback(async (
-    text: string, 
+    text: string,
     apiCall: (text: string) => Promise<{ success: boolean; text?: string; error?: string }>
   ) => {
     if (!text.trim()) return;
@@ -25,25 +26,25 @@ export function useAIChat(initialMessages: ChatMessage[] = []) {
       content: text,
       timestamp: new Date()
     };
-    
+
     setMessages(prev => [...prev, userMsg]);
     setIsTyping(true);
     setError(null);
 
     try {
       const res = await apiCall(text);
-      
       const assistantMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: res.success ? (res.text || 'No response provided.') : (res.error || res.text || 'I encountered an error while processing your request.'),
+        content: res.success
+          ? (res.text || 'No response provided.')
+          : (res.error || res.text || 'I encountered an error while processing your request.'),
         timestamp: new Date()
       };
-
       setMessages(prev => [...prev, assistantMsg]);
-    } catch (e: any) {
-      console.error(e);
-      setError(e.message || 'An error occurred.');
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'An error occurred.';
+      setError(msg);
       setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
