@@ -1,6 +1,7 @@
+// hooks/useAIGeneration.ts
 import { useState, useCallback } from 'react';
 
-export function useAIGeneration<T = any>() {
+export function useAIGeneration<T = unknown>() {
   const [data, setData] = useState<T | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -12,16 +13,16 @@ export function useAIGeneration<T = any>() {
     setError(null);
     try {
       const res = await apiCall();
-      if (res.success && res.data) {
+      if (res.success && res.data !== undefined) {
         setData(res.data);
       } else {
         setError(res.error || res.text || 'An error occurred during AI generation.');
       }
       return res;
-    } catch (e: any) {
-      console.error(e);
-      setError(e.message || 'An unexpected error occurred.');
-      return { success: false, error: e.message, data: undefined };
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'An unexpected error occurred.';
+      setError(msg);
+      return { success: false, error: msg, data: undefined };
     } finally {
       setIsGenerating(false);
     }
