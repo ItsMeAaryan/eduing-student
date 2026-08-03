@@ -1,3 +1,4 @@
+// app/student/universities/[id]/page.tsx
 'use client'
 
 import React, { useEffect, useState, useMemo } from 'react'
@@ -6,36 +7,130 @@ import { useParams, useRouter } from 'next/navigation'
 import { onSnapshot, doc, collection, query, where, or } from 'firebase/firestore'
 import { db } from '@/lib/firebase/config'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  MapPin, Star, Award, ChevronLeft, Clock, CheckCircle2, 
-  Building2, Users, Calendar, IndianRupee, BookOpen, ArrowRight,
-  AlertCircle, X, ShieldCheck, Zap, Sparkles, Share, Bookmark,
-  TrendingUp, PieChart, Video, Check
+import {
+  MapPin, Clock, Building2, Users, ArrowRight, TrendingUp,
+  Sparkles, GraduationCap, ShieldCheck, ChevronLeft,
+  CheckCircle2, Search, X, Bookmark, DollarSign, Award,
+  AlertCircle, Compass, ArrowUpRight
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import { useStudentData } from '@/components/providers/StudentDataProvider'
 import { submitApplication } from '@/lib/firebase/applications'
 import { calculateAdmissionProbability } from '@/lib/utils/probabilityEngine'
-import { recommendUniversities } from '@/lib/utils/recommendationEngine'
-import { Card, Button, Badge, H2, H3, H4, Body, Small, Caption, MetricCard } from '@/components/ui/design-system'
 
-export default function PremiumUniversityDetailPage() {
+/* ── Stat pill ─────────────────────────────────────────────────────── */
+function StatPill({ label, value }: { label: string; value: string }) {
+  return (
+    <div
+      style={{
+        background: 'var(--bg-card)',
+        border: '1px solid var(--border)',
+        borderRadius: 10,
+        padding: '14px 20px',
+        flex: 1,
+        minWidth: 120,
+      }}
+    >
+      <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
+        {label}
+      </p>
+      <p style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.5px', margin: 0 }}>
+        {value}
+      </p>
+    </div>
+  )
+}
+
+/* ── Program row ────────────────────────────────────────────────────── */
+function ProgramRow({ prog, onApply }: { prog: any; onApply: (p: any) => void }) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 16,
+        padding: '14px 20px',
+        borderBottom: '1px solid var(--border)',
+        background: 'var(--bg-card)',
+        transition: 'background 0.1s',
+      }}
+      onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.background = 'var(--bg-card-hover)' }}
+      onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.background = 'var(--bg-card)' }}
+    >
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+          <span style={{
+            fontSize: 10, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase',
+            padding: '1px 8px', borderRadius: 999, background: 'var(--accent-bg)',
+            border: '1px solid var(--accent-border)', color: 'var(--accent)',
+          }}>
+            {prog.level || 'Degree'}
+          </span>
+          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+            {prog.duration || '4 Years'}
+          </span>
+        </div>
+        <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
+          {prog.name}
+        </p>
+        <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '2px 0 0' }}>
+          {prog.department || 'School of Engineering'}
+        </p>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+        <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>
+          {prog.fees || '₹2.2L/yr'}
+        </span>
+        <button
+          onClick={() => onApply(prog)}
+          style={{
+            height: 34,
+            padding: '0 14px',
+            background: 'var(--accent)',
+            color: '#fff',
+            fontSize: 12,
+            fontWeight: 600,
+            borderRadius: 8,
+            border: 'none',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            transition: 'opacity 0.15s',
+          }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = '0.88' }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = '1' }}
+        >
+          Apply <ArrowRight size={13} strokeWidth={2} />
+        </button>
+      </div>
+    </div>
+  )
+}
+
+export default function UniversityDetailPage() {
   const params = useParams()
   const router = useRouter()
   const id = params.id as string
-  
+
   const { user } = useAuth()
-  const studentData = useStudentData()
-  const { profile, documents, uniqueApps, savedPrograms, profileScore, universities } = studentData
-  
+  const { profile, documents, uniqueApps, savedPrograms, profileScore } = useStudentData()
+
   const [university, setUniversity] = useState<any | null>(null)
   const [programs, setPrograms] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [applying, setApplying] = useState(false)
-  const [toast, setToast] = useState<any>(null)
+  const [applicationSubmitted, setApplicationSubmitted] = useState(false)
   const [selectedProgram, setSelectedProgram] = useState<any | null>(null)
+  const [isBookmarked, setIsBookmarked] = useState(false)
+  const [copiedLink, setCopiedLink] = useState(false)
+  const [programSearch, setProgramSearch] = useState('')
+  const [customScore, setCustomScore] = useState('')
+  const [estimatedWaiver, setEstimatedWaiver] = useState<number | null>(null)
 
+  /* ── Firestore listeners ─── */
   useEffect(() => {
     if (!id) return
     const unsubUni = onSnapshot(doc(db, 'universities', id), (snap) => {
@@ -46,511 +141,729 @@ export default function PremiumUniversityDetailPage() {
   }, [id])
 
   useEffect(() => {
-    if (!id) return
-    const conditions = [where('universityId', '==', id), where('uniId', '==', id)]
-    if (university?.name) conditions.push(where('universityName', '==', university.name))
-    
+    if (!id || !university) return
+
+    const conditions: any[] = [where('universityId', '==', id)]
+    if (university.name) conditions.push(where('universityName', '==', university.name))
+
     const q = query(collection(db, 'programs'), or(...conditions))
     const unsubProgs = onSnapshot(q, (snap) => {
-      const allProgs = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-      const uniqueProgs = allProgs.filter((p, index, self) => index === self.findIndex((t) => t.id === p.id))
-      setPrograms(uniqueProgs)
+      const seen = new Set<string>()
+      const unique: any[] = []
+      snap.docs.forEach(d => {
+        if (!seen.has(d.id)) {
+          seen.add(d.id)
+          unique.push({ id: d.id, ...d.data() })
+        }
+      })
+      setPrograms(unique)
     })
     return () => unsubProgs()
-  }, [id, university?.name])
+  }, [id, university])
 
-  const handleApply = async (program: any) => {
-    if (!user || !university) return router.push('/auth/login')
-    if (!user.isVerified) {
-      setToast({ message: 'Complete your profile verification to apply.', type: 'warning' })
-      setTimeout(() => setToast(null), 5000)
-      return
-    }
-    setApplying(true)
-    try {
-      await submitApplication(user.uid, id, university.name, program.name)
-      setToast({ message: 'Application submitted securely! ✅', type: 'success' })
-      setSelectedProgram(null)
-      setTimeout(() => setToast(null), 3000)
-    } catch (err) {
-      setToast({ message: 'Error submitting application.', type: 'error' })
-    }
-    setApplying(false)
-  }
-
+  /* ── Probability engine ─── */
   const probData = useMemo(() => {
     if (!university) return null
-    return calculateAdmissionProbability({ profile, documents, applications: uniqueApps, savedPrograms, profileScore }, university)
-  }, [university, profile, documents, uniqueApps, savedPrograms, profileScore])
+    return calculateAdmissionProbability(university, { profile, documents, profileScore })
+  }, [university, profile, documents, profileScore])
 
-  const recData = useMemo(() => {
-    if (!universities || universities.length === 0 || !university) return null
-    const recs = recommendUniversities(universities, { profile, documents, applications: uniqueApps, savedPrograms, profileScore })
-    return recs.find(r => r.university.id === university.id)
-  }, [universities, university, profile, documents, uniqueApps, savedPrograms, profileScore])
+  const overallProb = probData?.overallProbability ?? 75
+  const missingDocs = probData?.missingRequirements ?? []
 
+  const filteredPrograms = useMemo(() => {
+    if (!programSearch.trim()) return programs
+    const q = programSearch.toLowerCase()
+    return programs.filter(p =>
+      (p.name || '').toLowerCase().includes(q) ||
+      (p.department || '').toLowerCase().includes(q)
+    )
+  }, [programs, programSearch])
+
+  const handleApply = async (program: any) => {
+    if (!user || !university) { router.push('/auth/login'); return }
+    setApplying(true)
+    try {
+      await submitApplication(user.uid, id, university.name, program?.name || 'General Admission')
+      setApplicationSubmitted(true)
+      setTimeout(() => { setApplying(false); setSelectedProgram(null) }, 1400)
+    } catch {
+      setApplying(false)
+    }
+  }
+
+  const handleShare = () => {
+    if (typeof window !== 'undefined') {
+      navigator.clipboard.writeText(window.location.href)
+      setCopiedLink(true)
+      setTimeout(() => setCopiedLink(false), 2000)
+    }
+  }
+
+  const calculateScholarship = () => {
+    const val = parseFloat(customScore)
+    if (!val || isNaN(val)) return
+    if (val >= 95) setEstimatedWaiver(75)
+    else if (val >= 88) setEstimatedWaiver(50)
+    else if (val >= 80) setEstimatedWaiver(25)
+    else setEstimatedWaiver(10)
+  }
+
+  /* ── Loading ─── */
   if (loading) return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
-      <div className="w-[48px] h-[48px] border-4 border-primary border-t-transparent rounded-full animate-spin" />
+    <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ repeat: Infinity, duration: 0.9, ease: 'linear' }}
+        style={{
+          width: 36, height: 36,
+          border: '3px solid var(--border)',
+          borderTopColor: 'var(--accent)',
+          borderRadius: '50%',
+        }}
+      />
     </div>
   )
 
+  /* ── Not found ─── */
   if (!university) return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center text-text-primary">
-      <H2 className="mb-16">University not found</H2>
-      <Button onClick={() => router.back()} variant="secondary" className="flex items-center gap-8">
-        <ChevronLeft size={16} strokeWidth={1.8} /> Go Back
-      </Button>
+    <div style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+      <Building2 size={40} style={{ color: 'var(--text-muted)' }} strokeWidth={1.5} />
+      <h2 style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>University not found</h2>
+      <button
+        onClick={() => router.back()}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 6,
+          height: 34, padding: '0 14px',
+          background: 'var(--bg-elevated)', border: '1px solid var(--border)',
+          color: 'var(--text-primary)', fontSize: 13, fontWeight: 500,
+          borderRadius: 8, cursor: 'pointer',
+        }}
+      >
+        <ChevronLeft size={15} /> Go Back
+      </button>
     </div>
   )
-
-  const overallProb = probData?.overallProbability || 0
-  const aiMatch = recData?.overallMatchScore || 75
-  const scholarshipMatch = Math.min(100, Math.floor(overallProb * 1.1))
-  const profileFit = profileScore || 65
 
   return (
     <ProtectedRoute allowedRoles={['student']}>
-      <div className="min-h-screen bg-background text-text-primary selection:bg-primary/30 pb-64">
-        
-        {/* SECTION 1: HERO */}
-        <section className="relative w-full h-[60vh] min-h-[500px]">
-          <Image 
-            src={university.imageUrl || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=2070&auto=format&fit=crop'} 
-            fill priority className="object-cover" alt={university.name} 
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
-          
-          <button onClick={() => router.back()} className="absolute top-32 left-32 w-[48px] h-[48px] bg-black/40 backdrop-blur-md border border-white/10 rounded-full flex items-center justify-center hover:bg-black/60 transition-colors z-20 text-white">
-            <ChevronLeft size={20} strokeWidth={1.8} />
+      <div style={{ fontFamily: 'Inter, system-ui, sans-serif', color: 'var(--text-primary)' }}>
+
+        {/* ── TOP BAR ─────────────────────────────────────────────── */}
+        <div style={{
+          position: 'sticky', top: 72, zIndex: 20,
+          background: 'var(--bg)/90',
+          backdropFilter: 'blur(12px)',
+          borderBottom: '1px solid var(--border)',
+          padding: '10px 24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 12,
+        }}>
+          <button
+            onClick={() => router.back()}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)',
+              background: 'none', border: 'none', cursor: 'pointer',
+              padding: '6px 10px', borderRadius: 6,
+              transition: 'color 0.1s',
+            }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-primary)' }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-secondary)' }}
+          >
+            <ChevronLeft size={16} />
+            Back to Universities
           </button>
 
-          <div className="absolute inset-0 flex flex-col justify-end px-32 pb-48 max-w-[1600px] mx-auto w-full z-10">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-32">
-              <div className="flex-1">
-                <div className="flex flex-wrap items-center gap-12 mb-24">
-                  {university.isVerified && (
-                    <div className="bg-primary px-16 py-8 rounded-full text-caption font-bold text-white flex items-center gap-8 shadow-sm">
-                      <ShieldCheck size={14} strokeWidth={1.8} /> Verified Partner
-                    </div>
-                  )}
-                  <div className="bg-card/10 backdrop-blur-md border border-white/10 px-16 py-8 rounded-full flex items-center gap-8 text-white">
-                    <Star size={14} strokeWidth={1.8} className="text-amber-400 fill-amber-400" />
-                    <span className="text-caption font-bold">{university.rating || '4.5'} Rating</span>
-                  </div>
-                  <div className="bg-card/10 backdrop-blur-md border border-white/10 px-16 py-8 rounded-full text-caption font-bold text-white">
-                    NAAC {university.naacGrade || 'A++'}
-                  </div>
-                  <div className="bg-card/10 backdrop-blur-md border border-white/10 px-16 py-8 rounded-full text-caption font-bold text-white">
-                    {university.type || 'Private'} Institution
-                  </div>
-                </div>
-                
-                <h1 className="text-[48px] md:text-[64px] font-medium mb-16 tracking-tight leading-tight text-white">
-                  {university.name}
-                </h1>
-                
-                <div className="flex items-center gap-12 text-body text-gray-300">
-                  <MapPin size={20} strokeWidth={1.8} className="text-primary" /> {university.location}
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-16 shrink-0">
-                <button className="w-[48px] h-[48px] rounded-full bg-card/10 backdrop-blur-md border border-white/10 flex items-center justify-center hover:bg-card/20 transition-colors text-white">
-                  <Share size={18} strokeWidth={1.8} />
-                </button>
-                <button className="w-[48px] h-[48px] rounded-full bg-card/10 backdrop-blur-md border border-white/10 flex items-center justify-center hover:bg-card/20 transition-colors text-white">
-                  <Bookmark size={18} strokeWidth={1.8} />
-                </button>
-                <Button 
-                  onClick={() => {
-                    const scrollTarget = document.getElementById('programs-section')
-                    scrollTarget?.scrollIntoView({ behavior: 'smooth' })
-                  }}
-                  variant="primary"
-                >
-                  View Programs
-                </Button>
-              </div>
-            </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              onClick={() => setIsBookmarked(v => !v)}
+              aria-label={isBookmarked ? 'Remove bookmark' : 'Bookmark university'}
+              style={{
+                width: 34, height: 34,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: isBookmarked ? 'var(--accent-bg)' : 'var(--bg-elevated)',
+                border: `1px solid ${isBookmarked ? 'var(--accent-border)' : 'var(--border)'}`,
+                borderRadius: 8, cursor: 'pointer',
+                color: isBookmarked ? 'var(--accent)' : 'var(--text-muted)',
+                transition: 'all 0.15s',
+              }}
+            >
+              <Bookmark size={15} strokeWidth={1.8} style={{ fill: isBookmarked ? 'var(--accent)' : 'none' }} />
+            </button>
+
+            <button
+              onClick={handleShare}
+              style={{
+                position: 'relative',
+                width: 34, height: 34,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: 'var(--bg-elevated)',
+                border: '1px solid var(--border)',
+                borderRadius: 8, cursor: 'pointer',
+                color: 'var(--text-muted)',
+              }}
+              aria-label="Copy share link"
+            >
+              <ArrowUpRight size={15} strokeWidth={1.8} />
+              {copiedLink && (
+                <span style={{
+                  position: 'absolute', bottom: -28, right: 0,
+                  background: 'var(--text-primary)', color: 'var(--bg)',
+                  fontSize: 11, fontWeight: 600, padding: '2px 8px',
+                  borderRadius: 4, whiteSpace: 'nowrap',
+                }}>
+                  Copied!
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={() => handleApply({ name: 'General Admission' })}
+              disabled={applying}
+              style={{
+                height: 34, padding: '0 16px',
+                background: 'var(--accent)', color: '#fff',
+                fontSize: 13, fontWeight: 600,
+                borderRadius: 8, border: 'none', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: 6,
+                opacity: applying ? 0.6 : 1,
+              }}
+            >
+              Apply Now <ArrowRight size={14} strokeWidth={2} />
+            </button>
           </div>
-        </section>
-
-        <div className="max-w-[1600px] mx-auto px-32 flex flex-col lg:flex-row gap-64 mt-64 relative">
-          
-          <div className="flex-1 flex flex-col gap-64">
-            
-            {/* SECTION 2: STUDENT MATCH */}
-            <section>
-              <H3 className="mb-32 flex items-center gap-12">
-                <Sparkles className="text-primary" size={24} strokeWidth={1.8} /> Student Match Analysis
-              </H3>
-              <Card className="!p-48">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-48 mb-48">
-                  <CircularMetric label="Admission Prob" value={overallProb} color="emerald" />
-                  <CircularMetric label="AI Match" value={aiMatch} color="blue" />
-                  <CircularMetric label="Scholarship Fit" value={scholarshipMatch} color="purple" />
-                  <CircularMetric label="Profile Strength" value={profileFit} color="amber" />
-                </div>
-                
-                <div className="bg-hover border border-border rounded-card p-32">
-                  <div className="text-small font-bold text-primary mb-16 flex items-center gap-8">
-                    <Zap size={16} strokeWidth={1.8} /> AI Summary: Why this university fits you
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
-                    {(recData?.matchReasons || ['Excellent academic alignment', 'Strong placement record for your course', 'High probability of securing a scholarship']).map((reason: string, i: number) => (
-                      <div key={i} className="flex items-start gap-12 text-body text-text-secondary">
-                        <CheckCircle2 size={20} strokeWidth={1.8} className="text-success shrink-0 mt-[2px]" />
-                        <span>{reason}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </Card>
-            </section>
-
-            {/* SECTION 3: QUICK FACTS */}
-            <section>
-              <H3 className="mb-32">Quick Facts</H3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-24">
-                <MetricCard label="Starting Fees" value={`₹${university.startingFees || '4.5L'}`} icon={IndianRupee} />
-                <MetricCard label="Placement Rate" value="94%" icon={TrendingUp} />
-                <MetricCard label="Campus Size" value="120 Acres" icon={Building2} />
-                <MetricCard label="Students" value="15,000+" icon={Users} />
-                <MetricCard label="Faculty" value="800+" icon={Users} />
-                <MetricCard label="Hostel Capacity" value="4,000" icon={Building2} />
-                <MetricCard label="Highest Package" value="₹52 LPA" icon={Award} />
-                <MetricCard label="Average Package" value="₹8.5 LPA" icon={PieChart} />
-              </div>
-            </section>
-
-            {/* SECTION 4: PROGRAMS */}
-            <section id="programs-section">
-              <div className="flex justify-between items-center mb-32">
-                <H3>Available Programs</H3>
-                <Body className="text-text-secondary">{programs.length} Specializations</Body>
-              </div>
-              
-              <Card className="!p-0 overflow-hidden shadow-sm">
-                {programs.length === 0 ? (
-                  <div className="p-64 text-center">
-                    <BookOpen size={48} strokeWidth={1.8} className="mx-auto text-text-secondary mb-24" />
-                    <H4 className="mb-8">No programs listed</H4>
-                    <Body className="text-text-secondary">Programs will be added soon.</Body>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto no-scrollbar">
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className="border-b border-border text-caption uppercase text-text-secondary bg-hover">
-                          <th className="py-24 px-32 font-bold">Degree Program</th>
-                          <th className="py-24 px-32 font-bold">Duration</th>
-                          <th className="py-24 px-32 font-bold">Seats</th>
-                          <th className="py-24 px-32 font-bold">Annual Fees</th>
-                          <th className="py-24 px-32 font-bold text-right">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {programs.map((prog, i) => (
-                          <tr key={prog.id || i} className="border-b border-border hover:bg-hover transition-colors group cursor-pointer" onClick={() => setSelectedProgram(prog)}>
-                            <td className="py-24 px-32">
-                              <div className="text-body font-medium text-text-primary mb-4 group-hover:text-primary transition-colors">{prog.name}</div>
-                              <div className="text-small text-text-secondary">{prog.level}</div>
-                            </td>
-                            <td className="py-24 px-32 text-small text-text-secondary">{prog.duration}</td>
-                            <td className="py-24 px-32 text-small text-text-secondary">{prog.totalSeats || 'TBD'}</td>
-                            <td className="py-24 px-32 text-small font-bold text-success">₹{(prog.annualFee || prog.fee || 0).toLocaleString()}</td>
-                            <td className="py-24 px-32 text-right">
-                              <Button 
-                                onClick={(e) => { e.stopPropagation(); setSelectedProgram(prog); }}
-                                variant="secondary"
-                                size="sm"
-                              >
-                                View Details
-                              </Button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </Card>
-            </section>
-
-            {/* SECTION 5: ADMISSION JOURNEY */}
-            <section>
-              <H3 className="mb-48">Admission Journey</H3>
-              <div className="relative pl-32 border-l border-border ml-16 flex flex-col gap-64">
-                <JourneyStep title="Eligibility Check" desc="Review required scores and background." icon={CheckCircle2} />
-                <JourneyStep title="Entrance Exam" desc="Clear the university specific or national entrance test." icon={FileTextIcon} />
-                <JourneyStep title="Document Submission" desc="Upload transcripts, IDs, and certificates." icon={BookOpen} />
-                <JourneyStep title="Application Review" desc="University reviews your comprehensive profile." icon={Clock} />
-                <JourneyStep title="Final Admission" desc="Receive offer letter and pay initial fees." icon={Award} />
-              </div>
-            </section>
-
-            {/* SECTION 6: SCHOLARSHIPS */}
-            <section>
-              <H3 className="mb-32">Scholarships</H3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-24">
-                {[1, 2].map((i) => (
-                  <Card key={i} className="flex flex-col hover:border-primary/50 transition-colors shadow-sm">
-                    <div className="flex justify-between items-start mb-24">
-                      <div className="w-[48px] h-[48px] rounded-card bg-primary/10 flex items-center justify-center text-primary">
-                        <Award size={24} strokeWidth={1.8} />
-                      </div>
-                      <Badge variant="success">Up to 50% Tuition</Badge>
-                    </div>
-                    <H4 className="mb-8">Merit Excellence Scholarship {i}</H4>
-                    <Small className="text-text-secondary mb-32">Awarded to students demonstrating exceptional academic performance in qualifying examinations.</Small>
-                    <Button variant="secondary" className="mt-auto w-fit">
-                      Check Eligibility
-                    </Button>
-                  </Card>
-                ))}
-              </div>
-            </section>
-
-            {/* SECTION 7: CAMPUS EXPERIENCE */}
-            <section>
-              <div className="flex justify-between items-center mb-32">
-                <H3>Campus Experience</H3>
-                <button className="text-small font-bold text-primary hover:text-primary/80 transition-colors">View Gallery →</button>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-24 mb-24">
-                <div className="md:col-span-2 h-[320px] relative rounded-[32px] overflow-hidden bg-hover group cursor-pointer">
-                   <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-10 group-hover:bg-black/20 transition-colors">
-                     <div className="w-[64px] h-[64px] bg-card/20 backdrop-blur-md rounded-full flex items-center justify-center text-white">
-                       <Video size={24} strokeWidth={1.8} className="ml-4" />
-                     </div>
-                   </div>
-                   <Image src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=2070&auto=format&fit=crop" fill className="object-cover" alt="Campus Video" />
-                </div>
-                <div className="h-[320px] relative rounded-[32px] overflow-hidden bg-hover">
-                   <Image src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=2070&auto=format&fit=crop" fill className="object-cover" alt="Library" />
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-12">
-                {['Modern Library', 'Sports Complex', 'Research Labs', 'Smart Classrooms', 'Auditorium', 'Cafeteria', 'Wi-Fi Campus'].map(f => (
-                  <div key={f} className="px-16 py-8 bg-background border border-border rounded-full text-small text-text-secondary flex items-center gap-8 shadow-sm">
-                    <Check size={14} strokeWidth={1.8} className="text-primary" /> {f}
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* SECTION 8: PLACEMENT INSIGHTS */}
-            <section>
-              <H3 className="mb-32">Placement Insights</H3>
-              <Card className="!p-48 flex flex-col md:flex-row gap-48 items-center shadow-sm">
-                 <div className="w-[192px] h-[192px] rounded-full border-[16px] border-hover border-t-primary border-r-primary flex items-center justify-center relative shadow-sm">
-                   <div className="text-center">
-                     <div className="text-[36px] font-medium text-text-primary">94%</div>
-                     <Caption className="text-text-secondary font-bold uppercase tracking-widest">Placed</Caption>
-                   </div>
-                 </div>
-                 <div className="flex-1 grid grid-cols-2 gap-32 w-full">
-                    <div>
-                      <Caption className="text-text-secondary font-bold uppercase tracking-widest mb-4">Median Package</Caption>
-                      <H2>₹8.5 LPA</H2>
-                    </div>
-                    <div>
-                      <Caption className="text-text-secondary font-bold uppercase tracking-widest mb-4">Highest Package</Caption>
-                      <H2 className="text-success">₹52 LPA</H2>
-                    </div>
-                    <div className="col-span-2">
-                      <Caption className="text-text-secondary font-bold uppercase tracking-widest mb-12">Top Recruiters</Caption>
-                      <div className="flex gap-16">
-                        <div className="h-[40px] px-24 bg-hover border border-border rounded-full flex items-center justify-center text-small font-bold">Google</div>
-                        <div className="h-[40px] px-24 bg-hover border border-border rounded-full flex items-center justify-center text-small font-bold">Microsoft</div>
-                        <div className="h-[40px] px-24 bg-hover border border-border rounded-full flex items-center justify-center text-small font-bold">Amazon</div>
-                      </div>
-                    </div>
-                 </div>
-              </Card>
-            </section>
-
-            {/* SECTION 9: AI ADVISOR */}
-            <section>
-              <H3 className="mb-32 flex items-center gap-12">
-                <Sparkles className="text-primary" size={24} strokeWidth={1.8} /> AI Advisor Verdict
-              </H3>
-              <Card className="!p-48 border-primary/20 shadow-sm">
-                <H4 className="mb-32">Should you apply?</H4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-48">
-                  <div>
-                    <Body className="font-bold text-success mb-16 flex items-center gap-8"><CheckCircle2 size={16} strokeWidth={1.8}/> Strengths</Body>
-                    <ul className="space-y-12">
-                      {(probData?.strengths || ['Good academic record']).slice(0, 3).map((s: string, i: number) => (
-                        <li key={i} className="text-small text-text-secondary pl-24 relative before:absolute before:left-0 before:top-[6px] before:w-[6px] before:h-[6px] before:bg-success before:rounded-full">{s}</li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div>
-                    <Body className="font-bold text-warning mb-16 flex items-center gap-8"><AlertCircle size={16} strokeWidth={1.8}/> Needs Improvement</Body>
-                    <ul className="space-y-12">
-                      {(probData?.weaknesses.length ? probData.weaknesses : ['Entrance exam score pending']).slice(0, 3).map((s: string, i: number) => (
-                        <li key={i} className="text-small text-text-secondary pl-24 relative before:absolute before:left-0 before:top-[6px] before:w-[6px] before:h-[6px] before:bg-warning before:rounded-full">{s}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-                <div className="mt-32 pt-32 border-t border-border flex flex-col md:flex-row items-center justify-between gap-24">
-                  <div>
-                    <Caption className="text-text-secondary font-bold uppercase tracking-widest mb-4">Recommended Action</Caption>
-                    <Body className="font-bold text-text-primary">{probData?.improvementSuggestions[0] || 'Apply and secure an early interview slot.'}</Body>
-                  </div>
-                  <Button onClick={() => {document.getElementById('programs-section')?.scrollIntoView({behavior: 'smooth'})}} variant="primary">
-                    Start Application
-                  </Button>
-                </div>
-              </Card>
-            </section>
-
-          </div>
-
-          {/* SECTION 11: STICKY RIGHT PANEL */}
-          <aside className="hidden lg:block w-[400px] shrink-0">
-            <div className="sticky top-[80px] flex flex-col gap-24">
-              
-              <Card className="!p-32 flex flex-col shadow-sm">
-                <H4 className="mb-24">Action Center</H4>
-                
-                <div className="flex flex-col gap-16 mb-32">
-                  <div className="flex justify-between items-center bg-hover border border-border p-16 rounded-[16px]">
-                    <Small className="text-text-secondary font-bold">Probability</Small>
-                    <Body className="font-bold text-success">{overallProb}%</Body>
-                  </div>
-                  <div className="flex justify-between items-center bg-hover border border-border p-16 rounded-[16px]">
-                    <Small className="text-text-secondary font-bold">Scholarship Match</Small>
-                    <Body className="font-bold text-primary">{scholarshipMatch}%</Body>
-                  </div>
-                  <div className="flex justify-between items-center bg-hover border border-border p-16 rounded-[16px]">
-                    <Small className="text-text-secondary font-bold">Application Deadline</Small>
-                    <Small className="font-bold text-text-primary">Rolling</Small>
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-12">
-                  <Button onClick={() => {document.getElementById('programs-section')?.scrollIntoView({behavior: 'smooth'})}} variant="primary" className="w-full">
-                    Apply Now
-                  </Button>
-                  <div className="grid grid-cols-2 gap-12">
-                    <Button variant="secondary">
-                      Save
-                    </Button>
-                    <Button variant="secondary">
-                      Compare
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-
-            </div>
-          </aside>
-
         </div>
 
-        {/* MODAL / TOAST LOGIC */}
+        {/* ── HERO ───────────────────────────────────────────────── */}
+        <div style={{ padding: '40px 0 0', maxWidth: 900, margin: '0 auto' }}>
+
+          {/* Banner */}
+          {university.bannerUrl && (
+            <div style={{ height: 220, borderRadius: 12, overflow: 'hidden', marginBottom: 28, position: 'relative' }}>
+              <Image src={university.bannerUrl} alt={university.name} fill style={{ objectFit: 'cover' }} priority />
+              <div style={{
+                position: 'absolute', inset: 0,
+                background: 'linear-gradient(to top, rgba(247,246,243,0.8) 0%, transparent 60%)',
+              }} />
+            </div>
+          )}
+
+          {/* Identity row */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20, marginBottom: 24 }}>
+            {/* Logo */}
+            {university.logoUrl ? (
+              <div style={{
+                width: 64, height: 64, borderRadius: 12,
+                border: '1px solid var(--border)',
+                background: 'var(--bg-elevated)',
+                overflow: 'hidden', position: 'relative', flexShrink: 0,
+              }}>
+                <Image src={university.logoUrl} alt={university.name} fill style={{ objectFit: 'contain', padding: 8 }} />
+              </div>
+            ) : (
+              <div style={{
+                width: 64, height: 64, borderRadius: 12,
+                border: '1px solid var(--border)',
+                background: 'var(--accent-bg)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0,
+              }}>
+                <span style={{ fontSize: 26, fontWeight: 800, color: 'var(--accent)' }}>
+                  {(university.name || 'U').charAt(0)}
+                </span>
+              </div>
+            )}
+
+            {/* Name + meta */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+                {university.nirfRanking && (
+                  <span style={{
+                    fontSize: 10, fontWeight: 600, letterSpacing: '0.06em',
+                    textTransform: 'uppercase', padding: '2px 8px',
+                    borderRadius: 999, background: 'var(--accent-bg)',
+                    border: '1px solid var(--accent-border)', color: 'var(--accent)',
+                  }}>
+                    NIRF #{university.nirfRanking}
+                  </span>
+                )}
+                {university.naacGrade && (
+                  <span style={{
+                    fontSize: 10, fontWeight: 600, letterSpacing: '0.06em',
+                    textTransform: 'uppercase', padding: '2px 8px',
+                    borderRadius: 999, background: 'rgba(26,174,57,0.08)',
+                    border: '1px solid rgba(26,174,57,0.2)', color: '#1AAE39',
+                  }}>
+                    NAAC {university.naacGrade}
+                  </span>
+                )}
+              </div>
+              <h1 style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.5px', margin: '0 0 6px', color: 'var(--text-primary)' }}>
+                {university.name}
+              </h1>
+              <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <MapPin size={13} strokeWidth={1.8} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+                {university.city || ''}{university.city && university.state ? ', ' : ''}{university.state || 'India'}
+                {university.establishedYear ? ` · Est. ${university.establishedYear}` : ''}
+              </p>
+            </div>
+
+            {/* Probability badge */}
+            <div style={{
+              flexShrink: 0,
+              padding: '12px 18px',
+              border: '1px solid var(--border)',
+              borderRadius: 10,
+              background: 'var(--bg-card)',
+              boxShadow: 'var(--shadow-card)',
+              textAlign: 'center',
+            }}>
+              <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 6px' }}>
+                Your Fit
+              </p>
+              <p style={{
+                fontSize: 22, fontWeight: 800, margin: 0, letterSpacing: '-0.5px',
+                color: overallProb >= 70 ? '#1AAE39' : overallProb >= 50 ? 'var(--gold)' : '#DC2626',
+              }}>
+                {overallProb}%
+              </p>
+            </div>
+          </div>
+
+          {/* Quick stats */}
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 32 }}>
+            {[
+              { label: 'Campus', value: university.campusSize || '220+ Acres' },
+              { label: 'Students', value: university.totalStudents || '14,500+' },
+              { label: 'Faculty Ratio', value: university.facultyRatio || '14:1' },
+              { label: 'Highest Pkg', value: university.highestPackage || '₹44.5 LPA' },
+            ].map(s => <StatPill key={s.label} label={s.label} value={s.value} />)}
+          </div>
+
+          {/* ── SECTIONS ───────────────────────────────────────────── */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+
+            {/* Admission Fit */}
+            <section style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border)',
+              borderRadius: 12,
+              padding: '24px 28px',
+              boxShadow: 'var(--shadow-card)',
+            }}>
+              <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 4px' }}>
+                Chapter I — Admission Fit
+              </p>
+              <h2 style={{ fontSize: 20, fontWeight: 600, letterSpacing: '-0.25px', margin: '0 0 16px', color: 'var(--text-primary)' }}>
+                Can I get in?
+              </h2>
+
+              <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+                {/* Probability ring */}
+                <div style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center',
+                  padding: '16px 24px', border: '1px solid var(--border)',
+                  borderRadius: 10, background: 'var(--bg)',
+                }}>
+                  <div style={{ position: 'relative', width: 72, height: 72 }}>
+                    <svg width={72} height={72} style={{ transform: 'rotate(-90deg)' }}>
+                      <circle cx={36} cy={36} r={28} fill="none" stroke="var(--border)" strokeWidth={6} />
+                      <motion.circle
+                        cx={36} cy={36} r={28} fill="none"
+                        stroke={overallProb >= 70 ? '#1AAE39' : overallProb >= 50 ? 'var(--gold)' : '#DC2626'}
+                        strokeWidth={6} strokeLinecap="round"
+                        strokeDasharray={175.9}
+                        initial={{ strokeDashoffset: 175.9 }}
+                        animate={{ strokeDashoffset: 175.9 - (overallProb / 100) * 175.9 }}
+                        transition={{ duration: 1.2, ease: 'easeOut' }}
+                      />
+                    </svg>
+                    <div style={{
+                      position: 'absolute', inset: 0,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)' }}>
+                        {overallProb}%
+                      </span>
+                    </div>
+                  </div>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                    Probability
+                  </span>
+                </div>
+
+                {/* Strengths & gaps */}
+                <div style={{ flex: 1, minWidth: 200 }}>
+                  <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+                    Verified Strengths
+                  </p>
+                  {['High Class XII percentile', 'Academic transcript verified', 'Identity proof verified'].map((s, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                      <CheckCircle2 size={13} style={{ color: '#1AAE39', flexShrink: 0 }} strokeWidth={2} />
+                      <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{s}</span>
+                    </div>
+                  ))}
+
+                  {missingDocs.length > 0 && (
+                    <>
+                      <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '14px 0 8px' }}>
+                        Action Required
+                      </p>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                        {missingDocs.map((d: string, i: number) => (
+                          <span key={i} style={{
+                            fontSize: 11, padding: '2px 8px', borderRadius: 6,
+                            background: 'rgba(217,119,6,0.08)', border: '1px solid rgba(217,119,6,0.2)',
+                            color: 'var(--gold)',
+                          }}>
+                            {d}
+                          </span>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </section>
+
+            {/* Financials */}
+            <section style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border)',
+              borderRadius: 12,
+              padding: '24px 28px',
+              boxShadow: 'var(--shadow-card)',
+            }}>
+              <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 4px' }}>
+                Chapter II — Financials
+              </p>
+              <h2 style={{ fontSize: 20, fontWeight: 600, letterSpacing: '-0.25px', margin: '0 0 20px', color: 'var(--text-primary)' }}>
+                Can I afford it?
+              </h2>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
+                {/* Cost breakdown */}
+                <div style={{ border: '1px solid var(--border)', borderRadius: 10, overflow: 'hidden' }}>
+                  {[
+                    { label: 'Tuition Fee (Per Annum)', value: university.tuitionRange || '₹2,40,000' },
+                    { label: 'Hostel & Dining (Optional)', value: university.hostelFees || '₹95,000' },
+                    { label: 'One-time Caution Deposit', value: '₹15,000' },
+                  ].map((row, i) => (
+                    <div key={i} style={{
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                      padding: '12px 16px',
+                      borderBottom: i < 2 ? '1px solid var(--border)' : 'none',
+                      background: i % 2 === 0 ? 'var(--bg-card)' : 'var(--bg)',
+                    }}>
+                      <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{row.label}</span>
+                      <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>{row.value}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Scholarship calculator */}
+                <div style={{ border: '1px solid var(--accent-border)', borderRadius: 10, padding: '16px', background: 'var(--accent-bg)' }}>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent)', margin: '0 0 8px' }}>
+                    Merit Waiver Calculator
+                  </p>
+                  <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '0 0 12px', lineHeight: 1.4 }}>
+                    Enter your Class XII % to estimate your tuition waiver.
+                  </p>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <input
+                      type="number"
+                      placeholder="e.g. 92"
+                      value={customScore}
+                      onChange={(e) => setCustomScore(e.target.value)}
+                      style={{
+                        flex: 1, height: 36, padding: '0 12px',
+                        background: 'var(--bg-elevated)',
+                        border: '1px solid var(--border)',
+                        borderRadius: 8, fontSize: 13,
+                        color: 'var(--text-primary)',
+                        outline: 'none',
+                      }}
+                    />
+                    <button
+                      onClick={calculateScholarship}
+                      style={{
+                        height: 36, padding: '0 14px',
+                        background: 'var(--accent)', color: '#fff',
+                        fontSize: 12, fontWeight: 600,
+                        borderRadius: 8, border: 'none', cursor: 'pointer',
+                        flexShrink: 0,
+                      }}
+                    >
+                      Calculate
+                    </button>
+                  </div>
+                  {estimatedWaiver !== null && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      style={{
+                        marginTop: 12, padding: '10px 14px',
+                        background: 'rgba(26,174,57,0.1)',
+                        border: '1px solid rgba(26,174,57,0.2)',
+                        borderRadius: 8, textAlign: 'center',
+                      }}
+                    >
+                      <span style={{ fontSize: 20, fontWeight: 800, color: '#1AAE39' }}>
+                        {estimatedWaiver}% Waiver
+                      </span>
+                      <p style={{ fontSize: 11, color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                        Based on academic score input
+                      </p>
+                    </motion.div>
+                  )}
+                </div>
+              </div>
+            </section>
+
+            {/* Placements */}
+            <section style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border)',
+              borderRadius: 12,
+              padding: '24px 28px',
+              boxShadow: 'var(--shadow-card)',
+            }}>
+              <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 4px' }}>
+                Chapter III — Career Outcomes
+              </p>
+              <h2 style={{ fontSize: 20, fontWeight: 600, letterSpacing: '-0.25px', margin: '0 0 20px', color: 'var(--text-primary)' }}>
+                Will I succeed?
+              </h2>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: 20 }}>
+                {[
+                  { label: 'Highest Package', value: university.highestPackage || '₹44.5 LPA', color: '#1AAE39' },
+                  { label: 'Average Package', value: university.avgPackage || '₹8.6 LPA', color: 'var(--text-primary)' },
+                  { label: 'Placement Rate', value: university.placementPercentage || '94.2%', color: 'var(--accent)' },
+                ].map(s => (
+                  <div key={s.label} style={{
+                    padding: '14px 16px',
+                    border: '1px solid var(--border)',
+                    borderRadius: 10,
+                    background: 'var(--bg)',
+                  }}>
+                    <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 6px' }}>
+                      {s.label}
+                    </p>
+                    <p style={{ fontSize: 22, fontWeight: 800, color: s.color, margin: 0, letterSpacing: '-0.5px' }}>
+                      {s.value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Recruiters */}
+              <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+                Top Recruiters
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {['Google', 'Microsoft', 'Amazon', 'Deloitte', 'TCS Digital', 'Infosys', 'Accenture', 'Goldman Sachs'].map((c, i) => (
+                  <span key={i} style={{
+                    fontSize: 12, fontWeight: 500,
+                    padding: '4px 12px', borderRadius: 6,
+                    background: 'var(--bg-elevated)',
+                    border: '1px solid var(--border)',
+                    color: 'var(--text-secondary)',
+                  }}>
+                    {c}
+                  </span>
+                ))}
+              </div>
+            </section>
+
+            {/* Programs */}
+            <section style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border)',
+              borderRadius: 12,
+              overflow: 'hidden',
+              boxShadow: 'var(--shadow-card)',
+            }}>
+              <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '20px 24px', borderBottom: '1px solid var(--border)',
+              }}>
+                <div>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 2px' }}>
+                    Chapter V
+                  </p>
+                  <h2 style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.25px', margin: 0, color: 'var(--text-primary)' }}>
+                    Academic Programs
+                  </h2>
+                </div>
+                <div style={{ position: 'relative' }}>
+                  <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} strokeWidth={1.8} />
+                  <input
+                    type="text"
+                    placeholder="Search programs..."
+                    value={programSearch}
+                    onChange={(e) => setProgramSearch(e.target.value)}
+                    style={{
+                      width: 200, height: 34, paddingLeft: 30, paddingRight: 12,
+                      background: 'var(--bg)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 8, fontSize: 13,
+                      color: 'var(--text-primary)',
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+              </div>
+
+              {filteredPrograms.length === 0 ? (
+                <div style={{ padding: '40px 24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
+                  {programs.length === 0 ? 'No programs listed for this university yet.' : `No programs match "${programSearch}".`}
+                </div>
+              ) : (
+                filteredPrograms.map(prog => (
+                  <ProgramRow key={prog.id} prog={prog} onApply={setSelectedProgram} />
+                ))
+              )}
+            </section>
+
+            {/* CTA */}
+            <div style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border)',
+              borderRadius: 12,
+              padding: '36px 28px',
+              textAlign: 'center',
+              boxShadow: 'var(--shadow-card)',
+            }}>
+              <h2 style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.5px', color: 'var(--text-primary)', marginBottom: 10 }}>
+                Ready to apply to {university.name}?
+              </h2>
+              <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 24, maxWidth: 400, margin: '0 auto 24px' }}>
+                Submit your direct application through EDUING and track every stage in real time.
+              </p>
+              <button
+                onClick={() => handleApply({ name: 'General Admission' })}
+                disabled={applying || applicationSubmitted}
+                style={{
+                  height: 42, padding: '0 28px',
+                  background: 'var(--accent)', color: '#fff',
+                  fontSize: 14, fontWeight: 600,
+                  borderRadius: 10, border: 'none', cursor: 'pointer',
+                  display: 'inline-flex', alignItems: 'center', gap: 8,
+                  opacity: applying ? 0.6 : 1,
+                }}
+              >
+                {applicationSubmitted ? (
+                  <><CheckCircle2 size={16} /> Submitted!</>
+                ) : applying ? (
+                  'Submitting…'
+                ) : (
+                  <><span>Submit Application</span> <ArrowRight size={15} strokeWidth={2} /></>
+                )}
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        {/* ── PROGRAM MODAL ─────────────────────────────────────── */}
         <AnimatePresence>
           {selectedProgram && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-[#141414]/40 backdrop-blur-sm flex items-center justify-center p-24">
-              <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} className="bg-background border border-border rounded-card p-48 max-w-2xl w-full relative shadow-2xl">
-                <button onClick={() => setSelectedProgram(null)} className="absolute top-32 right-32 w-[40px] h-[40px] bg-hover rounded-full flex items-center justify-center text-text-secondary hover:text-text-primary transition-colors">
-                  <X size={20} strokeWidth={1.8} />
-                </button>
-                <div className="mb-32">
-                  <Caption className="text-primary font-bold uppercase tracking-widest mb-12">Program Details</Caption>
-                  <H3 className="mb-8 leading-tight">{selectedProgram.name}</H3>
-                  <Body className="text-text-secondary">{university.name}</Body>
-                </div>
-                <div className="grid grid-cols-2 gap-16 mb-32">
-                   <div className="p-24 bg-hover border border-border rounded-card">
-                      <Caption className="text-text-secondary font-bold uppercase tracking-widest mb-4">Duration</Caption>
-                      <H4>{selectedProgram.duration}</H4>
-                   </div>
-                   <div className="p-24 bg-hover border border-border rounded-card">
-                      <Caption className="text-text-secondary font-bold uppercase tracking-widest mb-4">Annual Fee</Caption>
-                      <H4 className="text-success">₹{(selectedProgram.annualFee || selectedProgram.fee || 0).toLocaleString()}</H4>
-                   </div>
-                </div>
-                <div className="p-24 bg-hover border border-border rounded-card mb-48">
-                   <Caption className="text-text-secondary font-bold uppercase tracking-widest mb-8">Eligibility</Caption>
-                   <Small className="leading-relaxed text-text-secondary">
-                     {selectedProgram.eligibility || 'Candidates must have completed their previous qualifying examination with the required minimum percentage as per institutional guidelines.'}
-                   </Small>
-                </div>
-                <Button 
-                  disabled={applying}
-                  onClick={() => handleApply(selectedProgram)}
-                  variant="primary"
-                  className="w-full"
+            <div style={{ position: 'fixed', inset: 0, zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setSelectedProgram(null)}
+                style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }}
+              />
+              <motion.div
+                initial={{ scale: 0.96, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.96, opacity: 0 }}
+                style={{
+                  position: 'relative',
+                  background: 'var(--bg-elevated)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 14,
+                  padding: '28px 28px 24px',
+                  width: '100%',
+                  maxWidth: 440,
+                  boxShadow: 'var(--shadow-card-hover)',
+                }}
+                role="dialog"
+                aria-modal="true"
+                aria-label={`Apply for ${selectedProgram.name}`}
+              >
+                <button
+                  onClick={() => setSelectedProgram(null)}
+                  aria-label="Close modal"
+                  style={{
+                    position: 'absolute', top: 16, right: 16,
+                    width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: 'var(--bg)', border: '1px solid var(--border)',
+                    borderRadius: 6, cursor: 'pointer', color: 'var(--text-muted)',
+                  }}
                 >
-                  {applying ? 'Processing...' : (user?.isVerified ? 'Confirm & Submit Application' : 'Verify to Apply')}
-                </Button>
+                  <X size={14} strokeWidth={2} />
+                </button>
+
+                <span style={{
+                  fontSize: 10, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase',
+                  color: 'var(--accent)', marginBottom: 8, display: 'block',
+                }}>
+                  {selectedProgram.level || 'Program'}
+                </span>
+                <h3 style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.25px', margin: '0 0 4px', color: 'var(--text-primary)' }}>
+                  {selectedProgram.name}
+                </h3>
+                <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '0 0 20px' }}>
+                  {university.name}
+                </p>
+
+                {[
+                  { label: 'Duration', value: selectedProgram.duration || '4 Years' },
+                  { label: 'Tuition Fee', value: selectedProgram.fees || '₹2.2L / yr' },
+                  { label: 'Eligibility', value: 'Class XII 60%+' },
+                ].map((row, i, arr) => (
+                  <div key={row.label} style={{
+                    display: 'flex', justifyContent: 'space-between',
+                    padding: '10px 0',
+                    borderBottom: i < arr.length - 1 ? '1px solid var(--border)' : 'none',
+                  }}>
+                    <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{row.label}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{row.value}</span>
+                  </div>
+                ))}
+
+                <button
+                  onClick={() => handleApply(selectedProgram)}
+                  disabled={applying || applicationSubmitted}
+                  style={{
+                    width: '100%', height: 40, marginTop: 20,
+                    background: 'var(--accent)', color: '#fff',
+                    fontSize: 13, fontWeight: 600,
+                    borderRadius: 8, border: 'none', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                    opacity: applying ? 0.6 : 1,
+                  }}
+                >
+                  {applicationSubmitted ? (
+                    <><CheckCircle2 size={15} /> Application Submitted!</>
+                  ) : applying ? (
+                    'Submitting…'
+                  ) : (
+                    <><span>Apply for {selectedProgram.name}</span> <ArrowRight size={14} strokeWidth={2} /></>
+                  )}
+                </button>
               </motion.div>
-            </motion.div>
+            </div>
           )}
         </AnimatePresence>
 
-        <AnimatePresence>
-          {toast && (
-            <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 50 }} className={`fixed bottom-32 left-1/2 -translate-x-1/2 px-32 py-16 rounded-full font-medium text-small shadow-sm flex items-center gap-12 z-[100] ${toast.type === 'success' ? 'bg-success text-white' : toast.type === 'warning' ? 'bg-primary text-white' : 'bg-danger text-white'}`}>
-              {toast.type === 'warning' ? <AlertCircle size={18} strokeWidth={1.8} /> : <CheckCircle2 size={18} strokeWidth={1.8} />} 
-              {toast.message}
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
     </ProtectedRoute>
   )
 }
-
-function CircularMetric({ label, value, color }: { label: string, value: number, color: 'emerald' | 'blue' | 'purple' | 'amber' }) {
-  const colorMap = {
-    emerald: 'text-success stroke-success',
-    blue: 'text-blue-500 stroke-blue-500',
-    purple: 'text-primary stroke-primary',
-    amber: 'text-warning stroke-warning'
-  }
-  const cls = colorMap[color]
-  
-  return (
-    <div className="flex flex-col items-center text-center gap-16">
-      <div className="relative w-[96px] h-[96px]">
-        <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-          <circle cx="18" cy="18" r="16" className="stroke-border" strokeWidth="2" fill="none" />
-          <motion.circle 
-            cx="18" cy="18" r="16" 
-            className={cls.split(' ')[1]} 
-            strokeWidth="2" fill="none" strokeLinecap="round"
-            initial={{ strokeDasharray: "100", strokeDashoffset: "100" }}
-            animate={{ strokeDashoffset: 100 - value }}
-            transition={{ duration: 1.5, ease: "easeOut" }}
-          />
-        </svg>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className={`text-[20px] font-bold ${cls.split(' ')[0]}`}>{value}%</span>
-        </div>
-      </div>
-      <Small className="text-text-secondary font-bold">{label}</Small>
-    </div>
-  )
-}
-
-function JourneyStep({ title, desc, icon: Icon }: { title: string, desc: string, icon: any }) {
-  return (
-    <div className="relative">
-      <div className="absolute -left-[56px] top-0 w-[48px] h-[48px] rounded-full bg-hover border border-border flex items-center justify-center text-text-secondary">
-        <Icon size={20} strokeWidth={1.8} />
-      </div>
-      <Body className="font-bold text-text-primary mb-4">{title}</Body>
-      <Small className="text-text-secondary">{desc}</Small>
-    </div>
-  )
-}
-
-const FileTextIcon = (props: any) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
-)
