@@ -1,3 +1,4 @@
+// components/ProtectedRoute.tsx
 'use client'
 
 import { useEffect } from 'react'
@@ -18,7 +19,6 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
       if (!isLoggedIn) {
         router.push('/auth/login')
       } else if (allowedRoles && role && !allowedRoles.includes(role)) {
-        // Redirect to appropriate dashboard if role is wrong
         if (role === 'student') router.push('/student/dashboard')
         else if (role === 'super_admin') router.push('/admin/dashboard')
       }
@@ -27,13 +27,19 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)]">
-        <div className="w-12 h-12 border-4 border-brand-indigo/20 border-t-brand-indigo rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg)' }}>
+        <div
+          className="w-12 h-12 rounded-full border-4 animate-spin"
+          style={{
+            borderColor: 'var(--accent-border)',
+            borderTopColor: 'var(--accent)',
+          }}
+        />
       </div>
     )
   }
 
-if (!isLoggedIn || (allowedRoles && role && !allowedRoles.includes(role))) {
+  if (!isLoggedIn || (allowedRoles && role && !allowedRoles.includes(role))) {
     return null
   }
 
