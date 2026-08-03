@@ -23,8 +23,8 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
           isSidebarCollapsed ? 'lg:pl-[64px]' : 'lg:pl-[240px]'
         }`}>
           <StudentTopBar />
-          <main id="main-content" tabIndex={-1} className="flex-1 p-[24px] lg:p-[32px] overflow-x-hidden outline-none">
-            <div className="max-w-[1200px] mx-auto w-full">
+          <main id="main-content" tabIndex={-1} className="flex-1 p-4 lg:p-6 overflow-x-hidden outline-none">
+            <div className="max-w-[1600px] mx-auto w-full">
               {children}
             </div>
           </main>
