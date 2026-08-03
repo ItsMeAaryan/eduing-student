@@ -1,9 +1,8 @@
+// app/student/scholarships/page.tsx
 'use client'
+
 import React, { useState, useEffect, useMemo } from 'react'
-import {
-  Search, Award, Building2,
-  CheckCircle2, Sparkles, AlertCircle, Bookmark, X
-} from 'lucide-react'
+import { Search, Award, Building2, CheckCircle2, Sparkles, AlertCircle, Bookmark, X } from 'lucide-react'
 import { useStudentData } from '@/components/providers/StudentDataProvider'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -12,26 +11,33 @@ import { calculateScholarshipEligibility, ScholarshipResult } from '@/lib/utils/
 import SegmentedTabs from '@/components/ui/SegmentedTabs'
 import { EmptyState } from '@/components/ui/EmptyState'
 
-
 const TABS = ['All', 'Eligible', 'Applied', 'Saved']
+
+const CARD: React.CSSProperties = {
+  background: 'var(--bg-card)',
+  border: '1px solid var(--border)',
+  borderRadius: 10,
+  overflow: 'hidden',
+  boxShadow: '0 0.175px 1px rgba(0,0,0,0.015), 0 0.8px 2.9px rgba(0,0,0,0.022)',
+}
+
+function Dot({ color }: { color: string }) {
+  return <span style={{ display: 'inline-block', width: 5, height: 5, borderRadius: '50%', background: color, marginRight: 6, flexShrink: 0 }} />
+}
 
 export default function ScholarshipsPage() {
   const { profile, documents, profileScore, applications, savedPrograms } = useStudentData()
   const [scholarships, setScholarships] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-
   const [activeTab, setActiveTab] = useState('All')
   const [search, setSearch] = useState('')
   const [selectedSch, setSelectedSch] = useState<ScholarshipResult | null>(null)
 
   useEffect(() => {
-    const unsub = listenScholarships((data) => {
-      setScholarships(data)
-      setLoading(false)
-    }, (err) => {
-      console.error(err)
-      setLoading(false)
-    })
+    const unsub = listenScholarships(
+      (data) => { setScholarships(data); setLoading(false) },
+      () => setLoading(false),
+    )
     return () => unsub()
   }, [])
 
@@ -42,141 +48,188 @@ export default function ScholarshipsPage() {
   }, [profile, documents, profileScore, scholarships])
 
   const eligibleCount = results.filter(r => r.eligibilityScore >= 75).length
-  // Derive counts from real backend data — no mock values
   const safeApps = Array.isArray(applications) ? applications : []
   const safeSaved = Array.isArray(savedPrograms) ? savedPrograms : []
-  const appliedCount = safeApps.filter((a: any) => a.type === 'scholarship' || a.programType === 'scholarship').length
-  const savedCount = safeSaved.filter((p: any) => p.type === 'scholarship' || p.programType === 'scholarship' || p.scholarshipAvailable).length
+  const appliedCount = safeApps.filter((a: any) => a.type === 'scholarship').length
+  const savedCount = safeSaved.filter((p: any) => p.scholarshipAvailable).length
 
-  const filteredResults = useMemo(() => {
-    return results.filter(r => {
-      const matchSearch = !search || 
-        r.scholarship.name?.toLowerCase().includes(search.toLowerCase()) || 
-        r.scholarship.provider?.toLowerCase().includes(search.toLowerCase())
-      
-      let matchTab = true
-      if (activeTab === 'Eligible') matchTab = r.eligibilityScore >= 75
-      if (activeTab === 'Applied') matchTab = false
-      if (activeTab === 'Saved') matchTab = false
-
-      return matchSearch && matchTab
-    })
-  }, [results, search, activeTab])
+  const filteredResults = useMemo(() => results.filter(r => {
+    const matchSearch = !search ||
+      r.scholarship.name?.toLowerCase().includes(search.toLowerCase()) ||
+      r.scholarship.provider?.toLowerCase().includes(search.toLowerCase())
+    let matchTab = true
+    if (activeTab === 'Eligible') matchTab = r.eligibilityScore >= 75
+    if (activeTab === 'Applied') matchTab = false
+    if (activeTab === 'Saved') matchTab = false
+    return matchSearch && matchTab
+  }), [results, search, activeTab])
 
   if (loading) return (
-    <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="w-[36px] h-[36px] border-4 border-[#E5E7EB] border-t-[#4F6BFF] rounded-full animate-spin" />
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+      <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid var(--border)', borderTopColor: 'var(--accent)', animation: 'spin 0.8s linear infinite' }} />
     </div>
   )
 
   return (
     <ProtectedRoute allowedRoles={['student']}>
-      <div className="font-sans flex flex-col gap-[20px]">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, fontFamily: 'Inter, system-ui, sans-serif' }}>
 
-        {/* ── STAT CARDS ── */}
-        <div className="grid grid-cols-4 gap-[12px]">
+        {/* ── KPI ROW ── */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
           {[
-            { label: 'Total Found', value: results.length, sub: 'In database',         color: '#4F6BFF', bg: '#EEF2FF', Icon: Award },
-            { label: 'Eligible',    value: eligibleCount,  sub: 'Match ≥ 75%',          color: '#059669', bg: '#F0FDF4', Icon: CheckCircle2 },
-            { label: 'Applied',     value: appliedCount,   sub: 'Applications sent',     color: '#6366F1', bg: '#EEF2FF', Icon: Bookmark },
-            { label: 'Saved',       value: savedCount,     sub: 'Bookmarked for later',  color: '#D97706', bg: '#FFFBEB', Icon: Bookmark },
-          ].map(({ label, value, sub, color, bg, Icon }, i) => (
-            <div key={i} className="bg-card border border-border rounded-[14px] p-[18px] flex items-start gap-[12px]" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-              <div className="w-[36px] h-[36px] rounded-[10px] flex items-center justify-center shrink-0" style={{ background: bg }}>
-                <Icon size={16} style={{ color }} strokeWidth={1.8} />
+            { label: 'Total Found', value: results.length, sub: 'In database', color: 'var(--accent)', Icon: Award },
+            { label: 'Eligible', value: eligibleCount, sub: 'Match ≥ 75%', color: 'var(--green)', Icon: CheckCircle2 },
+            { label: 'Applied', value: appliedCount, sub: 'Applications sent', color: '#8B5CF6', Icon: Bookmark },
+            { label: 'Saved', value: savedCount, sub: 'Bookmarked', color: 'var(--gold)', Icon: Bookmark },
+          ].map(({ label, value, sub, color, Icon }) => (
+            <div key={label} style={{
+              ...CARD,
+              padding: '16px',
+              display: 'flex', alignItems: 'flex-start', gap: 12,
+            }}>
+              <div style={{
+                width: 34, height: 34, borderRadius: 8,
+                background: `${color}12`, flexShrink: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Icon size={15} style={{ color }} strokeWidth={1.8} />
               </div>
               <div>
-                <div className="text-[10px] text-muted-foreground mb-[1px]">{label}</div>
-                <div className="text-[22px] font-black leading-none mb-[1px]" style={{ color }}>{value}</div>
-                <div className="text-[10px] text-muted-foreground">{sub}</div>
+                <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '0 0 2px' }}>{label}</p>
+                <p style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-1px', color, margin: '0 0 1px', lineHeight: 1 }}>{value}</p>
+                <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: 0 }}>{sub}</p>
               </div>
             </div>
           ))}
         </div>
 
         {/* ── TABS + SEARCH ── */}
-        <div className="flex items-center justify-between gap-[12px]">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
           <SegmentedTabs tabs={TABS} active={activeTab} onChange={setActiveTab} />
-          <div className="relative">
-            <Search size={13} className="absolute left-[10px] top-1/2 -translate-y-1/2 text-muted-foreground" strokeWidth={1.8} />
-            <input type="text" placeholder="Search scholarships..."
-              value={search} onChange={e => setSearch(e.target.value)}
-              className="w-[220px] h-[34px] pl-[30px] pr-[10px] bg-card border border-border rounded-[8px] text-[13px] placeholder:text-muted-foreground focus:outline-none focus:border-[#4F6BFF] transition-colors" />
+          <div style={{ position: 'relative' }}>
+            <Search size={13} style={{ position: 'absolute', left: 9, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} strokeWidth={1.8} />
+            <input
+              type="text"
+              placeholder="Search scholarships..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              style={{
+                width: 220, height: 30,
+                paddingLeft: 28, paddingRight: 10,
+                background: 'var(--bg-elevated)',
+                border: '1px solid var(--border)',
+                borderRadius: 6, fontSize: 12,
+                color: 'var(--text-primary)', outline: 'none',
+                transition: 'border-color 0.15s',
+              }}
+              onFocus={(e) => { e.target.style.borderColor = 'var(--accent)' }}
+              onBlur={(e) => { e.target.style.borderColor = 'var(--border)' }}
+            />
           </div>
         </div>
 
         {/* ── TABLE ── */}
-        <div className="bg-card border border-border rounded-[14px] overflow-hidden" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-          <div className="flex items-center justify-between px-[20px] py-[13px] border-b border-border">
-            <span className="text-[14px] font-semibold text-foreground">All Scholarships</span>
-            <span className="text-[12px] text-muted-foreground">{filteredResults.length} results</span>
+        <div style={CARD}>
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '12px 18px', borderBottom: '1px solid var(--border)',
+          }}>
+            <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>All Scholarships</span>
+            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{filteredResults.length} results</span>
           </div>
 
-          <table className="w-full text-left">
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr className="bg-muted border-b border-border">
-                {['Name','Provider','Amount','Deadline','Match',''].map(h => (
-                  <th key={h} className="px-[16px] py-[10px] text-[10px] font-bold text-muted-foreground uppercase tracking-[0.06em] whitespace-nowrap">{h}</th>
+              <tr style={{ background: 'var(--bg)', borderBottom: '1px solid var(--border)' }}>
+                {['Name', 'Provider', 'Amount', 'Deadline', 'Match', ''].map(h => (
+                  <th key={h} style={{
+                    padding: '10px 16px', textAlign: 'left',
+                    fontSize: 11, fontWeight: 600, textTransform: 'uppercase',
+                    letterSpacing: '0.06em', color: 'var(--text-muted)',
+                    whiteSpace: 'nowrap',
+                  }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {filteredResults.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-[32px]">
+                  <td colSpan={6} style={{ padding: 32 }}>
                     <EmptyState
                       icon={Award}
-                      title={search ? `No scholarships matching "${search}"` : "No scholarships available"}
-                      description={search ? "Try clearing your search query or switching tabs." : "Complete your profile information to discover personalized scholarship matches."}
+                      title={search ? `No scholarships matching "${search}"` : 'No scholarships available'}
+                      description="Complete your profile to discover personalised scholarship matches."
                       primaryCtaLabel="Complete Profile"
                       primaryCtaHref="/student/profile"
                     />
                   </td>
                 </tr>
-              ) : filteredResults.map((r: ScholarshipResult, i: number) => {
+              ) : filteredResults.map((r, i) => {
                 const s = r.scholarship
                 const isHighMatch = r.eligibilityScore >= 75
+                const matchColor = isHighMatch ? 'var(--green)' : 'var(--accent)'
+
                 return (
-                  <tr key={i} onClick={() => setSelectedSch(r)}
+                  <tr
+                    key={i}
+                    onClick={() => setSelectedSch(r)}
                     role="button"
                     tabIndex={0}
                     onKeyDown={e => { if (e.key === 'Enter') setSelectedSch(r) }}
-                    className="border-b border-border hover:bg-muted transition-colors group cursor-pointer">
-                    <td className="px-[16px] py-[13px]">
-                      <div className="flex items-center gap-[12px]">
-                        <div className={`w-[32px] h-[32px] rounded-full flex items-center justify-center shrink-0 border border-[#E5E7EB] ${isHighMatch ? 'bg-[#D1FAE5]' : 'bg-primary/10'}`}>
-                          <Award size={14} className={isHighMatch ? 'text-[#059669]' : 'text-[#4F6BFF]'} strokeWidth={1.8} />
+                    style={{ borderBottom: '1px solid var(--border)', cursor: 'pointer', transition: 'background 0.1s' }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--bg-card-hover)' }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLTableRowElement).style.background = 'transparent' }}
+                  >
+                    <td style={{ padding: '12px 16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div style={{
+                          width: 30, height: 30, borderRadius: '50%',
+                          background: isHighMatch ? 'rgba(26,174,57,0.1)' : 'var(--accent-bg)',
+                          border: `1px solid ${isHighMatch ? 'rgba(26,174,57,0.2)' : 'var(--accent-border)'}`,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                        }}>
+                          <Award size={13} style={{ color: isHighMatch ? 'var(--green)' : 'var(--accent)' }} strokeWidth={1.8} />
                         </div>
-                        <span className="text-[14px] font-medium text-foreground truncate max-w-[220px]">{s.name}</span>
+                        <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {s.name}
+                        </span>
                       </div>
                     </td>
-                    <td className="px-[16px] py-[14px]">
-                      <div className="flex items-center gap-[6px] text-[13px] text-muted-foreground">
-                        <Building2 size={12} strokeWidth={1.8} className="shrink-0" />
-                        <span className="truncate max-w-[150px]">{s.provider || 'Provider'}</span>
+                    <td style={{ padding: '12px 16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <Building2 size={12} style={{ color: 'var(--text-muted)', flexShrink: 0 }} strokeWidth={1.8} />
+                        <span style={{ fontSize: 13, color: 'var(--text-secondary)', maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {s.provider || 'Provider'}
+                        </span>
                       </div>
                     </td>
-                    <td className="px-[16px] py-[14px]">
-                      <span className="text-[13px] font-medium text-foreground">
+                    <td style={{ padding: '12px 16px' }}>
+                      <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>
                         {s.valueType === 'amount' && s.amount ? `₹${s.amount.toLocaleString()}` : s.valueType === 'percentage' && s.percentage ? `Up to ${s.percentage}%` : 'Variable'}
                       </span>
                     </td>
-                    <td className="px-[16px] py-[14px]">
-                      <span className="text-[13px] text-muted-foreground">
-                        {s.deadline ? new Date(s.deadline).toLocaleDateString() : 'Rolling'}
+                    <td style={{ padding: '12px 16px' }}>
+                      <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                        {s.deadline ? new Date(s.deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Rolling'}
                       </span>
                     </td>
-                    <td className="px-[16px] py-[14px]">
-                      <div className="flex items-center gap-[6px]">
-                        <div className="w-[40px] h-[4px] bg-secondary rounded-full overflow-hidden">
-                          <div className="h-full rounded-full" style={{ width: `${r.eligibilityScore}%`, backgroundColor: isHighMatch ? '#059669' : '#4F6BFF' }} />
+                    <td style={{ padding: '12px 16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ width: 48, height: 4, background: 'var(--border)', borderRadius: 2, overflow: 'hidden' }}>
+                          <div style={{ height: '100%', width: `${r.eligibilityScore}%`, background: matchColor, borderRadius: 2 }} />
                         </div>
-                        <span className={`text-[12px] font-semibold ${isHighMatch ? 'text-[#059669]' : 'text-[#4F6BFF]'}`}>{r.eligibilityScore}%</span>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: matchColor }}>{r.eligibilityScore}%</span>
                       </div>
                     </td>
-                    <td className="px-[16px] py-[13px] text-right">
-                      <button className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-[#D97706]" onClick={e => { e.stopPropagation() }}>
-                        <Bookmark size={14} strokeWidth={1.8} />
+                    <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+                      <button
+                        onClick={e => e.stopPropagation()}
+                        aria-label="Save scholarship"
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)' }}
+                        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--gold)' }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-faint)' }}
+                      >
+                        <Bookmark size={13} strokeWidth={1.8} />
                       </button>
                     </td>
                   </tr>
@@ -186,81 +239,141 @@ export default function ScholarshipsPage() {
           </table>
         </div>
 
-
-        {/* ── DRAWER ───────────────────────────────────── */}
+        {/* ── DRAWER ── */}
         <AnimatePresence>
           {selectedSch && (
             <>
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                onClick={() => setSelectedSch(null)} className="fixed inset-0 bg-black/30 z-50" />
+              <motion.div
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                onClick={() => setSelectedSch(null)}
+                style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.25)', zIndex: 50 }}
+              />
               <motion.div
                 initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
                 transition={{ type: 'spring', damping: 28, stiffness: 220 }}
-                className="fixed top-0 right-0 bottom-0 w-full max-w-[520px] bg-card border-l border-[#E5E7EB] z-50 flex flex-col shadow-xl overflow-y-auto"
+                style={{
+                  position: 'fixed', top: 0, right: 0, bottom: 0,
+                  width: '100%', maxWidth: 480,
+                  background: 'var(--bg-elevated)',
+                  borderLeft: '1px solid var(--border)',
+                  zIndex: 51, display: 'flex', flexDirection: 'column',
+                  boxShadow: '0 4px 18px rgba(0,0,0,0.1)',
+                  fontFamily: 'Inter, system-ui, sans-serif',
+                }}
               >
-                <div className="sticky top-0 bg-card border-b border-[#E5E7EB] px-[24px] py-[20px] flex items-center justify-between shrink-0">
-                  <div className="flex items-center gap-[14px]">
-                    <div className="w-[44px] h-[44px] rounded-[10px] bg-primary/10 flex items-center justify-center border border-[#E5E7EB] text-[#4F6BFF]">
-                      <Award size={20} strokeWidth={1.8} />
+                {/* Header */}
+                <div style={{
+                  position: 'sticky', top: 0, zIndex: 10,
+                  background: 'var(--bg-elevated)',
+                  borderBottom: '1px solid var(--border)',
+                  padding: '16px 20px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{
+                      width: 38, height: 38, borderRadius: 10,
+                      background: 'var(--accent-bg)', border: '1px solid var(--accent-border)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      <Award size={18} style={{ color: 'var(--accent)' }} strokeWidth={1.8} />
                     </div>
                     <div>
-                      <p className="text-[15px] font-semibold text-foreground max-w-[300px] truncate">{selectedSch.scholarship.name}</p>
-                      <p className="text-[13px] text-muted-foreground">{selectedSch.scholarship.provider || 'Provider'}</p>
+                      <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', margin: 0, maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {selectedSch.scholarship.name}
+                      </p>
+                      <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '2px 0 0' }}>
+                        {selectedSch.scholarship.provider || 'Provider'}
+                      </p>
                     </div>
                   </div>
-                  <button onClick={() => setSelectedSch(null)} className="w-[32px] h-[32px] flex items-center justify-center rounded-[8px] border border-[#E5E7EB] text-muted-foreground hover:bg-secondary transition-colors">
-                    <X size={16} strokeWidth={1.8} />
+                  <button
+                    onClick={() => setSelectedSch(null)}
+                    aria-label="Close"
+                    style={{
+                      width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      background: 'var(--bg)', border: '1px solid var(--border)',
+                      borderRadius: 6, cursor: 'pointer', color: 'var(--text-muted)',
+                    }}
+                  >
+                    <X size={14} strokeWidth={2} />
                   </button>
                 </div>
-                
-                <div className="flex-1 p-[24px] flex flex-col gap-[20px]">
-                  <div className="grid grid-cols-2 gap-[12px]">
+
+                {/* Body */}
+                <div style={{ flex: 1, overflowY: 'auto', padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+                  {/* Meta grid */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                     {[
                       { label: 'Amount', value: selectedSch.scholarship.valueType === 'amount' && selectedSch.scholarship.amount ? `₹${selectedSch.scholarship.amount.toLocaleString()}` : 'Variable' },
-                      { label: 'Match Score', value: `${selectedSch.eligibilityScore}%` },
-                      { label: 'Deadline', value: selectedSch.scholarship.deadline ? new Date(selectedSch.scholarship.deadline).toLocaleDateString() : 'Rolling' },
+                      { label: 'Match', value: `${selectedSch.eligibilityScore}%` },
+                      { label: 'Deadline', value: selectedSch.scholarship.deadline ? new Date(selectedSch.scholarship.deadline).toLocaleDateString('en-IN') : 'Rolling' },
                       { label: 'Level', value: selectedSch.scholarship.targetDegrees?.join(', ') || 'Any' },
                     ].map(({ label, value }) => (
-                      <div key={label} className="bg-muted border border-[#E5E7EB] rounded-[8px] p-[14px]">
-                        <p className="text-[11px] text-muted-foreground uppercase tracking-[0.06em] mb-[4px]">{label}</p>
-                        <p className="text-[14px] font-semibold text-foreground">{value}</p>
+                      <div key={label} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '12px 14px' }}>
+                        <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)', margin: '0 0 4px' }}>{label}</p>
+                        <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>{value}</p>
                       </div>
                     ))}
                   </div>
 
-                  <div className="bg-card border border-[#E5E7EB] rounded-[12px] p-[20px] flex flex-col gap-[12px]">
-                    <div className="flex items-center gap-[8px] mb-[4px]">
-                      <Sparkles size={16} strokeWidth={1.8} className="text-[#4F6BFF]" />
-                      <span className="text-[14px] font-semibold text-foreground">AI Match Analysis</span>
+                  {/* AI Analysis */}
+                  <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 10, padding: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                      <Sparkles size={14} style={{ color: 'var(--accent)' }} strokeWidth={1.8} />
+                      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>AI Match Analysis</span>
                     </div>
-                     <ul className="text-[13px] text-muted-foreground flex flex-col gap-[10px]">
-                      {selectedSch.matchReasons.map((c: string, idx: number) => (
-                        <li key={idx} className="flex items-start gap-[8px]">
-                          <CheckCircle2 size={14} className="text-[#059669] shrink-0 mt-[2px]" strokeWidth={2} />
-                          <span>{c}</span>
-                        </li>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {selectedSch.matchReasons.map((reason: string, idx: number) => (
+                        <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                          <CheckCircle2 size={13} style={{ color: 'var(--green)', flexShrink: 0, marginTop: 1 }} strokeWidth={2} />
+                          <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{reason}</span>
+                        </div>
                       ))}
-                      {selectedSch.missingRequirements.map((c: string, idx: number) => (
-                        <li key={idx} className="flex items-start gap-[8px]">
-                          <AlertCircle size={14} className="text-[#EF4444] shrink-0 mt-[2px]" strokeWidth={2} />
-                          <span>{c}</span>
-                        </li>
+                      {selectedSch.missingRequirements.map((req: string, idx: number) => (
+                        <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                          <AlertCircle size={13} style={{ color: 'var(--red)', flexShrink: 0, marginTop: 1 }} strokeWidth={2} />
+                          <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{req}</span>
+                        </div>
                       ))}
-                    </ul>
+                    </div>
                   </div>
 
-                  <div className="bg-card border border-[#E5E7EB] rounded-[12px] p-[20px]">
-                    <p className="text-[14px] font-semibold text-foreground mb-[8px]">Description</p>
-                    <p className="text-[13px] text-muted-foreground leading-[1.6]">{selectedSch.scholarship.description || 'No detailed description available.'}</p>
-                  </div>
+                  {/* Description */}
+                  {selectedSch.scholarship.description && (
+                    <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 10, padding: '16px' }}>
+                      <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 8px' }}>Description</p>
+                      <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.6 }}>
+                        {selectedSch.scholarship.description}
+                      </p>
+                    </div>
+                  )}
                 </div>
-                
-                <div className="sticky bottom-0 bg-card border-t border-[#E5E7EB] p-[20px] flex gap-[10px]">
-                  <button className="flex-1 h-[38px] bg-[#4F6BFF] text-white rounded-[8px] text-[13px] font-semibold hover:bg-[#3D56E0] transition-colors">
+
+                {/* Footer */}
+                <div style={{
+                  position: 'sticky', bottom: 0,
+                  background: 'var(--bg-elevated)',
+                  borderTop: '1px solid var(--border)',
+                  padding: '14px 20px',
+                  display: 'flex', gap: 10,
+                }}>
+                  <button style={{
+                    flex: 1, height: 34,
+                    background: 'var(--accent)', color: '#fff',
+                    border: 'none', borderRadius: 8,
+                    fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                  }}>
                     Apply Now
                   </button>
-                  <button className="h-[38px] px-[16px] bg-muted border border-[#E5E7EB] text-foreground rounded-[8px] text-[13px] font-medium hover:bg-secondary transition-colors flex items-center gap-[6px]">
-                    <Bookmark size={14} strokeWidth={2} /> Save
+                  <button style={{
+                    height: 34, padding: '0 14px',
+                    background: 'var(--bg-elevated)', border: '1px solid var(--border)',
+                    borderRadius: 8, fontSize: 13, fontWeight: 500,
+                    color: 'var(--text-secondary)', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: 6,
+                  }}>
+                    <Bookmark size={13} strokeWidth={1.8} /> Save
                   </button>
                 </div>
               </motion.div>
