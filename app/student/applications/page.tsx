@@ -1,17 +1,21 @@
+// app/student/applications/page.tsx
 'use client'
+
 import React, { useState, useMemo } from 'react'
 import {
-  Search, Building2, X, FileText, Zap, Sparkles, ShieldCheck, Award,
+  Search, Building2, X, FileText, Award,
   AlertCircle, ChevronDown, MoreHorizontal,
-  CheckCircle2, Clock, Calendar, LayoutGrid, List
+  CheckCircle2, Clock, Calendar, LayoutGrid, List,
+  Sparkles, Zap
 } from 'lucide-react'
 import { useStudentData } from '@/components/providers/StudentDataProvider'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import { AnimatePresence, motion } from 'framer-motion'
 import SegmentedTabs from '@/components/ui/SegmentedTabs'
 import { EmptyState } from '@/components/ui/EmptyState'
+import Link from 'next/link'
 
-/* ── Status helpers ──────────────────────────────────────── */
+/* ── Status config ───────────────────────────────────────────────── */
 function normalizeStatus(s: string) {
   if (!s) return 'draft'
   const v = s.toLowerCase()
@@ -23,191 +27,455 @@ function normalizeStatus(s: string) {
   return 'draft'
 }
 
-const STATUS_BADGE: Record<string, { label: string; color: string; bg: string }> = {
-  draft:        { label: 'Draft',        color: '#6B7280', bg: '#F3F4F6' },
-  submitted:    { label: 'Submitted',    color: '#4F6BFF', bg: '#EEF2FF' },
-  under_review: { label: 'Under Review', color: '#D97706', bg: '#FEF3C7' },
-  interview:    { label: 'Interview',    color: '#7C3AED', bg: '#EDE9FE' },
-  accepted:     { label: 'Accepted',     color: '#059669', bg: '#D1FAE5' },
-  rejected:     { label: 'Rejected',     color: '#DC2626', bg: '#FEE2E2' },
+type StatusKey = 'draft' | 'submitted' | 'under_review' | 'interview' | 'accepted' | 'rejected'
+
+const STATUS_CONFIG: Record<StatusKey, { label: string; dotColor: string; textColor: string; bgColor: string }> = {
+  draft: { label: 'Draft', dotColor: 'var(--text-muted)', textColor: 'var(--text-secondary)', bgColor: 'rgba(0,0,0,0.05)' },
+  submitted: { label: 'Submitted', dotColor: 'var(--accent)', textColor: 'var(--accent)', bgColor: 'var(--accent-bg)' },
+  under_review: { label: 'Under Review', dotColor: 'var(--gold)', textColor: 'var(--gold)', bgColor: 'rgba(217,119,6,0.08)' },
+  interview: { label: 'Interview', dotColor: '#8B5CF6', textColor: '#8B5CF6', bgColor: 'rgba(139,92,246,0.08)' },
+  accepted: { label: 'Accepted', dotColor: 'var(--green)', textColor: 'var(--green)', bgColor: 'rgba(26,174,57,0.08)' },
+  rejected: { label: 'Rejected', dotColor: 'var(--red)', textColor: 'var(--red)', bgColor: 'rgba(220,38,38,0.07)' },
 }
 
-const COLUMNS = [
-  { id: 'draft',        label: 'Draft'        },
-  { id: 'submitted',   label: 'Submitted'    },
-  { id: 'under_review',label: 'Under Review' },
-  { id: 'interview',   label: 'Interview'    },
-  { id: 'accepted',    label: 'Accepted'     },
-  { id: 'rejected',    label: 'Rejected'     },
+const BOARD_COLUMNS: { id: StatusKey; label: string }[] = [
+  { id: 'draft', label: 'Draft' },
+  { id: 'submitted', label: 'Submitted' },
+  { id: 'under_review', label: 'Under Review' },
+  { id: 'interview', label: 'Interview' },
+  { id: 'accepted', label: 'Accepted' },
+  { id: 'rejected', label: 'Rejected' },
 ]
 
-/* ── Dot sparkline (reuse same pattern as dashboard) ─────── */
-function MiniBar({ pct, color }: { pct: number; color: string }) {
+const TABS = ['All', 'Draft', 'Submitted', 'Under Review', 'Interview', 'Accepted']
+
+/* ── Mini progress bar ───────────────────────────────────────────── */
+function MiniBar({ pct }: { pct: number }) {
   return (
-    <div className="w-full h-[5px] bg-secondary rounded-full overflow-hidden">
-      <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: color }} />
+    <div style={{ width: '100%', height: 4, background: 'var(--border)', borderRadius: 2, overflow: 'hidden' }}>
+      <div style={{ height: '100%', width: `${pct}%`, background: 'var(--accent)', borderRadius: 2 }} />
     </div>
   )
 }
 
-/* ─────────────────────────────────────────────────────────── */
+/* ── Status badge ────────────────────────────────────────────────── */
+function StatusBadge({ status }: { status: StatusKey }) {
+  const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.draft
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 5,
+      fontSize: 11, fontWeight: 600,
+      padding: '2px 8px', borderRadius: 999,
+      background: cfg.bgColor, color: cfg.textColor,
+    }}>
+      <span style={{ width: 5, height: 5, borderRadius: '50%', background: cfg.dotColor, flexShrink: 0 }} />
+      {cfg.label}
+    </span>
+  )
+}
+
+/* ── Detail drawer ───────────────────────────────────────────────── */
+function DetailDrawer({ app, onClose }: { app: any; onClose: () => void }) {
+  const st = normalizeStatus(app.status) as StatusKey
+  const cfg = STATUS_CONFIG[st]
+
+  React.useEffect(() => {
+    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', h)
+    return () => document.removeEventListener('keydown', h)
+  }, [onClose])
+
+  return (
+    <>
+      <motion.div
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        onClick={onClose}
+        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.25)', zIndex: 50 }}
+      />
+      <motion.div
+        role="dialog" aria-modal="true" aria-label={`Application details — ${app.universityName}`}
+        initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
+        transition={{ type: 'spring', damping: 28, stiffness: 220 }}
+        style={{
+          position: 'fixed', top: 0, right: 0, bottom: 0,
+          width: '100%', maxWidth: 520,
+          background: 'var(--bg-elevated)',
+          borderLeft: '1px solid var(--border)',
+          zIndex: 51, display: 'flex', flexDirection: 'column',
+          boxShadow: '0 4px 18px rgba(0,0,0,0.12)',
+        }}
+      >
+        {/* Drawer header */}
+        <div style={{
+          position: 'sticky', top: 0,
+          background: 'var(--bg-elevated)',
+          borderBottom: '1px solid var(--border)',
+          padding: '16px 20px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          zIndex: 10,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{
+              width: 38, height: 38, borderRadius: 10,
+              background: 'var(--accent-bg)', border: '1px solid var(--accent-border)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 16, fontWeight: 700, color: 'var(--accent)',
+            }}>
+              {(app.universityName || 'U').charAt(0)}
+            </div>
+            <div>
+              <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>{app.universityName}</p>
+              <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '2px 0 0' }}>{app.program || app.programName || 'Program'}</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            aria-label="Close panel"
+            style={{
+              width: 30, height: 30,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'var(--bg)', border: '1px solid var(--border)',
+              borderRadius: 6, cursor: 'pointer', color: 'var(--text-muted)',
+            }}
+          >
+            <X size={14} strokeWidth={2} />
+          </button>
+        </div>
+
+        {/* Drawer body */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+          {/* Meta grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            {[
+              { label: 'Status', value: cfg.label },
+              { label: 'Progress', value: `${app.progress || 40}%` },
+              { label: 'Deadline', value: app.deadline ? new Date(app.deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Not set' },
+              { label: 'Match', value: '85%' },
+            ].map(({ label, value }) => (
+              <div key={label} style={{
+                background: 'var(--bg)', border: '1px solid var(--border)',
+                borderRadius: 8, padding: '12px 14px',
+              }}>
+                <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)', margin: '0 0 4px' }}>{label}</p>
+                <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>{value}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* AI Analysis */}
+          <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 10, padding: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <Sparkles size={14} style={{ color: 'var(--accent)' }} strokeWidth={1.8} />
+              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>AI Analysis</span>
+            </div>
+            {[
+              { icon: AlertCircle, color: 'var(--gold)', text: 'Missing: Letter of Recommendation' },
+              { icon: Zap, color: 'var(--accent)', text: 'Next: Draft SOP using AI Builder' },
+            ].map(({ icon: Icon, color, text }, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: i === 0 ? '0 0 10px' : '10px 0 0', borderTop: i > 0 ? '1px solid var(--border)' : 'none' }}>
+                <Icon size={13} style={{ color, flexShrink: 0 }} strokeWidth={1.8} />
+                <span style={{ fontSize: 13, color: 'var(--text-primary)' }}>{text}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Timeline */}
+          <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 10, padding: '16px' }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 14px' }}>Timeline</p>
+            <div style={{ position: 'relative', paddingLeft: 18, borderLeft: '1px solid var(--border)', marginLeft: 5, display: 'flex', flexDirection: 'column', gap: 18 }}>
+              {[
+                { title: 'Application Started', date: 'Oct 12, 2025', done: true },
+                { title: 'Documents Uploaded', date: 'Oct 15, 2025', done: true },
+                { title: 'Application Submitted', date: 'Oct 20, 2025', done: false, active: true },
+                { title: 'Under Review', date: 'Pending', done: false },
+                { title: 'Decision', date: 'Pending', done: false },
+              ].map(({ title, date, done, active }, i) => (
+                <div key={i} style={{ position: 'relative' }}>
+                  <div style={{
+                    position: 'absolute', left: -23, top: 3,
+                    width: 10, height: 10, borderRadius: '50%',
+                    border: `2px solid ${done ? 'var(--green)' : active ? 'var(--accent)' : 'var(--border)'}`,
+                    background: 'var(--bg-elevated)',
+                  }} />
+                  <p style={{ fontSize: 13, fontWeight: done || active ? 600 : 400, color: done || active ? 'var(--text-primary)' : 'var(--text-muted)', margin: 0 }}>{title}</p>
+                  <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '2px 0 0' }}>{date}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Documents */}
+          <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 10, padding: '16px' }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 12px' }}>Required Documents</p>
+            {['Transcripts', 'Statement of Purpose', 'Passport Copy'].map((docName, i) => (
+              <div key={docName} style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '10px 0',
+                borderBottom: i < 2 ? '1px solid var(--border)' : 'none',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <FileText size={13} style={{ color: 'var(--text-muted)' }} strokeWidth={1.8} />
+                  <span style={{ fontSize: 13, color: 'var(--text-primary)' }}>{docName}</span>
+                </div>
+                {i === 0 ? (
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 4,
+                    fontSize: 11, fontWeight: 600,
+                    padding: '2px 8px', borderRadius: 999,
+                    background: 'rgba(26,174,57,0.08)', color: 'var(--green)',
+                  }}>
+                    <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--green)' }} />
+                    Uploaded
+                  </span>
+                ) : (
+                  <button style={{
+                    fontSize: 12, fontWeight: 500, color: 'var(--accent)',
+                    background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: 2,
+                  }}>Upload</button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Drawer footer */}
+        <div style={{
+          position: 'sticky', bottom: 0,
+          background: 'var(--bg-elevated)',
+          borderTop: '1px solid var(--border)',
+          padding: '14px 20px',
+          display: 'flex', gap: 10,
+        }}>
+          <button style={{
+            flex: 1, height: 34,
+            background: 'var(--accent)', color: '#fff',
+            border: 'none', borderRadius: 8,
+            fontSize: 13, fontWeight: 600, cursor: 'pointer',
+          }}>
+            Continue Application
+          </button>
+          <button onClick={onClose} style={{
+            height: 34, padding: '0 14px',
+            background: 'var(--bg-elevated)', border: '1px solid var(--border)',
+            borderRadius: 8, fontSize: 13, fontWeight: 500,
+            color: 'var(--text-secondary)', cursor: 'pointer',
+          }}>
+            Close
+          </button>
+        </div>
+      </motion.div>
+    </>
+  )
+}
+
+/* ── Main page ───────────────────────────────────────────────────── */
 export default function ApplicationsPage() {
   const { uniqueApps, loading, deadlines } = useStudentData()
-  const [search, setSearch]           = useState('')
+  const [search, setSearch] = useState('')
   const [selectedApp, setSelectedApp] = useState<any | null>(null)
-  const [viewMode, setViewMode]       = useState<'board' | 'list'>('list')
-  const [activeTab, setActiveTab]     = useState('All')
+  const [viewMode, setViewMode] = useState<'list' | 'board'>('list')
+  const [activeTab, setActiveTab] = useState('All')
 
-  // Escape key listener for detail drawer
-  React.useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setSelectedApp(null)
-    }
-    if (selectedApp) document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [selectedApp])
+  const apps = useMemo(() => uniqueApps || [], [uniqueApps])
 
-  const apps = uniqueApps || []
+  const filteredApps = useMemo(() => apps.filter((app: any) => {
+    const matchSearch = !search ||
+      app.universityName?.toLowerCase().includes(search.toLowerCase()) ||
+      app.program?.toLowerCase().includes(search.toLowerCase())
+    const tabKey = activeTab.toLowerCase().replace(' ', '_')
+    const matchTab = activeTab === 'All' || normalizeStatus(app.status) === tabKey
+    return matchSearch && matchTab
+  }), [apps, search, activeTab])
 
-  const filteredApps = useMemo(() => {
-    return apps.filter((app: any) => {
-      const matchSearch = !search ||
-        app.universityName?.toLowerCase().includes(search.toLowerCase()) ||
-        app.program?.toLowerCase().includes(search.toLowerCase())
-      const matchTab = activeTab === 'All' || normalizeStatus(app.status) === activeTab.toLowerCase().replace(' ', '_')
-      return matchSearch && matchTab
-    })
-  }, [apps, search, activeTab])
-
-  const activeApps      = apps.filter((a: any) => !['accepted','rejected'].includes(normalizeStatus(a.status))).length
-  const submittedApps   = apps.filter((a: any) => normalizeStatus(a.status) === 'submitted').length
-  const offersReceived  = apps.filter((a: any) => normalizeStatus(a.status) === 'accepted').length
-  const upcomingDdls    = deadlines?.length || 0
-
-  const TABS = ['All', 'Draft', 'Submitted', 'Under Review', 'Interview', 'Accepted']
+  const kpis = [
+    { label: 'Active', value: apps.filter((a: any) => !['accepted', 'rejected'].includes(normalizeStatus(a.status))).length, sub: 'In pipeline', color: 'var(--accent)', Icon: FileText },
+    { label: 'Submitted', value: apps.filter((a: any) => normalizeStatus(a.status) === 'submitted').length, sub: 'Awaiting review', color: 'var(--green)', Icon: CheckCircle2 },
+    { label: 'Offers', value: apps.filter((a: any) => normalizeStatus(a.status) === 'accepted').length, sub: 'Accepted', color: '#8B5CF6', Icon: Award },
+    { label: 'Deadlines', value: deadlines?.length || 0, sub: 'Upcoming', color: 'var(--gold)', Icon: Clock },
+  ]
 
   if (loading) return (
-    <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="w-[36px] h-[36px] border-4 border-border border-t-[#4F6BFF] rounded-full animate-spin" />
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+      <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid var(--border)', borderTopColor: 'var(--accent)', animation: 'spin 0.8s linear infinite' }} />
     </div>
   )
 
   return (
     <ProtectedRoute allowedRoles={['student']}>
-      <div className="font-sans flex flex-col gap-[20px]">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, fontFamily: 'Inter, system-ui, sans-serif' }}>
 
-        {/* ── SUB-NAV ──────────────────────────────────────── */}
+        {/* ── TABS ── */}
         <SegmentedTabs tabs={TABS} active={activeTab} onChange={setActiveTab} />
 
-        {/* ── KPI CARDS ── */}
-        <div className="grid grid-cols-4 gap-[12px]">
-          {[
-            { label: 'Active',    value: activeApps,     color: '#4F6BFF', bg: '#EEF2FF', sub: 'In pipeline',     Icon: FileText },
-            { label: 'Submitted', value: submittedApps,  color: '#059669', bg: '#F0FDF4', sub: 'Awaiting review',  Icon: CheckCircle2 },
-            { label: 'Offers',    value: offersReceived, color: '#7C3AED', bg: '#F5F3FF', sub: 'Accepted',         Icon: Award },
-            { label: 'Deadlines', value: upcomingDdls,   color: '#D97706', bg: '#FFFBEB', sub: 'Upcoming',         Icon: Clock },
-          ].map(({ label, value, color, bg, sub, Icon }) => (
-            <div key={label} className="bg-card border border-border rounded-[14px] p-[18px] flex items-start gap-[12px]" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-              <div className="w-[36px] h-[36px] rounded-[10px] flex items-center justify-center shrink-0" style={{ background: bg }}>
-                <Icon size={16} style={{ color }} strokeWidth={1.8} />
+        {/* ── KPI ROW ── */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+          {kpis.map(({ label, value, sub, color, Icon }) => (
+            <div key={label} style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border)',
+              borderRadius: 10, padding: '16px',
+              display: 'flex', alignItems: 'flex-start', gap: 12,
+              boxShadow: '0 0.175px 1px rgba(0,0,0,0.015), 0 0.8px 2.9px rgba(0,0,0,0.022)',
+            }}>
+              <div style={{
+                width: 34, height: 34, borderRadius: 8,
+                background: `${color}12`, flexShrink: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Icon size={15} style={{ color }} strokeWidth={1.8} />
               </div>
               <div>
-                <div className="text-[10px] text-muted-foreground mb-[1px]">{label}</div>
-                <div className="text-[22px] font-black leading-none mb-[1px]" style={{ color }}>{value}</div>
-                <div className="text-[10px] text-muted-foreground">{sub}</div>
+                <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '0 0 2px' }}>{label}</p>
+                <p style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-1px', color, margin: '0 0 1px', lineHeight: 1 }}>{value}</p>
+                <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: 0 }}>{sub}</p>
               </div>
             </div>
           ))}
         </div>
 
-        {/* ── TOOLBAR: search + view toggle ────────────────── */}
-        <div className="bg-card border border-border rounded-[14px] overflow-hidden">
-          <div className="flex items-center justify-between px-[20px] py-[14px] border-b border-border">
-            <span className="text-[15px] font-semibold text-foreground">Applications</span>
-            <div className="flex items-center gap-[8px]">
-              <div className="relative">
-                <Search size={13} className="absolute left-[10px] top-1/2 -translate-y-1/2 text-muted-foreground" strokeWidth={1.8} />
-                <input type="text" placeholder="Search applications"
-                  value={search} onChange={e => setSearch(e.target.value)}
-                  className="w-[200px] h-[32px] pl-[28px] pr-[10px] bg-muted border border-border rounded-[8px] text-[13px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#4F6BFF] transition-colors" />
+        {/* ── TABLE CARD ── */}
+        <div style={{
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border)',
+          borderRadius: 10,
+          overflow: 'hidden',
+          boxShadow: '0 0.175px 1px rgba(0,0,0,0.015), 0 0.8px 2.9px rgba(0,0,0,0.022)',
+        }}>
+          {/* Toolbar */}
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '12px 16px', borderBottom: '1px solid var(--border)',
+          }}>
+            <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>Applications</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {/* Search */}
+              <div style={{ position: 'relative' }}>
+                <Search size={13} style={{ position: 'absolute', left: 9, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} strokeWidth={1.8} />
+                <input
+                  type="text"
+                  placeholder="Search applications"
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  style={{
+                    width: 200, height: 30, paddingLeft: 28, paddingRight: 10,
+                    background: 'var(--bg)', border: '1px solid var(--border)',
+                    borderRadius: 6, fontSize: 12,
+                    color: 'var(--text-primary)', outline: 'none',
+                    transition: 'border-color 0.15s',
+                  }}
+                  onFocus={(e) => { e.target.style.borderColor = 'var(--accent)' }}
+                  onBlur={(e) => { e.target.style.borderColor = 'var(--border)' }}
+                />
               </div>
-              <button className="flex items-center gap-[5px] px-[12px] h-[32px] rounded-[8px] border border-border text-[12px] font-medium text-foreground bg-card hover:bg-secondary transition-colors">
-                Sort by<ChevronDown size={11} />
-              </button>
+
               {/* View toggle */}
-              <div className="flex items-center bg-muted border border-border rounded-[8px] p-[3px]">
-                {([['list', List], ['board', LayoutGrid]] as const).map(([m, Icon]) => (
-                  <button key={m} onClick={() => setViewMode(m as any)}
-                    className={`w-[28px] h-[26px] flex items-center justify-center rounded-[6px] transition-colors ${viewMode === m ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
-                    <Icon size={13} strokeWidth={1.8} />
+              <div style={{
+                display: 'flex', alignItems: 'center',
+                background: 'var(--bg)', border: '1px solid var(--border)',
+                borderRadius: 6, padding: 2,
+              }}>
+                {(['list', 'board'] as const).map(m => (
+                  <button key={m} onClick={() => setViewMode(m)}
+                    aria-label={`${m} view`}
+                    style={{
+                      width: 26, height: 24,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      borderRadius: 4, border: 'none', cursor: 'pointer',
+                      background: viewMode === m ? 'var(--bg-elevated)' : 'transparent',
+                      color: viewMode === m ? 'var(--text-primary)' : 'var(--text-muted)',
+                      boxShadow: viewMode === m ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
+                    }}>
+                    {m === 'list' ? <List size={13} strokeWidth={1.8} /> : <LayoutGrid size={13} strokeWidth={1.8} />}
                   </button>
                 ))}
               </div>
-              
             </div>
           </div>
 
-          {/* ── EMPTY STATE ──────────────────────────────── */}
+          {/* Empty state */}
           {filteredApps.length === 0 && (
-            <div className="p-[20px]">
+            <div style={{ padding: 20 }}>
               <EmptyState
                 icon={FileText}
-                title={search ? `No applications matching "${search}"` : "No applications yet"}
-                description={search ? "Try adjusting your search query or clear filters to view all applications." : "Explore top-ranked universities and start your first application to track your admissions journey."}
+                title={search ? `No applications matching "${search}"` : 'No applications yet'}
+                description="Explore top universities and submit your first application to begin tracking your admissions journey."
                 primaryCtaLabel="Discover Universities"
                 primaryCtaHref="/student/universities"
               />
             </div>
           )}
 
-          {/* ── LIST VIEW ────────────────────────────────── */}
+          {/* ── LIST VIEW ── */}
           {filteredApps.length > 0 && viewMode === 'list' && (
-            <table className="w-full text-left">
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr className="bg-muted border-b border-border">
-                  <th className="px-[20px] py-[12px] w-[40px]"><input type="checkbox" className="w-[14px] h-[14px] rounded-[3px]" /></th>
-                  {['University','Program','Status','Progress','Deadline'].map(h => (
-                    <th key={h} className="px-[16px] py-[12px] text-[12px] font-semibold text-muted-foreground uppercase tracking-[0.05em] whitespace-nowrap">{h}</th>
+                <tr style={{ background: 'var(--bg)', borderBottom: '1px solid var(--border)' }}>
+                  <th style={{ width: 40, padding: '10px 16px' }}>
+                    <input type="checkbox" style={{ width: 13, height: 13 }} />
+                  </th>
+                  {['University', 'Program', 'Status', 'Progress', 'Deadline'].map(h => (
+                    <th key={h} style={{
+                      padding: '10px 14px', textAlign: 'left',
+                      fontSize: 11, fontWeight: 600, textTransform: 'uppercase',
+                      letterSpacing: '0.06em', color: 'var(--text-muted)',
+                      whiteSpace: 'nowrap',
+                    }}>{h}</th>
                   ))}
-                  <th className="w-[40px]" />
+                  <th style={{ width: 40 }} />
                 </tr>
               </thead>
               <tbody>
                 {filteredApps.map((app: any, i: number) => {
-                  const st = normalizeStatus(app.status)
-                  const badge = STATUS_BADGE[st] || STATUS_BADGE.draft
-                  const progress = app.progress || 40
+                  const st = normalizeStatus(app.status) as StatusKey
+                  const pct = app.progress || 40
                   return (
-                    <tr key={i} className="border-b border-border hover:bg-muted transition-colors group cursor-pointer" onClick={() => setSelectedApp(app)}>
-                      <td className="px-[20px] py-[14px]" onClick={e => e.stopPropagation()}>
-                        <input type="checkbox" className="w-[14px] h-[14px] rounded-[3px]" />
+                    <tr
+                      key={i}
+                      onClick={() => setSelectedApp(app)}
+                      style={{ borderBottom: '1px solid var(--border)', cursor: 'pointer', transition: 'background 0.1s' }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--bg-card-hover)' }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLTableRowElement).style.background = 'transparent' }}
+                    >
+                      <td style={{ padding: '11px 16px' }} onClick={e => e.stopPropagation()}>
+                        <input type="checkbox" style={{ width: 13, height: 13 }} />
                       </td>
-                      <td className="px-[16px] py-[14px]">
-                        <div className="flex items-center gap-[12px]">
-                          <div className="w-[32px] h-[32px] rounded-full bg-primary/10 flex items-center justify-center shrink-0 border border-border">
-                            <Building2 size={14} className="text-[#4F6BFF]" strokeWidth={1.8} />
+                      <td style={{ padding: '11px 14px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <div style={{
+                            width: 30, height: 30, borderRadius: '50%',
+                            background: 'var(--accent-bg)', border: '1px solid var(--accent-border)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                          }}>
+                            <Building2 size={13} style={{ color: 'var(--accent)' }} strokeWidth={1.8} />
                           </div>
-                          <span className="text-[14px] font-medium text-foreground truncate max-w-[160px]">{app.universityName || 'University'}</span>
+                          <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {app.universityName || 'University'}
+                          </span>
                         </div>
                       </td>
-                      <td className="px-[16px] py-[14px]">
-                        <span className="text-[14px] text-muted-foreground truncate max-w-[140px] block">{app.program || app.programName || 'Program'}</span>
+                      <td style={{ padding: '11px 14px' }}>
+                        <span style={{ fontSize: 13, color: 'var(--text-secondary)', maxWidth: 140, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {app.program || app.programName || 'Program'}
+                        </span>
                       </td>
-                      <td className="px-[16px] py-[14px]">
-                        <span className="text-[12px] font-semibold px-[10px] py-[3px] rounded-full" style={{ color: badge.color, backgroundColor: badge.bg }}>{badge.label}</span>
+                      <td style={{ padding: '11px 14px' }}>
+                        <StatusBadge status={st} />
                       </td>
-                      <td className="px-[16px] py-[14px] w-[160px]">
-                        <div className="flex items-center gap-[8px]">
-                          <div className="flex-1"><MiniBar pct={progress} color="#4F6BFF" /></div>
-                          <span className="text-[12px] text-muted-foreground shrink-0">{progress}%</span>
+                      <td style={{ padding: '11px 14px', width: 160 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <div style={{ flex: 1 }}><MiniBar pct={pct} /></div>
+                          <span style={{ fontSize: 11, color: 'var(--text-muted)', flexShrink: 0 }}>{pct}%</span>
                         </div>
                       </td>
-                      <td className="px-[16px] py-[14px]">
-                        <span className="text-[13px] text-muted-foreground">{app.deadline ? new Date(app.deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}</span>
+                      <td style={{ padding: '11px 14px' }}>
+                        <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                          {app.deadline ? new Date(app.deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                        </span>
                       </td>
-                      <td className="px-[16px] py-[14px] text-right">
-                        <button className="opacity-0 group-hover:opacity-100 transition-opacity text-[#D1D5DB] hover:text-muted-foreground" onClick={e => { e.stopPropagation(); setSelectedApp(app) }}>
-                          <MoreHorizontal size={16} strokeWidth={1.5} />
+                      <td style={{ padding: '11px 14px', textAlign: 'right' }}>
+                        <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)' }}>
+                          <MoreHorizontal size={15} strokeWidth={1.5} />
                         </button>
                       </td>
                     </tr>
@@ -217,37 +485,64 @@ export default function ApplicationsPage() {
             </table>
           )}
 
-          {/* ── BOARD VIEW ───────────────────────────────── */}
+          {/* ── BOARD VIEW ── */}
           {filteredApps.length > 0 && viewMode === 'board' && (
-            <div className="flex gap-[16px] overflow-x-auto p-[20px] no-scrollbar items-start">
-              {COLUMNS.map(col => {
+            <div style={{ display: 'flex', gap: 12, overflowX: 'auto', padding: '16px', alignItems: 'flex-start' }} className="no-scrollbar">
+              {BOARD_COLUMNS.map(col => {
                 const colApps = filteredApps.filter((a: any) => normalizeStatus(a.status) === col.id)
-                const badge = STATUS_BADGE[col.id]
+                const cfg = STATUS_CONFIG[col.id]
                 return (
-                  <div key={col.id} className="min-w-[260px] max-w-[260px] shrink-0 bg-muted rounded-[14px] p-[12px] border border-border">
-                    <div className="flex items-center justify-between mb-[12px] px-[4px]">
-                      <div className="flex items-center gap-[8px]">
-                        <span className="w-[8px] h-[8px] rounded-full" style={{ backgroundColor: badge.color }} />
-                        <span className="text-[13px] font-semibold text-foreground">{col.label}</span>
+                  <div key={col.id} style={{
+                    minWidth: 240, maxWidth: 240, flexShrink: 0,
+                    background: 'var(--bg)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 10, padding: '10px',
+                  }}>
+                    {/* Column header */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '2px 4px', marginBottom: 10 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                        <span style={{ width: 7, height: 7, borderRadius: '50%', background: cfg.dotColor }} />
+                        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>{col.label}</span>
                       </div>
-                      <span className="text-[12px] font-medium text-muted-foreground bg-card border border-border px-[8px] py-[2px] rounded-full">{colApps.length}</span>
+                      <span style={{
+                        fontSize: 11, fontWeight: 600, color: 'var(--text-muted)',
+                        background: 'var(--bg-elevated)', border: '1px solid var(--border)',
+                        padding: '1px 7px', borderRadius: 999,
+                      }}>{colApps.length}</span>
                     </div>
-                    <div className="flex flex-col gap-[10px]">
+
+                    {/* Cards */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                       {colApps.map((app: any, i: number) => (
-                        <div key={i} onClick={() => setSelectedApp(app)}
+                        <div
+                          key={i}
+                          onClick={() => setSelectedApp(app)}
                           role="button"
                           tabIndex={0}
-                          onKeyDown={(e) => { if (e.key === 'Enter') setSelectedApp(app) }}
-                          className="bg-card border border-border rounded-[10px] p-[14px] cursor-pointer hover:border-[#4F6BFF]/40 transition-colors group">
-                          <div className="flex items-start justify-between mb-[10px]">
-                            <div className="w-[30px] h-[30px] rounded-full bg-primary/10 flex items-center justify-center text-[13px] font-bold text-[#4F6BFF]">
+                          onKeyDown={e => { if (e.key === 'Enter') setSelectedApp(app) }}
+                          style={{
+                            background: 'var(--bg-elevated)',
+                            border: '1px solid var(--border)',
+                            borderRadius: 8, padding: '12px',
+                            cursor: 'pointer', transition: 'border-color 0.15s',
+                          }}
+                          onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border-hover)' }}
+                          onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border)' }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                            <div style={{
+                              width: 28, height: 28, borderRadius: 6,
+                              background: 'var(--accent-bg)',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontSize: 12, fontWeight: 700, color: 'var(--accent)',
+                            }}>
                               {(app.universityName || 'U').charAt(0)}
                             </div>
-                            <MoreHorizontal size={14} strokeWidth={1.5} className="text-[#D1D5DB]" />
+                            <MoreHorizontal size={13} style={{ color: 'var(--text-faint)' }} strokeWidth={1.5} />
                           </div>
-                          <p className="text-[13px] font-semibold text-foreground leading-tight mb-[4px] truncate">{app.universityName}</p>
-                          <p className="text-[12px] text-muted-foreground truncate mb-[10px]">{app.program || app.programName}</p>
-                          <MiniBar pct={app.progress || 40} color={badge.color} />
+                          <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{app.universityName}</p>
+                          <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '0 0 10px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{app.program || app.programName}</p>
+                          <MiniBar pct={app.progress || 40} />
                         </div>
                       ))}
                     </div>
@@ -258,122 +553,10 @@ export default function ApplicationsPage() {
           )}
         </div>
 
-        {/* ── DETAIL DRAWER ────────────────────────────────── */}
+        {/* ── DETAIL DRAWER ── */}
         <AnimatePresence>
           {selectedApp && (
-            <>
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                onClick={() => setSelectedApp(null)}
-                className="fixed inset-0 bg-black/30 z-50" />
-              <motion.div
-                role="dialog"
-                aria-modal="true"
-                aria-label={`Application details for ${selectedApp.universityName}`}
-                initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
-                transition={{ type: 'spring', damping: 28, stiffness: 220 }}
-                className="fixed top-0 right-0 bottom-0 w-full max-w-[560px] bg-card border-l border-border z-50 flex flex-col shadow-xl overflow-y-auto"
-              >
-                {/* Drawer header */}
-                <div className="sticky top-0 bg-card border-b border-border px-[24px] py-[20px] flex items-center justify-between shrink-0 z-10">
-                  <div className="flex items-center gap-[14px]">
-                    <div className="w-[40px] h-[40px] rounded-[10px] bg-primary/10 flex items-center justify-center text-[16px] font-bold text-[#4F6BFF]">
-                      {(selectedApp.universityName || 'U').charAt(0)}
-                    </div>
-                    <div>
-                      <p className="text-[15px] font-semibold text-foreground">{selectedApp.universityName}</p>
-                      <p className="text-[13px] text-muted-foreground">{selectedApp.program || selectedApp.programName}</p>
-                    </div>
-                  </div>
-                  <button onClick={() => setSelectedApp(null)}
-                    className="w-[32px] h-[32px] flex items-center justify-center rounded-[8px] border border-border text-muted-foreground hover:bg-secondary transition-colors">
-                    <X size={16} strokeWidth={1.8} />
-                  </button>
-                </div>
-
-                {/* Drawer body */}
-                <div className="flex-1 p-[24px] flex flex-col gap-[20px]">
-
-                  {/* Meta grid */}
-                  <div className="grid grid-cols-2 gap-[12px]">
-                    {[
-                      { label: 'Status',   value: STATUS_BADGE[normalizeStatus(selectedApp.status)]?.label || 'Draft' },
-                      { label: 'Progress', value: `${selectedApp.progress || 40}%` },
-                      { label: 'Deadline', value: selectedApp.deadline || 'Nov 15, 2026' },
-                      { label: 'Match',    value: '85%' },
-                    ].map(({ label, value }) => (
-                      <div key={label} className="bg-muted border border-border rounded-[8px] p-[14px]">
-                        <p className="text-[11px] text-muted-foreground uppercase tracking-[0.06em] mb-[4px]">{label}</p>
-                        <p className="text-[15px] font-semibold text-foreground">{value}</p>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* AI Analysis */}
-                  <div className="bg-card border border-border rounded-[14px] p-[20px]">
-                    <div className="flex items-center gap-[8px] mb-[14px]">
-                      <Sparkles size={16} strokeWidth={1.8} className="text-[#4F6BFF]" />
-                      <span className="text-[14px] font-semibold text-foreground">AI Analysis</span>
-                    </div>
-                    <div className="flex flex-col gap-[12px]">
-                      <div className="flex items-center gap-[10px] text-[13px] text-foreground">
-                        <AlertCircle size={14} strokeWidth={1.8} className="text-[#D97706] shrink-0" />
-                        Missing: Letter of Recommendation
-                      </div>
-                      <div className="h-px bg-secondary" />
-                      <div className="flex items-center gap-[10px] text-[13px] text-foreground">
-                        <Zap size={14} strokeWidth={1.8} className="text-[#4F6BFF] shrink-0" />
-                        Next: Draft SOP using AI Builder
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Timeline */}
-                  <div className="bg-card border border-border rounded-[14px] p-[20px]">
-                    <p className="text-[14px] font-semibold text-foreground mb-[16px]">Timeline</p>
-                    <div className="relative pl-[20px] border-l border-border ml-[6px] flex flex-col gap-[20px]">
-                      {[
-                        { title: 'Application Started',  date: 'Oct 12, 2025', done: true  },
-                        { title: 'Documents Uploaded',   date: 'Oct 15, 2025', done: true  },
-                        { title: 'Application Submitted',date: 'Oct 20, 2025', done: false, active: true },
-                        { title: 'Under Review',         date: 'Pending',      done: false },
-                        { title: 'Decision',             date: 'Pending',      done: false },
-                      ].map(({ title, date, done, active }) => (
-                        <div key={title} className="relative">
-                          <div className={`absolute -left-[25px] top-[4px] w-[10px] h-[10px] rounded-full border-2 bg-card ${done ? 'border-[#059669]' : active ? 'border-[#4F6BFF]' : 'border-border'}`} />
-                          <p className={`text-[13px] font-medium ${done || active ? 'text-foreground' : 'text-muted-foreground'}`}>{title}</p>
-                          <p className="text-[12px] text-muted-foreground">{date}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Documents */}
-                  <div className="bg-card border border-border rounded-[14px] p-[20px]">
-                    <p className="text-[14px] font-semibold text-foreground mb-[14px]">Required Documents</p>
-                    <div className="flex flex-col gap-[10px]">
-                      {['Transcripts','Statement of Purpose','Passport Copy'].map((doc, i) => (
-                        <div key={doc} className="flex items-center justify-between py-[10px] border-b border-border last:border-b-0">
-                          <div className="flex items-center gap-[10px]">
-                            <FileText size={15} strokeWidth={1.8} className="text-muted-foreground" />
-                            <span className="text-[13px] text-foreground">{doc}</span>
-                          </div>
-                          {i === 0
-                            ? <span className="text-[12px] font-semibold text-[#059669] flex items-center gap-[4px]"><CheckCircle2 size={13} strokeWidth={2} />Uploaded</span>
-                            : <button className="text-[12px] font-medium text-[#4F6BFF] hover:underline">Upload</button>}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                </div>
-
-                {/* Drawer footer */}
-                <div className="sticky bottom-0 bg-card border-t border-border p-[20px] flex gap-[10px]">
-                  <button className="flex-1 h-[38px] bg-[#4F6BFF] text-white rounded-[8px] text-[13px] font-semibold hover:bg-[#3D56E0] transition-colors">Continue Application</button>
-                  <button onClick={() => setSelectedApp(null)} className="h-[38px] px-[16px] border border-border rounded-[8px] text-[13px] font-medium text-foreground hover:bg-secondary transition-colors">Close</button>
-                </div>
-              </motion.div>
-            </>
+            <DetailDrawer app={selectedApp} onClose={() => setSelectedApp(null)} />
           )}
         </AnimatePresence>
       </div>
