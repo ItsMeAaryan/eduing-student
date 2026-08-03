@@ -1,8 +1,9 @@
+// app/auth/forgot-password/page.tsx
 "use client";
 
 import { useState } from "react";
 import Link from "next/link";
-import { Loader2, KeyRound } from "lucide-react";
+import { Loader2, KeyRound, CheckCircle2, AlertCircle } from "lucide-react";
 import { auth } from "@/lib/firebase";
 import { sendPasswordResetEmail } from "firebase/auth";
 
@@ -14,17 +15,17 @@ export default function ForgotPassword() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    setMessage("");
-    setLoading(true);
-
+    setError(""); setMessage(""); setLoading(true);
     try {
       await sendPasswordResetEmail(auth, email);
-      setMessage("Password reset email sent! Please check your inbox and follow the instructions to reset your password.");
-      setEmail(""); // clear the input
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Failed to send password reset email. Please try again.");
+      setMessage("Reset link sent! Check your inbox and follow the instructions.");
+      setEmail("");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to send reset email.";
+      // Map Firebase codes to user-friendly messages
+      if (msg.includes("user-not-found")) setError("No account found with this email address.");
+      else if (msg.includes("invalid-email")) setError("Please enter a valid email address.");
+      else setError("Failed to send reset email. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -32,65 +33,104 @@ export default function ForgotPassword() {
 
   return (
     <div className="w-full">
-        <div className="mb-10 text-left">
-          <h1 className="text-[42px] sm:text-[48px] font-display font-[800] tracking-tighter leading-[1.05] text-white mb-3 uppercase">
-            Reset<br />Password.
-          </h1>
-          <p className="text-[15px] font-sans font-medium text-white/50 leading-relaxed">
-            Enter your email to receive a secure reset link.
-          </p>
+      <div className="mb-8">
+        <div
+          style={{
+            width: 48, height: 48, borderRadius: 12,
+            background: 'var(--accent-bg)',
+            border: '1px solid var(--accent-border)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            marginBottom: 20,
+          }}
+        >
+          <KeyRound size={22} style={{ color: 'var(--accent)' }} strokeWidth={1.8} />
         </div>
+        <h1 style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.5px', color: 'var(--text-primary)', marginBottom: 8 }}>
+          Reset Password
+        </h1>
+        <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+          Enter your email to receive a secure password reset link.
+        </p>
+      </div>
 
-        <div className="mb-6 flex justify-center">
-          <div className="w-16 h-16 bg-[#4F46E5]/20 text-[#6366F1] rounded-full flex items-center justify-center">
-            <KeyRound size={32} />
-          </div>
-        </div>
-
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {message && (
-          <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-xl text-green-400 text-sm">
+          <div style={{
+            display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 14px',
+            background: 'rgba(26,174,57,0.08)', border: '1px solid rgba(26,174,57,0.2)',
+            borderRadius: 8, fontSize: 13, color: '#1AAE39', lineHeight: 1.4,
+          }}>
+            <CheckCircle2 size={15} style={{ flexShrink: 0, marginTop: 1 }} />
             {message}
           </div>
         )}
 
         {error && (
-          <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
+          <div style={{
+            display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 14px',
+            background: 'rgba(220,38,38,0.07)', border: '1px solid rgba(220,38,38,0.2)',
+            borderRadius: 8, fontSize: 13, color: '#DC2626', lineHeight: 1.4,
+          }}>
+            <AlertCircle size={15} style={{ flexShrink: 0, marginTop: 1 }} />
             {error}
           </div>
         )}
 
         <div>
-          <label htmlFor="email" className="block font-sans text-[13px] font-medium text-white/70 mb-2">
+          <label
+            htmlFor="reset-email"
+            style={{ display: 'block', fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6 }}
+          >
             Email Address
           </label>
           <input
-            id="email"
+            id="reset-email"
             type="email"
             name="email"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full bg-white/[0.02] border border-white/10 rounded-[12px] px-4 h-[56px] text-[14px] text-white focus:border-brand-indigo focus:bg-brand-indigo/5 focus:ring-4 focus:ring-brand-indigo/10 outline-none transition-all duration-200 placeholder:text-white/30"
             placeholder="john@example.com"
+            style={{
+              width: '100%',
+              height: 40,
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--border)',
+              borderRadius: 8,
+              padding: '0 12px',
+              fontSize: 14,
+              color: 'var(--text-primary)',
+              outline: 'none',
+              transition: 'border-color 0.15s',
+            }}
+            onFocus={(e) => { e.target.style.borderColor = 'var(--accent)'; e.target.style.boxShadow = '0 0 0 2px var(--accent-bg)'; }}
+            onBlur={(e) => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none'; }}
           />
         </div>
 
         <button
           type="submit"
           disabled={loading || !!message}
-          className="w-full font-display font-bold text-[15px] bg-gradient-to-b from-[#4F46E5] to-[#4338CA] text-white h-[56px] rounded-[14px] shadow-[0_4px_12px_rgba(79,70,229,0.3),inset_0_1px_1px_rgba(255,255,255,0.2)] hover:shadow-[0_6px_16px_rgba(79,70,229,0.4),inset_0_1px_1px_rgba(255,255,255,0.25)] hover:-translate-y-0.5 active:scale-[0.99] transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-3"
+          style={{
+            width: '100%', height: 40,
+            background: 'var(--accent)', color: '#fff',
+            border: 'none', borderRadius: 8,
+            fontSize: 14, fontWeight: 600, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            opacity: (loading || !!message) ? 0.6 : 1,
+            transition: 'opacity 0.15s',
+          }}
         >
-          {loading ? <Loader2 className="animate-spin text-white" size={18} /> : <span>Send Reset Link</span>}
+          {loading ? <Loader2 size={16} className="animate-spin" /> : 'Send Reset Link'}
         </button>
 
-        <p className="text-center text-white/50 text-[13px] mt-6">
-          Remember your password?{" "}
-          <Link href="/auth/login" className="text-white hover:text-white/80 font-medium transition-colors">
+        <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-muted)', marginTop: 8 }}>
+          Remember your password?{' '}
+          <Link href="/auth/login" style={{ color: 'var(--accent)', fontWeight: 500, textDecoration: 'none' }}>
             Back to Login
           </Link>
         </p>
       </form>
-      </div>
+    </div>
   );
 }
