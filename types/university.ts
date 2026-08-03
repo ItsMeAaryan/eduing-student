@@ -1,3 +1,4 @@
+// types/university.ts
 export interface UniversityFilters {
   searchQuery?: string
   states?: string[]
@@ -18,13 +19,5 @@ export interface ExtendedUniversityProfile {
   programs?: string[]
   applicationDeadline?: string
   requiresEntranceExam?: boolean
-  [key: string]: any // allows extra fields accessed via `uni as any`
-}export interface UniversityFilters {
-  searchQuery?: string
-  states?: string[]
-  state?: string
-  city?: string
-  programs?: string[]
-  program?: string
-  requiresEntranceExam?: boolean | null
+  [key: string]: unknown
 }
