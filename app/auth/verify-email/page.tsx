@@ -1,115 +1,158 @@
+// app/auth/verify-email/page.tsx
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Loader2, Mail } from "lucide-react";
+import { Loader2, Mail, CheckCircle2, AlertCircle } from "lucide-react";
 import { auth, db } from "@/lib/firebase";
 import { sendEmailVerification, reload } from "firebase/auth";
 import { doc, updateDoc } from "firebase/firestore";
+
+const INPUT_STYLE: React.CSSProperties = {
+  width: "100%",
+  height: 38,
+  background: "var(--bg-elevated)",
+  border: "1px solid var(--border)",
+  borderRadius: 6,
+  padding: "7px 11px",
+  fontSize: 14,
+  color: "var(--text-primary)",
+  outline: "none",
+};
 
 function VerifyEmailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const emailParam = searchParams.get("email") || "";
-  
+
   const [loading, setLoading] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
-    // If no user is logged in, they shouldn't be here (ideally we handle this with middleware later)
-    if (!auth.currentUser && !emailParam) {
-      router.push("/auth/login");
-    }
+    if (!auth.currentUser && !emailParam) router.push("/auth/login");
   }, [router, emailParam]);
 
   const handleResend = async () => {
-    setMessage("");
-    setError("");
-    setLoading(true);
+    setMessage(""); setError(""); setLoading(true);
     try {
-      if (auth.currentUser) {
+      if (!auth.currentUser) {
+        setError("You are not logged in. Please sign in to resend.");
+      } else {
         await sendEmailVerification(auth.currentUser);
         setMessage("Verification email sent! Please check your inbox.");
-      } else {
-        setError("You are not logged in. Please login to resend the verification email.");
       }
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Failed to resend verification email. Please try again later.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to resend. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleVerifyCheck = async () => {
-    setMessage("");
-    setError("");
-    setVerifying(true);
+    setMessage(""); setError(""); setVerifying(true);
     try {
-      if (!auth.currentUser) {
-        throw new Error("No user found. Please login again.");
-      }
-
+      if (!auth.currentUser) throw new Error("No user found. Please login again.");
       await reload(auth.currentUser);
-      
       if (auth.currentUser.emailVerified) {
-        // Update firestore to mark as verified
-        const userRef = doc(db, "users", auth.currentUser.uid);
-        await updateDoc(userRef, {
-          isVerified: true
-        });
-        
-        setMessage("Email verified successfully! Redirecting...");
-        setTimeout(() => {
-          router.push("/student/onboarding");
-        }, 1500);
+        await updateDoc(doc(db, "users", auth.currentUser.uid), { isVerified: true });
+        setMessage("Email verified! Redirecting…");
+        setTimeout(() => router.push("/student/onboarding"), 1400);
       } else {
-        setError("Your email is not verified yet. Please check your inbox and click the verification link.");
+        setError("Email not verified yet. Click the link in your inbox, then try again.");
       }
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || "An error occurred while checking verification status.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "An error occurred.");
     } finally {
       setVerifying(false);
     }
   };
 
   return (
-    <div className="w-full text-center">
-      <p className="text-[14px] text-white/50 mb-8 leading-relaxed">
-        We sent a verification link to <strong className="text-white font-[600]">{emailParam || auth.currentUser?.email || "your email address"}</strong>.<br />
-        Click the link to verify your account and continue.
-      </p>
+    <div className="w-full">
+      {/* Header */}
+      <div style={{ marginBottom: 28 }}>
+        <div style={{
+          width: 48, height: 48, borderRadius: 12,
+          background: "var(--accent-bg)",
+          border: "1px solid var(--accent-border)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          marginBottom: 18,
+        }}>
+          <Mail size={22} style={{ color: "var(--accent)" }} strokeWidth={1.8} />
+        </div>
+        <h1 style={{ fontSize: 26, fontWeight: 700, letterSpacing: "-0.5px", color: "var(--text-primary)", marginBottom: 8 }}>
+          Verify Your Email
+        </h1>
+        <p style={{ fontSize: 14, color: "var(--text-secondary)", lineHeight: 1.5 }}>
+          We sent a verification link to{" "}
+          <strong style={{ color: "var(--text-primary)", fontWeight: 600 }}>
+            {emailParam || auth.currentUser?.email || "your email address"}
+          </strong>.
+          Click the link to continue.
+        </p>
+      </div>
 
+      {/* Feedback */}
       {message && (
-        <div className="mb-6 p-3 bg-green-500/10 border border-green-500/20 rounded-xl text-green-400 text-sm">
+        <div style={{
+          display: "flex", alignItems: "flex-start", gap: 10,
+          padding: "11px 14px", marginBottom: 16,
+          background: "rgba(26,174,57,0.08)",
+          border: "1px solid rgba(26,174,57,0.2)",
+          borderRadius: 8, fontSize: 13, color: "#1AAE39", lineHeight: 1.4,
+        }}>
+          <CheckCircle2 size={15} style={{ flexShrink: 0, marginTop: 1 }} />
           {message}
         </div>
       )}
-
       {error && (
-        <div className="mb-6 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
+        <div style={{
+          display: "flex", alignItems: "flex-start", gap: 10,
+          padding: "11px 14px", marginBottom: 16,
+          background: "rgba(220,38,38,0.07)",
+          border: "1px solid rgba(220,38,38,0.2)",
+          borderRadius: 8, fontSize: 13, color: "var(--red)", lineHeight: 1.4,
+        }}>
+          <AlertCircle size={15} style={{ flexShrink: 0, marginTop: 1 }} />
           {error}
         </div>
       )}
 
-      <div className="space-y-4">
+      {/* Actions */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         <button
           onClick={handleVerifyCheck}
           disabled={verifying}
-          className="w-full font-display font-bold text-[15px] bg-gradient-to-b from-[#4F46E5] to-[#4338CA] text-white h-[56px] rounded-[14px] shadow-[0_4px_12px_rgba(79,70,229,0.3),inset_0_1px_1px_rgba(255,255,255,0.2)] hover:shadow-[0_6px_16px_rgba(79,70,229,0.4),inset_0_1px_1px_rgba(255,255,255,0.25)] hover:-translate-y-0.5 active:scale-[0.99] transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-3"
+          style={{
+            width: "100%", height: 38,
+            background: "var(--accent)", color: "#fff",
+            border: "none", borderRadius: 8,
+            fontSize: 13, fontWeight: 600, cursor: verifying ? "wait" : "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+            opacity: verifying ? 0.65 : 1, transition: "opacity 0.15s",
+          }}
         >
-          {verifying ? <Loader2 className="animate-spin text-white" size={18} /> : <span>I have verified my email</span>}
+          {verifying ? <Loader2 size={15} className="animate-spin" /> : "I have verified my email"}
         </button>
 
         <button
           onClick={handleResend}
           disabled={loading}
-          className="w-full font-display font-medium text-[14px] flex items-center justify-center h-[56px] bg-transparent border border-white/10 hover:bg-white/[0.03] hover:border-white/20 rounded-[14px] transition-all text-white/70 hover:text-white"
+          style={{
+            width: "100%", height: 38,
+            background: "var(--bg-elevated)",
+            border: "1px solid var(--border)",
+            borderRadius: 8, fontSize: 13, fontWeight: 500,
+            color: "var(--text-secondary)", cursor: loading ? "wait" : "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+            opacity: loading ? 0.65 : 1, transition: "opacity 0.15s",
+          }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--border-hover)"; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--border)"; }}
         >
-          {loading ? <Loader2 className="animate-spin text-white" size={18} /> : "Resend Verification Email"}
+          {loading ? <Loader2 size={15} className="animate-spin" /> : "Resend Verification Email"}
         </button>
       </div>
     </div>
@@ -118,18 +161,12 @@ function VerifyEmailContent() {
 
 export default function VerifyEmail() {
   return (
-    <div className="w-full">
-        <div className="mb-10 text-left">
-          <h1 className="text-[42px] sm:text-[48px] font-display font-[800] tracking-tighter leading-[1.05] text-white mb-3 uppercase">
-            Verify<br />Email.
-          </h1>
-          <p className="text-[15px] font-sans font-medium text-white/50 leading-relaxed">
-            Just one more step to get started.
-          </p>
-        </div>
-        <Suspense fallback={<div className="text-center text-white/50"><Loader2 className="animate-spin mx-auto" size={24} /></div>}>
-          <VerifyEmailContent />
-        </Suspense>
+    <Suspense fallback={
+      <div style={{ display: "flex", justifyContent: "center", padding: 40 }}>
+        <Loader2 size={24} className="animate-spin" style={{ color: "var(--text-muted)" }} />
       </div>
+    }>
+      <VerifyEmailContent />
+    </Suspense>
   );
 }
