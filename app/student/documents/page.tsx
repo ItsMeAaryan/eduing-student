@@ -1,5 +1,7 @@
 'use client'
-
+import { auth } from '@/lib/firebase/config'
+import { uploadUserDocument } from '@/lib/firebase/student'
+import { useStudentData } from '@/components/providers/StudentDataProvider'
 import React, { useState, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -198,6 +200,9 @@ function DocumentActionCenter({ onUploadClick }: { onUploadClick: () => void }) 
 /* =========================================================================
    SECTION 3: PREMIUM UPLOAD EXPERIENCE WORKSPACE
    ========================================================================= */
+// app/student/documents/page.tsx
+// REPLACE the entire PremiumUploadWorkspace function
+
 function PremiumUploadWorkspace({ onFileSelect }: { onFileSelect: (files: FileList) => void }) {
   const uploadInputRef = useRef<HTMLInputElement>(null)
   const [dragActive, setDragActive] = useState(false)
@@ -216,24 +221,27 @@ function PremiumUploadWorkspace({ onFileSelect }: { onFileSelect: (files: FileLi
     e.stopPropagation()
     setDragActive(false)
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      simulateUpload(e.dataTransfer.files)
+      handleUpload(e.dataTransfer.files)
     }
   }, [])
 
-  const simulateUpload = (files: FileList) => {
+  const handleUpload = async (files: FileList) => {
     setUploading(true)
-    setProgress(15)
+    setProgress(20)
+    // Simulate progress bar while real upload runs
     const interval = setInterval(() => {
       setProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval)
-          setUploading(false)
-          onFileSelect(files)
-          return 100
-        }
-        return prev + 25
+        if (prev >= 85) { clearInterval(interval); return prev }
+        return prev + 15
       })
     }, 300)
+    try {
+      await onFileSelect(files)
+    } finally {
+      clearInterval(interval)
+      setProgress(100)
+      setTimeout(() => { setUploading(false); setProgress(0) }, 600)
+    }
   }
 
   return (
@@ -256,7 +264,7 @@ function PremiumUploadWorkspace({ onFileSelect }: { onFileSelect: (files: FileLi
         multiple
         accept=".pdf,.jpg,.jpeg,.png,.docx"
         className="hidden"
-        onChange={e => e.target.files && simulateUpload(e.target.files)}
+        onChange={e => e.target.files && handleUpload(e.target.files)}
       />
 
       <div
@@ -268,11 +276,10 @@ function PremiumUploadWorkspace({ onFileSelect }: { onFileSelect: (files: FileLi
         onDragOver={handleDrag}
         onDrop={handleDrop}
         onClick={() => uploadInputRef.current?.click()}
-        className={`border-2 border-dashed rounded-[12px] p-[28px] flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
-          dragActive
-            ? 'border-primary bg-[#62aef0]/10 scale-[0.99]'
-            : 'border-border bg-muted hover:border-primary hover:bg-primary/10/40'
-        }`}
+        className={`border-2 border-dashed rounded-[12px] p-[28px] flex flex-col items-center justify-center text-center cursor-pointer transition-all ${dragActive
+          ? 'border-primary bg-[#62aef0]/10 scale-[0.99]'
+          : 'border-border bg-muted hover:border-primary hover:bg-primary/10/40'
+          }`}
       >
         <motion.div
           whileHover={{ scale: 1.08 }}
@@ -285,10 +292,9 @@ function PremiumUploadWorkspace({ onFileSelect }: { onFileSelect: (files: FileLi
           Drag & drop document files here or <span className="text-primary underline">browse</span>
         </h3>
         <p className="text-[12px] text-muted-foreground mt-[4px]">
-          Supports PDF, JPG, PNG, DOCX up to 25 MB.
+          Supports PDF, JPG, PNG up to 10 MB.
         </p>
 
-        {/* Feature Badges */}
         <div className="flex flex-wrap items-center justify-center gap-[8px] mt-[16px]">
           {['OCR Extraction', 'AI Authenticity Check', 'Duplicate Detection', 'Blur Scanner'].map(feat => (
             <span key={feat} className="text-[10px] font-semibold px-[8px] py-[2px] rounded-full bg-card border border-border text-foreground flex items-center gap-[4px]">
@@ -298,11 +304,10 @@ function PremiumUploadWorkspace({ onFileSelect }: { onFileSelect: (files: FileLi
           ))}
         </div>
 
-        {/* Upload Progress Queue */}
         {uploading && (
           <div className="w-full max-w-[360px] mt-[16px] p-[10px] bg-card border border-border rounded-[8px]">
             <div className="flex items-center justify-between text-[11px] font-semibold mb-[4px]">
-              <span className="text-foreground">Uploading Passport_Copy.pdf...</span>
+              <span className="text-foreground">Uploading document...</span>
               <span className="text-primary">{progress}%</span>
             </div>
             <div className="w-full h-[4px] bg-secondary rounded-full overflow-hidden">
@@ -405,9 +410,8 @@ function RecentDocumentsVault({ docs, onSelectDoc }: { docs: Doc[]; onSelectDoc:
                   </td>
 
                   <td className="px-[16px] py-[12px]">
-                    <span className={`text-[10px] font-bold px-[8px] py-[2px] rounded-full ${
-                      doc.status === 'verified' ? STICKER_GREEN : doc.status === 'pending' ? STICKER_ORANGE : doc.status === 'rejected' ? 'bg-destructive/10 text-destructive' : 'bg-[#f3f4f6] text-muted-foreground'
-                    }`}>
+                    <span className={`text-[10px] font-bold px-[8px] py-[2px] rounded-full ${doc.status === 'verified' ? STICKER_GREEN : doc.status === 'pending' ? STICKER_ORANGE : doc.status === 'rejected' ? 'bg-destructive/10 text-destructive' : 'bg-[#f3f4f6] text-muted-foreground'
+                      }`}>
                       {doc.status.toUpperCase()}
                     </span>
                   </td>
@@ -509,13 +513,12 @@ function VerificationTimeline() {
         {VERIFICATION_FLOW.map((flow, i) => (
           <div
             key={i}
-            className={`p-[12px] rounded-[10px] border flex flex-col justify-between gap-[6px] ${
-              flow.status === 'completed'
-                ? 'bg-[#F0FDF4] border-success/30 text-success'
-                : flow.status === 'active'
+            className={`p-[12px] rounded-[10px] border flex flex-col justify-between gap-[6px] ${flow.status === 'completed'
+              ? 'bg-[#F0FDF4] border-success/30 text-success'
+              : flow.status === 'active'
                 ? 'bg-primary/10 border-primary/30 text-primary'
                 : 'bg-muted border-border text-muted-foreground'
-            }`}
+              }`}
           >
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-bold uppercase tracking-wider">Step 0{i + 1}</span>
@@ -564,34 +567,54 @@ function AIDocumentAssistantCard({ onUploadClick }: { onUploadClick: () => void 
    MAIN DOCUMENTS PAGE COMPONENT
    ========================================================================= */
 export default function DocumentsPage() {
-  const [docs, setDocs] = useState<Doc[]>(INITIAL_DOCS)
+  const { userDocuments } = useStudentData()
+  const [localDocs, setLocalDocs] = useState<Doc[]>(INITIAL_DOCS)
   const [selectedDoc, setSelectedDoc] = useState<Doc | null>(null)
   const uploadTriggerRef = useRef<HTMLInputElement>(null)
 
-  const handleFileSelect = (files: FileList) => {
-    const newDoc: Doc = {
-      id: `d_${Date.now()}`,
-      name: files[0]?.name || 'Uploaded_Document.pdf',
-      category: 'Academic',
-      status: 'pending',
-      date: 'Just Now',
-      size: '1.8 MB',
-      aiScore: 92,
-      apps: 0,
-      required: false
-    }
-    setDocs(prev => [newDoc, ...prev])
+  // Map filename to a known docId
+  const inferDocId = (filename: string): '10th_marksheet' | '12th_marksheet' | 'id_proof' | 'passport_photo' => {
+    const lower = filename.toLowerCase()
+    if (lower.includes('10th') || lower.includes('tenth')) return '10th_marksheet'
+    if (lower.includes('12th') || lower.includes('twelve')) return '12th_marksheet'
+    if (lower.includes('passport') || lower.includes('photo')) return 'passport_photo'
+    return 'id_proof'
   }
 
-  const verified = docs.filter(d => d.status === 'verified').length
-  const pending = docs.filter(d => d.status === 'pending').length
-  const missing = docs.filter(d => d.status === 'missing').length
-  const total = docs.length
+  const handleFileSelect = async (files: FileList) => {
+    const uid = auth.currentUser?.uid
+    if (!uid || !files[0]) return
+    const file = files[0]
+    const docId = inferDocId(file.name)
+    try {
+      await uploadUserDocument(uid, file, docId)
+      // The Firestore listener in StudentDataProvider will update userDocuments automatically.
+      // Also update local display state so the table reflects the upload immediately.
+      const newDoc: Doc = {
+        id: `d_${Date.now()}`,
+        name: file.name,
+        category: 'Academic',
+        status: 'pending',
+        date: 'Just Now',
+        size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
+        aiScore: 0,
+        apps: 0,
+        required: false,
+      }
+      setLocalDocs(prev => [newDoc, ...prev])
+    } catch (err: unknown) {
+      if (process.env.NODE_ENV === 'development') console.error('[DocumentsPage] upload failed', err)
+    }
+  }
+
+  const verified = localDocs.filter(d => d.status === 'verified').length
+  const pending = localDocs.filter(d => d.status === 'pending').length
+  const missing = localDocs.filter(d => d.status === 'missing').length
+  const total = localDocs.length
 
   return (
     <ProtectedRoute allowedRoles={['student']}>
       <div className="flex flex-col gap-[24px] pb-[40px]">
-        {/* Hidden File Trigger */}
         <input
           ref={uploadTriggerRef}
           type="file"
@@ -600,7 +623,6 @@ export default function DocumentsPage() {
           onChange={e => e.target.files && handleFileSelect(e.target.files)}
         />
 
-        {/* SECTION 1: Document Health Overview Card */}
         <DocumentHealthOverview
           verified={verified}
           pending={pending}
@@ -609,25 +631,19 @@ export default function DocumentsPage() {
           onUploadClick={() => uploadTriggerRef.current?.click()}
         />
 
-        {/* SECTION 2: Action Center */}
         <DocumentActionCenter onUploadClick={() => uploadTriggerRef.current?.click()} />
 
-        {/* SECTION 3: Upload Workspace */}
         <PremiumUploadWorkspace onFileSelect={handleFileSelect} />
 
-        {/* SECTION 4: Recent Documents Vault */}
-        <RecentDocumentsVault docs={docs} onSelectDoc={setSelectedDoc} />
+        <RecentDocumentsVault docs={localDocs} onSelectDoc={setSelectedDoc} />
 
-        {/* SECTION 5 & 6: Document Categories & Verification Timeline */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-[24px]">
           <DocumentCategoryFolders />
           <VerificationTimeline />
         </div>
 
-        {/* SECTION 7: AI Assistant Card */}
         <AIDocumentAssistantCard onUploadClick={() => uploadTriggerRef.current?.click()} />
 
-        {/* Document Preview Panel Drawer */}
         <AnimatePresence>
           {selectedDoc && (
             <>
