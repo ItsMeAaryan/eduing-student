@@ -1,28 +1,18 @@
+// app/student/applications/[id]/page.tsx
 'use client'
 
 import React, { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import ProtectedRoute from '@/components/ProtectedRoute'
-import { 
-  ChevronLeft, 
-  Clock, 
-  CheckCircle2, 
-  XCircle, 
-  AlertCircle, 
-  FileText, 
-  CreditCard, 
-  History,
-  Building2,
-  ExternalLink,
-  Download,
-  ShieldCheck,
-  Calendar
+import {
+  ChevronLeft, Clock, CheckCircle2, XCircle, AlertCircle,
+  FileText, CreditCard, History, Building2, ExternalLink,
+  Download, ShieldCheck, Calendar, X
 } from 'lucide-react'
 import { listenApplication } from '@/lib/firebase/applications'
 import { listenUserDocuments } from '@/lib/firebase/student'
 import { Application, UserDocument } from '@/types/firebase'
-import { Card, Button, Badge, H2, H3, H4, Body, Small, Caption, MetricCard } from '@/components/ui/design-system'
 
 export default function ApplicationDetailsPage() {
   const params = useParams()
@@ -42,226 +32,233 @@ export default function ApplicationDetailsPage() {
 
   useEffect(() => {
     if (!id) return
-    const unsub = listenApplication(id, (app) => {
-      setApplication(app)
-      if (app?.userId) {
-        listenUserDocuments(app.userId, (docs) => {
-          setDocuments(docs)
-        })
+    let unsubDocs: (() => void) | null = null
+
+    const unsubApp = listenApplication(
+      id,
+      (app) => {
+        setApplication(app)
+        setLoading(false)
+        // Clean up previous docs listener before starting new one
+        if (unsubDocs) unsubDocs()
+        if (app?.userId) {
+          unsubDocs = listenUserDocuments(app.userId, (docs) => setDocuments(docs))
+        }
+      },
+      (err) => {
+        if (process.env.NODE_ENV === 'development') console.error('[listenApplication]', err)
+        setLoading(false)
       }
-      setLoading(false)
-    })
-    return unsub
+    )
+
+    return () => {
+      unsubApp()
+      if (unsubDocs) unsubDocs()
+    }
   }, [id])
 
   if (loading) return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
-      <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }} className="w-[48px] h-[48px] border-4 border-primary border-t-transparent rounded-full" />
+    <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+        style={{ width: 36, height: 36, border: '3px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%' }}
+      />
     </div>
   )
 
   if (!application) return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center text-text-primary">
-      <AlertCircle size={48} strokeWidth={1.8} className="text-danger mb-16" />
-      <H2 className="mb-16">Application Dossier Not Found</H2>
-      <Button onClick={() => router.back()} variant="secondary" className="flex items-center gap-8">
-        <ChevronLeft size={18} strokeWidth={1.8} /> Return to Dashboard
-      </Button>
+    <div style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+      <AlertCircle size={48} strokeWidth={1.5} style={{ color: 'var(--red)' }} />
+      <h2 style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Application not found</h2>
+      <button
+        onClick={() => router.back()}
+        style={{ display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 14px', background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontSize: 13, fontWeight: 500, borderRadius: 8, cursor: 'pointer' }}
+      >
+        <ChevronLeft size={15} /> Go Back
+      </button>
     </div>
   )
 
-  const statusConfig: any = {
-    submitted: { color: 'primary', icon: Clock, label: 'Submitted' },
-    under_review: { color: 'warning', icon: AlertCircle, label: 'Under Review' },
-    selected: { color: 'success', icon: CheckCircle2, label: 'Accepted' },
-    rejected: { color: 'danger', icon: XCircle, label: 'Rejected' }
+  const statusConfig: Record<string, { color: string; icon: React.ElementType; label: string }> = {
+    submitted: { color: 'var(--accent)', icon: Clock, label: 'Submitted' },
+    under_review: { color: 'var(--gold)', icon: AlertCircle, label: 'Under Review' },
+    selected: { color: 'var(--green)', icon: CheckCircle2, label: 'Accepted' },
+    rejected: { color: 'var(--red)', icon: XCircle, label: 'Rejected' },
   }
   const status = normalizeStatus(application.status)
   const config = statusConfig[status] || statusConfig.submitted
-
-  const timeline = [
-    { status: 'submitted', label: 'Application Received', date: application.appliedAt?.toDate?.().toLocaleDateString() || 'Recent', completed: true },
-    { status: 'under_review', label: 'Internal Document Review', date: status !== 'submitted' ? 'In Progress' : null, completed: status !== 'submitted' },
-    { status: 'selected', label: 'Admission Decision', date: ['selected', 'rejected'].includes(status) ? application.updatedAt?.toDate?.().toLocaleDateString() : null, completed: ['selected', 'rejected'].includes(status) },
-    { status: 'final', label: 'Offer Letter Dispatched', date: null, completed: status === 'selected' && application.documentsVerified }
-  ]
+  const StatusIcon = config.icon
 
   const docTypes = [
     { id: '10th_marksheet', label: '10th Marksheet' },
     { id: '12th_marksheet', label: '12th Marksheet' },
     { id: 'id_proof', label: 'Identity Proof' },
-    { id: 'passport_photo', label: 'Passport Photo' }
+    { id: 'passport_photo', label: 'Passport Photo' },
   ]
+
+  const appliedDate = application.appliedAt?.toDate?.()
+  const updatedDate = application.updatedAt?.toDate?.()
 
   return (
     <ProtectedRoute allowedRoles={['student']}>
-      <div className="min-h-screen bg-background text-text-primary pb-64">
-        
-        {/* HEADER */}
-        <div className="max-w-6xl mx-auto px-24 pt-48 mb-48">
-          <button onClick={() => router.back()} className="group mb-32 flex items-center gap-8 text-text-secondary hover:text-text-primary transition-all">
-            <div className="w-[40px] h-[40px] rounded-full bg-hover border border-border flex items-center justify-center group-hover:bg-primary/20 group-hover:border-primary/30">
-              <ChevronLeft size={20} strokeWidth={1.8} />
-            </div>
-            <Caption className="font-bold uppercase tracking-widest">Back to Dossier</Caption>
-          </button>
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: '32px 16px 64px', fontFamily: 'Inter, system-ui, sans-serif', color: 'var(--text-primary)' }}>
 
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-24">
+        {/* Back */}
+        <button
+          onClick={() => router.back()}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer', marginBottom: 24, padding: 0 }}
+        >
+          <ChevronLeft size={16} /> Back to Applications
+        </button>
+
+        {/* Header */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 32 }}>
+          <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
+            Reference #{application.id.slice(0, 8)}
+          </p>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
             <div>
-              <Caption className="text-primary font-bold uppercase tracking-[0.3em] mb-16">Application Reference: #{application.id.slice(0, 8)}</Caption>
-              <H2 className="mb-8 tracking-tight">University Admission Dossier</H2>
-              <div className="flex items-center gap-12 text-text-secondary text-sm font-bold">
-                 <Building2 size={16} strokeWidth={1.8} /> {application.universityId}
-                 <span>•</span>
-                 <span className="text-primary">{application.programId}</span>
-              </div>
+              <h1 style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.5px', margin: '0 0 6px' }}>
+                Application Details
+              </h1>
+              <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: 0 }}>
+                <Building2 size={13} style={{ verticalAlign: 'middle', marginRight: 6 }} strokeWidth={1.8} />
+                {application.universityName || application.universityId}
+                {' · '}
+                <span style={{ color: 'var(--accent)' }}>{application.programName || application.programId}</span>
+              </p>
             </div>
-            <div className={`px-32 py-16 rounded-[24px] border flex items-center gap-12 ${config.color === 'primary' ? 'bg-primary/10 border-primary/20 text-primary' : config.color === 'success' ? 'bg-success/10 border-success/20 text-success' : 'bg-warning/10 border-warning/20 text-warning'}`}>
-               <config.icon size={24} strokeWidth={1.8} />
-               <span className="text-lg font-black uppercase tracking-widest">{config.label}</span>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '10px 16px', borderRadius: 10,
+              border: `1px solid ${config.color}22`,
+              background: `${config.color}10`,
+              color: config.color,
+            }}>
+              <StatusIcon size={18} strokeWidth={1.8} />
+              <span style={{ fontSize: 14, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{config.label}</span>
             </div>
           </div>
         </div>
 
-        {/* MAIN CONTENT GRID */}
-        <div className="max-w-6xl mx-auto px-24 grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-48">
-          
-          <div className="space-y-48">
-            {/* PROGRESS TIMELINE */}
-            <Card className="!p-40 relative overflow-hidden shadow-sm">
-               <div className="absolute top-0 right-0 w-[256px] h-[256px] bg-primary/5 blur-[100px]" />
-               <Caption className="font-bold text-text-secondary uppercase tracking-[0.3em] mb-48 flex items-center gap-12">
-                 <History size={16} strokeWidth={1.8} /> Journey Progression
-               </Caption>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24 }}>
 
-               <div className="relative space-y-48 pl-48">
-                 <div className="absolute left-[23px] top-8 bottom-8 w-[1px] bg-border" />
-                 {timeline.map((step, i) => {
-                   const isCompleted = step.completed
-                   return (
-                     <motion.div 
-                       key={i} 
-                       initial={{ opacity: 0, x: -20 }}
-                       animate={{ opacity: 1, x: 0 }}
-                       transition={{ delay: i * 0.1 }}
-                       className="relative"
-                     >
-                       <div className={`absolute -left-48 w-[48px] h-[48px] rounded-full border-4 border-background flex items-center justify-center z-10 ${isCompleted ? 'bg-primary text-white shadow-[0_0_20px_rgba(77,107,254,0.4)]' : 'bg-background border-border text-text-secondary'}`}>
-                          {isCompleted ? <CheckCircle2 size={24} strokeWidth={1.8} /> : <div className="w-12 h-12 rounded-full bg-current" />}
-                       </div>
-                       <div>
-                         <H4 className={`${isCompleted ? 'text-text-primary' : 'text-text-secondary'}`}>{step.label}</H4>
-                         <Caption className="font-bold uppercase tracking-widest text-text-secondary mt-4">{step.date || 'Pending Evaluation'}</Caption>
-                       </div>
-                     </motion.div>
-                   )
-                 })}
-               </div>
-            </Card>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-            {/* DIGITAL VAULT PREVIEW */}
-            <div className="space-y-24">
-              <Caption className="font-bold text-text-secondary uppercase tracking-[0.3em] flex items-center gap-12">
-                <ShieldCheck size={16} strokeWidth={1.8} className="text-primary" /> Linked Digital Vault
-              </Caption>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
-                {docTypes.map(docType => {
-                  const doc = documents[docType.id]
+            {/* Timeline */}
+            <section style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '24px' }}>
+              <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 20px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <History size={14} strokeWidth={1.8} /> Application Journey
+              </p>
+              <div style={{ position: 'relative', paddingLeft: 24, borderLeft: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 20 }}>
+                {[
+                  { label: 'Application Submitted', date: appliedDate?.toLocaleDateString('en-IN') ?? 'Recent', done: true },
+                  { label: 'Document Review', date: status !== 'submitted' ? 'In Progress' : null, done: status !== 'submitted', active: status === 'under_review' },
+                  { label: 'Admission Decision', date: ['selected', 'rejected'].includes(status) ? updatedDate?.toLocaleDateString('en-IN') ?? null : null, done: ['selected', 'rejected'].includes(status) },
+                  { label: 'Offer Letter', date: null, done: status === 'selected' && !!application.documentsVerified },
+                ].map(({ label, date, done, active }, i) => (
+                  <motion.div key={i} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08 }} style={{ position: 'relative' }}>
+                    <div style={{
+                      position: 'absolute', left: -31, top: 2,
+                      width: 14, height: 14, borderRadius: '50%',
+                      border: `2px solid ${done ? 'var(--green)' : active ? 'var(--accent)' : 'var(--border)'}`,
+                      background: done ? 'var(--green)' : 'var(--bg-elevated)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      {done && <CheckCircle2 size={8} style={{ color: '#fff' }} strokeWidth={3} />}
+                    </div>
+                    <p style={{ fontSize: 14, fontWeight: done || active ? 600 : 400, color: done || active ? 'var(--text-primary)' : 'var(--text-muted)', margin: 0 }}>{label}</p>
+                    <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '2px 0 0' }}>{date ?? 'Pending'}</p>
+                  </motion.div>
+                ))}
+              </div>
+            </section>
+
+            {/* Documents */}
+            <section style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '24px' }}>
+              <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <ShieldCheck size={14} strokeWidth={1.8} style={{ color: 'var(--accent)' }} /> Linked Documents
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                {docTypes.map(dt => {
+                  const doc = documents[dt.id]
                   return (
-                    <div key={docType.id} className="bg-hover border border-border rounded-card p-20 flex items-center justify-between shadow-sm">
-                       <div className="flex items-center gap-16">
-                         <div className={`w-[40px] h-[40px] rounded-[12px] flex items-center justify-center ${doc ? 'bg-success/10 text-success' : 'bg-background border border-border text-text-secondary'}`}>
-                           <FileText size={20} strokeWidth={1.8} />
-                         </div>
-                         <div>
-                           <Caption className="font-bold uppercase tracking-widest">{docType.label}</Caption>
-                           <div className={`text-[9px] font-bold uppercase mt-4 ${doc?.status === 'verified' ? 'text-success' : 'text-text-secondary'}`}>
-                             {doc ? (doc.status === 'verified' ? 'Verified ✅' : 'Uploaded') : 'Not Uploaded'}
-                           </div>
-                         </div>
-                       </div>
-                       {doc && <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="w-[32px] h-[32px] rounded-lg bg-background border border-border flex items-center justify-center text-text-secondary hover:bg-hover hover:text-text-primary transition-all"><ExternalLink size={14} strokeWidth={1.8} /></a>}
+                    <div key={dt.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', border: '1px solid var(--border)', borderRadius: 10, background: 'var(--bg)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div style={{ width: 34, height: 34, borderRadius: 8, background: doc ? 'rgba(26,174,57,0.08)' : 'var(--bg-elevated)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <FileText size={15} style={{ color: doc ? 'var(--green)' : 'var(--text-muted)' }} strokeWidth={1.8} />
+                        </div>
+                        <div>
+                          <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>{dt.label}</p>
+                          <p style={{ fontSize: 10, fontWeight: 600, color: doc?.status === 'verified' ? 'var(--green)' : doc ? 'var(--gold)' : 'var(--text-muted)', margin: '2px 0 0', textTransform: 'uppercase' }}>
+                            {doc ? doc.status : 'Not uploaded'}
+                          </p>
+                        </div>
+                      </div>
+                      {doc?.fileUrl && (
+                        <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 6, color: 'var(--text-muted)' }}>
+                          <ExternalLink size={12} strokeWidth={1.8} />
+                        </a>
+                      )}
                     </div>
                   )
                 })}
               </div>
-            </div>
+            </section>
 
-            {/* DOCUMENT & PAYMENT STATUS */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-32">
-               <Card className="!p-32 flex flex-col justify-between shadow-sm">
-                  <div>
-                    <Caption className="font-bold text-text-secondary uppercase tracking-[0.3em] mb-24 flex items-center gap-8">
-                      <ShieldCheck size={16} strokeWidth={1.8} className="text-primary" /> Security Clearance
-                    </Caption>
-                    <div className="text-2xl font-black mb-8 text-text-primary">{application.documentsVerified ? 'Verified' : 'Pending'}</div>
-                    <Small className="text-text-secondary leading-relaxed">System-wide verification of all academic credentials submitted for this application.</Small>
-                  </div>
-                  <div className="mt-32 pt-32 border-t border-border flex items-center justify-between">
-                     <Caption className="font-bold uppercase tracking-widest text-text-secondary">Sync Status</Caption>
-                     <Caption className="font-bold uppercase tracking-widest text-success">Live</Caption>
-                  </div>
-               </Card>
-
-               <Card className="!p-32 flex flex-col justify-between shadow-sm">
-                  <div>
-                    <Caption className="font-bold text-text-secondary uppercase tracking-[0.3em] mb-24 flex items-center gap-8">
-                      <CreditCard size={16} strokeWidth={1.8} className="text-primary" /> Financial Settlement
-                    </Caption>
-                    <div className={`text-2xl font-black mb-8 uppercase ${application.paymentStatus === 'paid' ? 'text-success' : 'text-warning'}`}>{application.paymentStatus}</div>
-                    <Small className="text-text-secondary leading-relaxed">Processing of application and registration fees via encrypted gateway.</Small>
-                  </div>
-                  <div className="mt-32 pt-32 border-t border-border">
-                     <button className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary/80 transition-all flex items-center gap-8">
-                       View Invoice <ExternalLink size={12} strokeWidth={1.8} />
-                     </button>
-                  </div>
-               </Card>
+            {/* Payment + Docs status */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              {[
+                {
+                  icon: ShieldCheck,
+                  label: 'Documents',
+                  value: application.documentsVerified ? 'Verified' : 'Pending',
+                  color: application.documentsVerified ? 'var(--green)' : 'var(--gold)',
+                },
+                {
+                  icon: CreditCard,
+                  label: 'Payment',
+                  value: application.paymentStatus ?? 'Pending',
+                  color: application.paymentStatus === 'paid' ? 'var(--green)' : 'var(--gold)',
+                },
+              ].map(({ icon: Icon, label, value, color }) => (
+                <div key={label} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '20px' }}>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Icon size={13} strokeWidth={1.8} style={{ color: 'var(--accent)' }} /> {label}
+                  </p>
+                  <p style={{ fontSize: 20, fontWeight: 700, color, margin: '0 0 4px', textTransform: 'capitalize' }}>{value}</p>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* SIDEBAR METADATA */}
-          <aside className="space-y-32">
-            <div className="bg-primary rounded-card p-32 text-center shadow-sm relative overflow-hidden group">
-               <div className="absolute top-0 right-0 w-[128px] h-[128px] bg-card/10 rotate-45 translate-x-[64px] -translate-y-[64px] transition-transform group-hover:scale-110" />
-               <Download size={40} strokeWidth={1.5} className="mx-auto mb-24 text-white" />
-               <H4 className="mb-8 text-white">Admission Receipt</H4>
-               <Caption className="text-white/60 font-bold uppercase tracking-widest mb-32">Official PDF Confirmation</Caption>
-               <Button variant="secondary" className="w-full !bg-card !text-black !border-transparent hover:!bg-card/90 uppercase tracking-widest text-[10px]">
-                 Download Dossier
-               </Button>
+          {/* Sidebar */}
+          <aside style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Calendar size={12} strokeWidth={1.8} /> Applied On
+                </p>
+                <p style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)', margin: 0 }}>
+                  {appliedDate?.toLocaleString('en-IN', { dateStyle: 'long', timeStyle: 'short' }) ?? 'Recent'}
+                </p>
+              </div>
+              <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16 }}>
+                <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 6px' }}>Application ID</p>
+                <p style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--text-secondary)', margin: 0, wordBreak: 'break-all' }}>{application.id}</p>
+              </div>
             </div>
 
-            <Card className="!p-32 space-y-32 shadow-sm">
-               <div>
-                 <Caption className="font-black text-text-secondary uppercase tracking-widest mb-16 flex items-center gap-8">
-                   <Calendar size={14} strokeWidth={1.8} /> Dossier Creation
-                 </Caption>
-                 <Body className="font-bold">{application.appliedAt?.toDate?.().toLocaleString('en-IN', { dateStyle: 'long', timeStyle: 'short' }) || 'Recent'}</Body>
-               </div>
-               
-               <div>
-                 <Caption className="font-black text-text-secondary uppercase tracking-widest mb-16">Metadata ID</Caption>
-                 <div className="text-[10px] font-mono text-text-secondary break-all">{application.id}</div>
-               </div>
-
-               <div className="pt-32 border-t border-border">
-                 <Small className="font-bold text-text-secondary leading-relaxed italic">
-                   &quot;This dossier represents a legally binding admission request submitted to {application.universityId} via the EDUING Gateway.&quot;
-                 </Small>
-               </div>
-            </Card>
+            <button
+              onClick={() => router.push('/student/applications')}
+              style={{ width: '100%', height: 36, background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+            >
+              <ChevronLeft size={14} /> Back to All Applications
+            </button>
           </aside>
         </div>
       </div>
     </ProtectedRoute>
-  )
-}
-
-function X({ size }: { size: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 6L6 18M6 6l12 12" />
-    </svg>
   )
 }
