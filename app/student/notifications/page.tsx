@@ -4,7 +4,7 @@
 import React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import ProtectedRoute from '@/components/ProtectedRoute'
-import { Bell, Info, CheckCircle2, AlertCircle, Clock, Mail } from 'lucide-react'
+import { Bell, Info, CheckCircle2, AlertCircle, Clock } from 'lucide-react'
 import { useStudentData } from '@/components/providers/StudentDataProvider'
 
 function getNotifConfig(type: string): {
@@ -20,20 +20,20 @@ function getNotifConfig(type: string): {
     case 'selected':
       return {
         Icon: CheckCircle2,
-        dotColor: '#1AAE39',
+        dotColor: 'var(--green)',
         bg: 'rgba(26,174,57,0.07)',
         border: 'rgba(26,174,57,0.18)',
-        iconColor: '#1AAE39',
+        iconColor: 'var(--green)',
       }
     case 'warning':
     case 'deadline':
     case 'overdue':
       return {
         Icon: AlertCircle,
-        dotColor: '#D97706',
+        dotColor: 'var(--gold)',
         bg: 'rgba(217,119,6,0.07)',
         border: 'rgba(217,119,6,0.18)',
-        iconColor: '#D97706',
+        iconColor: 'var(--gold)',
       }
     case 'status':
     case 'status_update':
@@ -66,15 +66,7 @@ export default function NotificationsPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1
-              style={{
-                fontSize: 26,
-                fontWeight: 700,
-                letterSpacing: '-0.5px',
-                color: 'var(--text-primary)',
-                margin: 0,
-              }}
-            >
+            <h1 style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.5px', color: 'var(--text-primary)', margin: 0 }}>
               Notifications
             </h1>
             <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 4 }}>
@@ -82,50 +74,28 @@ export default function NotificationsPage() {
             </p>
           </div>
           {safeNotifs.length > 0 && (
-            <span
-              style={{
-                fontSize: 11,
-                fontWeight: 600,
-                padding: '2px 10px',
-                borderRadius: 999,
-                background: 'var(--accent-bg)',
-                border: '1px solid var(--accent-border)',
-                color: 'var(--accent)',
-                letterSpacing: '0.04em',
-              }}
-            >
-              {safeNotifs.filter((n: any) => !n.read && !n.isRead).length} Unread
+            <span style={{
+              fontSize: 11, fontWeight: 600, padding: '2px 10px', borderRadius: 999,
+              background: 'var(--accent-bg)', border: '1px solid var(--accent-border)',
+              color: 'var(--accent)', letterSpacing: '0.04em',
+            }}>
+              {safeNotifs.filter((n: any) => !n.isRead).length} Unread
             </span>
           )}
         </div>
 
         {/* Empty state */}
         {safeNotifs.length === 0 && (
-          <div
-            style={{
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border)',
-              borderRadius: 12,
-              padding: '48px 24px',
-              textAlign: 'center',
-              boxShadow: 'var(--shadow-card)',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 12,
-            }}
-          >
-            <div
-              style={{
-                width: 48,
-                height: 48,
-                borderRadius: '50%',
-                background: 'rgba(0,0,0,0.04)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
+          <div style={{
+            background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12,
+            padding: '48px 24px', textAlign: 'center',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12,
+          }}>
+            <div style={{
+              width: 48, height: 48, borderRadius: '50%',
+              background: 'rgba(0,0,0,0.04)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
               <Bell size={22} style={{ color: 'var(--text-muted)' }} strokeWidth={1.5} />
             </div>
             <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
@@ -144,7 +114,8 @@ export default function NotificationsPage() {
               {safeNotifs.map((notif: any, i: number) => {
                 const cfg = getNotifConfig(notif.type || '')
                 const Icon = cfg.Icon
-                const isRead = notif.read || notif.isRead
+                // FIXED: normalised to isRead only (removed notif.read)
+                const isRead = notif.isRead
                 const dateStr = notif.createdAt?.toDate
                   ? notif.createdAt.toDate().toLocaleDateString('en-IN', {
                     day: 'numeric', month: 'short', year: 'numeric',
@@ -166,7 +137,8 @@ export default function NotificationsPage() {
                       display: 'flex',
                       gap: 16,
                       alignItems: 'flex-start',
-                      boxShadow: 'var(--shadow-card)',
+                      // FIXED: position relative so the unread dot is contained
+                      position: 'relative',
                       opacity: isRead ? 0.75 : 1,
                       cursor: 'default',
                       transition: 'border-color 0.15s',
@@ -178,50 +150,37 @@ export default function NotificationsPage() {
                       (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border)'
                     }}
                   >
-                    {/* Unread dot */}
+                    {/* Unread dot — now correctly positioned inside the card */}
                     {!isRead && (
-                      <div
-                        style={{
-                          position: 'absolute',
-                          left: 8,
-                          top: '50%',
-                          transform: 'translateY(-50%)',
-                          width: 6,
-                          height: 6,
-                          borderRadius: '50%',
-                          background: 'var(--accent)',
-                        }}
-                      />
+                      <div style={{
+                        position: 'absolute', left: 8, top: '50%',
+                        transform: 'translateY(-50%)',
+                        width: 6, height: 6, borderRadius: '50%',
+                        background: 'var(--accent)',
+                      }} />
                     )}
 
                     {/* Icon */}
-                    <div
-                      style={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: 10,
-                        background: cfg.bg,
-                        border: `1px solid ${cfg.border}`,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                      }}
-                    >
+                    <div style={{
+                      width: 40, height: 40, borderRadius: 10,
+                      background: cfg.bg,
+                      border: `1px solid ${cfg.border}`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      flexShrink: 0,
+                    }}>
                       <Icon size={18} style={{ color: cfg.iconColor }} strokeWidth={1.8} />
                     </div>
 
                     {/* Content */}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 4 }}>
-                        <p
-                          style={{
-                            fontSize: 14,
-                            fontWeight: isRead ? 500 : 600,
-                            color: 'var(--text-primary)',
-                            margin: 0,
-                          }}
-                        >
+                      <div style={{
+                        display: 'flex', justifyContent: 'space-between',
+                        alignItems: 'flex-start', gap: 12, marginBottom: 4,
+                      }}>
+                        <p style={{
+                          fontSize: 14, fontWeight: isRead ? 500 : 600,
+                          color: 'var(--text-primary)', margin: 0,
+                        }}>
                           {notif.title || 'Notification'}
                         </p>
                         {dateStr && (
@@ -233,19 +192,16 @@ export default function NotificationsPage() {
                       <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
                         {notif.message || notif.description || ''}
                       </p>
-
-                      {/* Dot badge for type */}
                       <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span
-                          style={{
-                            width: 5,
-                            height: 5,
-                            borderRadius: '50%',
-                            background: cfg.dotColor,
-                            display: 'inline-block',
-                          }}
-                        />
-                        <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                        <span style={{
+                          width: 5, height: 5, borderRadius: '50%',
+                          background: cfg.dotColor, display: 'inline-block',
+                        }} />
+                        <span style={{
+                          fontSize: 11, fontWeight: 600,
+                          color: 'var(--text-muted)',
+                          textTransform: 'uppercase', letterSpacing: '0.06em',
+                        }}>
                           {notif.type || 'General'}
                         </span>
                       </div>
