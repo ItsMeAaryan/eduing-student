@@ -179,11 +179,17 @@ export default function UniversityDetailPage() {
     )
   }, [programs, programSearch])
 
+
   const handleApply = async (program: any) => {
-    if (!user || !university) { router.push('/auth/login'); return }
+    if (!user) { router.push('/auth/login'); return }
+    // Guard: only allow applying to approved universities
+    if (university?.approvalStatus && university.approvalStatus !== 'approved') {
+      return
+    }
     setApplying(true)
     try {
-      await submitApplication(user.uid, id, university.name, program?.name || 'General Admission')
+      // submitApplication no longer takes userId as first arg — reads from auth.currentUser
+      await submitApplication(id, university.name, program?.name || 'General Admission')
       setApplicationSubmitted(true)
       setTimeout(() => { setApplying(false); setSelectedProgram(null) }, 1400)
     } catch {
