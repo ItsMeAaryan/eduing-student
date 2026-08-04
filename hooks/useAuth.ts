@@ -1,13 +1,13 @@
+// hooks/useAuth.ts
 'use client'
 
 import { useState, useEffect } from 'react'
 import { onAuthChange } from '@/lib/firebase/auth'
 import { doc, onSnapshot } from 'firebase/firestore'
 import { db } from '@/lib/firebase/config'
-import { UserProfile } from '@/types/firebase'
 
 export function useAuth() {
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<Record<string, any> | null>(null)
   const [role, setRole] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -16,19 +16,24 @@ export function useAuth() {
 
     const unsubAuth = onAuthChange((firebaseUser) => {
       if (firebaseUser) {
-        // Listen to user document in real-time
-        unsubDoc = onSnapshot(doc(db, 'users', firebaseUser.uid), (snap) => {
-          const userData = snap.data()
-          setUser({
-            ...firebaseUser,
-            ...userData
-          })
-          setRole(userData?.role || null)
-          setLoading(false)
-        }, (err) => {
-          console.error("User doc listener error:", err)
-          setLoading(false)
-        })
+        unsubDoc = onSnapshot(
+          doc(db, 'users', firebaseUser.uid),
+          (snap) => {
+            const userData = snap.data()
+            setUser({
+              uid: firebaseUser.uid,
+              email: firebaseUser.email,
+              displayName: firebaseUser.displayName,
+              ...userData,
+            })
+            setRole(userData?.role || null)
+            setLoading(false)
+          },
+          (err) => {
+            if (process.env.NODE_ENV === 'development') console.error('[useAuth] user doc listener:', err)
+            setLoading(false)
+          }
+        )
       } else {
         if (unsubDoc) unsubDoc()
         setUser(null)
@@ -47,6 +52,6 @@ export function useAuth() {
     user,
     role,
     isLoggedIn: !!user,
-    loading
+    loading,
   }
 }
