@@ -2,51 +2,41 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper: is this uid an approved university admin? Used to gate
-    // writes to programs/applications/etc. so that a pending/unapproved
-    // registration can't write real data even if they stay signed in and
-    // navigate straight to a page, bypassing the app's own client-side
-    // pending-approval screen (that screen is UX only — this is the real
-    // enforcement layer).
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
     function isApprovedUniAdmin() {
-      return request.auth != null
+      return isSignedIn()
         && exists(/databases/$(database)/documents/users/$(request.auth.uid))
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'uni_admin'
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.approvalStatus == 'approved';
     }
 
-    // Universities - public read (these are meant to be discoverable
-    // profiles), owner-scoped write.
+    // Universities — only approved ones are publicly readable.
+    // Unapproved (pending/rejected) require authentication and ownership.
     match /universities/{id} {
-      allow read: if true;
+      allow read: if resource.data.approvalStatus == 'approved'
+        || (isSignedIn() && request.auth.uid == id);
 
-      // Anyone can create their own university doc at registration
-      // (approvalStatus is always written as 'pending' by the app, and
-      // that's enforced below too — a forged 'approved' value at create
-      // time is rejected).
-      allow create: if request.auth != null
+      allow create: if isSignedIn()
         && request.auth.uid == id
         && request.resource.data.approvalStatus == 'pending'
         && request.resource.data.isVerified == false;
 
-      // Owner can update their own profile, but NOT the fields that are
-      // meant to be platform-controlled (approval/verification/featured
-      // status, rating) — previously any authenticated owner could set
-      // these on themselves directly, e.g. self-marking as verified or
-      // giving themselves a 5-star rating.
-      allow update: if request.auth != null
+      allow update: if isSignedIn()
         && request.auth.uid == id
         && !request.resource.data.diff(resource.data).affectedKeys()
               .hasAny(['approvalStatus', 'isVerified', 'isFeatured', 'rating']);
 
-      allow delete: if request.auth != null && request.auth.uid == id;
+      allow delete: if isSignedIn() && request.auth.uid == id;
     }
 
-    // Programs - public read, but writes must belong to an approved
-    // university that owns the program. Previously `allow write: if
-    // request.auth != null` let ANY signed-in user (including other
-    // universities, or student accounts) create, edit, or delete ANY
-    // other university's programs.
+    // Programs — public read, approved uni admin write scoped to their own uni.
     match /programs/{id} {
       allow read: if true;
 
@@ -57,93 +47,92 @@ service cloud.firestore {
         && resource.data.universityId == request.auth.uid;
     }
 
-    // Applications - a student can create and read/withdraw their own
-    // application; a university can read applications addressed to it and
-    // update review-only fields. Previously student and university shared
-    // one identical read/write rule, meaning a student could set their own
-    // `status` to "selected" or fabricate an `entranceScore` directly.
+    // Applications
     match /applications/{id} {
-      // Creation must be self-attributed to the authenticated student —
-      // previously anyone signed in could create an application document
-      // with an arbitrary studentId, impersonating another student.
-      allow create: if request.auth != null
+      allow create: if isSignedIn()
         && request.resource.data.studentId == request.auth.uid
         && request.resource.data.status == 'submitted';
 
-      allow read: if request.auth != null
+      allow read: if isSignedIn()
         && (request.auth.uid == resource.data.studentId
             || request.auth.uid == resource.data.universityId);
 
-      // Student may only withdraw their own application, not touch any
-      // review-related field.
-      allow update: if request.auth != null
+      // Student may only withdraw their own application.
+      allow update: if isSignedIn()
         && request.auth.uid == resource.data.studentId
-        && request.resource.data.diff(resource.data).affectedKeys()
-              .hasOnly(['status'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
         && request.resource.data.status == 'withdrawn';
 
-      // University may update review fields on applications addressed to
-      // it, but can't reassign the application to a different student or
-      // university out from under the record.
+      // University may update review fields on applications addressed to it.
       allow update: if isApprovedUniAdmin()
         && resource.data.universityId == request.auth.uid
         && !request.resource.data.diff(resource.data).affectedKeys()
               .hasAny(['studentId', 'universityId']);
 
-      allow delete: if request.auth != null
+      allow delete: if isSignedIn()
         && request.auth.uid == resource.data.studentId;
     }
 
-    // Student profiles - owner only.
+    // Student profiles — owner only.
     match /student_profiles/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read, write: if isOwner(uid);
     }
 
-    // Users - owner can read/create their own doc, but cannot self-modify
-    // the fields that gate access (role, approvalStatus). Previously the
-    // rule was a blanket `allow write: if auth.uid == uid`, meaning a
-    // newly-registered (pending) user could simply edit their own
-    // Firestore document to set approvalStatus: 'approved' or role:
-    // 'admin' directly, bypassing any review process entirely.
+    // Users
     match /users/{uid} {
-      allow read: if request.auth != null && request.auth.uid == uid;
+      allow read: if isOwner(uid);
 
-      allow create: if request.auth != null
-        && request.auth.uid == uid
-        && request.resource.data.approvalStatus == 'pending';
+      // FIXED: student registration does NOT write approvalStatus.
+      // Only require approvalStatus == 'pending' when the field IS present
+      // (university admin registrations set it; student registrations don't).
+      allow create: if isOwner(uid)
+        && (
+          // Student path: role must be 'student', no approvalStatus required
+          (request.resource.data.role == 'student'
+           && !request.resource.data.keys().hasAll(['approvalStatus']))
+          ||
+          // University admin path: must set pending status
+          (request.resource.data.role == 'uni_admin'
+           && request.resource.data.approvalStatus == 'pending')
+        );
 
-      allow update: if request.auth != null
-        && request.auth.uid == uid
+      allow update: if isOwner(uid)
         && !request.resource.data.diff(resource.data).affectedKeys()
               .hasAny(['role', 'approvalStatus']);
 
-      // Documents subcollection: used by eduing-student for onboarding
-      // uploads (marksheets, ID proof) — path is
-      // users/{uid}/documents/{docId}, written from
-      // lib/firebase/student.ts. Firestore subcollections don't inherit
-      // the parent match's rules, so this needs its own block or the
-      // feature fails closed.
+      // Documents subcollection for onboarding uploads
       match /documents/{docId} {
-        allow read, write: if request.auth != null && request.auth.uid == uid;
+        allow read, write: if isOwner(uid);
       }
     }
 
-    // Notifications - recipient-scoped read/dismiss. Previously `allow
-    // create: if request.auth != null` let any signed-in user create a
-    // notification addressed to any other user's userId (a spam/phishing
-    // vector impersonating the platform). Creation is now restricted to
-    // an approved university notifying its own applicants, or a user
-    // notifying themselves.
+    // Notifications — recipient-scoped.
     match /notifications/{id} {
-      allow read: if request.auth != null
+      allow read: if isSignedIn()
         && request.auth.uid == resource.data.userId;
 
-      allow update, delete: if request.auth != null
+      allow update, delete: if isSignedIn()
         && request.auth.uid == resource.data.userId;
 
-      allow create: if request.auth != null
+      allow create: if isSignedIn()
         && (request.resource.data.userId == request.auth.uid
             || isApprovedUniAdmin());
+    }
+
+    // Payments — student reads their own payments only. Writes are
+    // platform-only (Cloud Functions / admin SDK); students cannot
+    // create or modify payment records from the client.
+    match /payments/{id} {
+      allow read: if isSignedIn()
+        && request.auth.uid == resource.data.userId;
+
+      allow create, update, delete: if false;
+    }
+
+    // Scholarships — public read, platform write only.
+    match /scholarships/{id} {
+      allow read: if true;
+      allow write: if false;
     }
   }
 }
