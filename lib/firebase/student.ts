@@ -1,7 +1,8 @@
+// lib/firebase/student.ts
 import {
   doc, updateDoc, onSnapshot,
   serverTimestamp, setDoc, collection,
-  query, orderBy, getDocs, where
+  query, orderBy, where
 } from 'firebase/firestore'
 import {
   ref, uploadBytes, getDownloadURL
@@ -10,11 +11,15 @@ import { db, storage } from './config'
 import { UserProfile, UserDocument } from '@/types/firebase'
 import { compressImage } from '../utils/compression'
 
+const log = (...args: unknown[]) => {
+  if (process.env.NODE_ENV === 'development') console.error(...args)
+}
+
 // Listen to user profile (real-time)
 export function listenUserProfile(
   uid: string,
   callback: (profile: UserProfile | null) => void,
-  errorCallback?: (error: any) => void
+  errorCallback?: (error: unknown) => void
 ) {
   return onSnapshot(
     doc(db, 'student_profiles', uid),
@@ -26,8 +31,8 @@ export function listenUserProfile(
       }
     },
     (err) => {
-      console.error(`[FIREBASE_ERROR] listenUserProfile:`, err)
-      if (errorCallback) errorCallback(err)
+      log('[listenUserProfile]', err)
+      errorCallback?.(err)
     }
   )
 }
@@ -53,14 +58,10 @@ export async function uploadProfilePhoto(
 ) {
   try {
     const compressed = await compressImage(file)
-    
     const path = `student_profiles/${uid}/profile_photo`
     const storageRef = ref(storage, path)
-    
     await uploadBytes(storageRef, compressed)
-    
     const url = await getDownloadURL(storageRef)
-    
     await updateDoc(
       doc(db, 'student_profiles', uid),
       {
@@ -68,18 +69,12 @@ export async function uploadProfilePhoto(
         updatedAt: serverTimestamp(),
       }
     )
-    
     return url
-  } catch (err) {
-    console.error(`[STORAGE_ERROR] Photo upload failed for ${uid}:`, err)
+  } catch (err: unknown) {
+    log('[uploadProfilePhoto] failed for uid:', uid, err)
     throw err
   }
 }
-
-/** 
- * DOCUMENTS SYSTEM (Subcollection)
- * Path: users/{uid}/documents/{docId}
- */
 
 // Upload student document to subcollection
 export async function uploadUserDocument(
@@ -88,15 +83,12 @@ export async function uploadUserDocument(
   docId: '10th_marksheet' | '12th_marksheet' | 'id_proof' | 'passport_photo'
 ) {
   try {
-    const compressed = await compressImage(file, 1200, 1200, 0.8) // Higher quality for docs
-    
+    const compressed = await compressImage(file, 1200, 1200, 0.8)
+    // Storage path must match storage.rules: users/{uid}/documents/{docId}
     const path = `users/${uid}/documents/${docId}`
     const storageRef = ref(storage, path)
-    
     await uploadBytes(storageRef, compressed)
-    
     const url = await getDownloadURL(storageRef)
-    
     await setDoc(
       doc(db, 'users', uid, 'documents', docId),
       {
@@ -105,10 +97,9 @@ export async function uploadUserDocument(
         uploadedAt: serverTimestamp(),
       }
     )
-    
     return url
-  } catch (err) {
-    console.error(`[STORAGE_ERROR] Document ${docId} failed for ${uid}:`, err)
+  } catch (err: unknown) {
+    log('[uploadUserDocument]', docId, 'failed for uid:', uid, err)
     throw err
   }
 }
@@ -117,34 +108,37 @@ export async function uploadUserDocument(
 export function listenUserDocuments(
   uid: string,
   callback: (docs: Record<string, UserDocument>) => void,
-  errorCallback?: (error: any) => void
+  errorCallback?: (error: unknown) => void
 ) {
   const colRef = collection(db, 'users', uid, 'documents')
-  return onSnapshot(colRef, (snap) => {
-    const docs: Record<string, UserDocument> = {}
-    snap.docs.forEach(d => {
-      docs[d.id] = d.data() as UserDocument
-    })
-    callback(docs)
-  }, (err) => {
-    console.error(`[FIREBASE_ERROR] listenUserDocuments:`, err)
-    if (errorCallback) errorCallback(err)
-  })
+  return onSnapshot(
+    colRef,
+    (snap) => {
+      const docs: Record<string, UserDocument> = {}
+      snap.docs.forEach(d => {
+        docs[d.id] = d.data() as UserDocument
+      })
+      callback(docs)
+    },
+    (err) => {
+      log('[listenUserDocuments]', err)
+      errorCallback?.(err)
+    }
+  )
 }
 
-// Remove profile photo
+// Remove profile photo URL from student_profiles (consistent collection)
 export async function removeProfilePhoto(uid: string) {
-  await updateDoc(doc(db, 'users', uid), {
+  await updateDoc(doc(db, 'student_profiles', uid), {
     profilePhotoURL: '',
     updatedAt: serverTimestamp()
   })
 }
 
-// Delete document
+// Soft-delete document — mark as removed (not 'rejected')
 export async function deleteUserDocument(uid: string, docId: string) {
-  // We keep the storage file for audit, but remove from firestore
   await updateDoc(doc(db, 'users', uid, 'documents', docId), {
-    status: 'rejected', // or deleteDoc if preferred
+    status: 'removed',
     fileUrl: '',
     uploadedAt: serverTimestamp()
   })
@@ -154,33 +148,32 @@ export async function deleteUserDocument(uid: string, docId: string) {
 export function listenUserPayments(
   uid: string,
   callback: (payments: any[]) => void,
-  errorCallback?: (error: any) => void
+  errorCallback?: (error: unknown) => void
 ) {
   const colRef = collection(db, 'payments')
   const q = query(colRef, where('userId', '==', uid), orderBy('createdAt', 'desc'))
-  return onSnapshot(q, (snap) => {
-    callback(snap.docs.map(d => ({ id: d.id, ...d.data() })))
-  }, (err) => {
-    console.error(`[FIREBASE_ERROR] listenUserPayments:`, err)
-    if (errorCallback) errorCallback(err)
-  })
+  return onSnapshot(
+    q,
+    (snap) => {
+      callback(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+    },
+    (err) => {
+      log('[listenUserPayments]', err)
+      errorCallback?.(err)
+    }
+  )
 }
 
 // Calculate profile completion percentage
 export function calculateProfileCompletion(profile: UserProfile, docsCount: number = 0): number {
   const fields: (keyof UserProfile)[] = [
-    'fullName', 'email', 'phone', 'dob', 'gender', 
+    'fullName', 'email', 'phone', 'dob', 'gender',
     'category', 'address', 'state', 'nationality', 'profilePhotoURL',
     'tenthPercentage', 'twelfthPercentage'
-  ];
-  
-  const completedFields = fields.filter(f => !!profile[f]);
-  let score = (completedFields.length / fields.length) * 80; // 80% weightage
-  
-  // Add 20% for documents
-  if (docsCount >= 4) score += 20;
-  else score += (docsCount / 4) * 20;
-
-  return Math.min(100, Math.round(score));
+  ]
+  const completedFields = fields.filter(f => !!profile[f])
+  let score = (completedFields.length / fields.length) * 80
+  if (docsCount >= 4) score += 20
+  else score += (docsCount / 4) * 20
+  return Math.min(100, Math.round(score))
 }
-
