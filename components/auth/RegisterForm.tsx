@@ -1,4 +1,5 @@
 // components/auth/RegisterForm.tsx
+/* eslint-disable jsx-a11y/label-has-associated-control */
 'use client'
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -253,8 +254,8 @@ export default function RegisterForm() {
                     { label: 'Score / Rank', key: 'entranceScore', placeholder: '0' },
                   ].map(({ label, key, placeholder, type }) => (
                     <div key={key}>
-                      <label className={labelClasses} style={{ color: 'var(--text-secondary)' }}>{label}</label>
-                      <input className={inputClasses} style={inputStyle}
+                      <label htmlFor={key} className={labelClasses} style={{ color: 'var(--text-secondary)' }}>{label}</label>
+                      <input id={key} className={inputClasses} style={inputStyle}
                         type={type ?? 'number'} placeholder={placeholder}
                         value={formData[key as keyof typeof formData] as string}
                         onChange={e => update({ [key]: e.target.value })} />

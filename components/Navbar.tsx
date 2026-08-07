@@ -46,8 +46,7 @@ export default function Navbar() {
   }
 
   const navLinks = [
-    { name: 'Universities', href: '/universities' },
-    { name: 'Programs', href: '/programs' },
+    { name: 'Universities', href: '/student/universities' },
     { name: 'About', href: '/about' },
   ]
 

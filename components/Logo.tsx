@@ -19,18 +19,20 @@ export default function Logo({ height = 32, href = "/", onClick }: { height?: nu
       <Image
         src="/bandwlogo.PNG"
         alt="EDUING Logo"
-        width={height}
-        height={height}
-        style={{ width: 'auto', height: 'auto', objectFit: 'contain', filter: 'invert(1)' }}
+        width={326}
+        height={429}
+        className="w-auto object-contain mix-blend-multiply dark:invert dark:mix-blend-screen transition-all shrink-0"
+        style={{ height: `${height}px` }}
+        priority
       />
       {/* Text */}
-      <span style={{ lineHeight: 1 }}>
+      <span className="flex items-center" style={{ lineHeight: 1 }}>
         <span style={{
           fontFamily: 'var(--font-inter), sans-serif',
           fontSize: `${19 * scale}px`,
           fontWeight: '900',
           letterSpacing: '-0.03em',
-          color: '#FAFAFA',
+          color: 'var(--text-primary)',
         }}>EDU</span>
         <span style={{
           fontFamily: 'var(--font-inter), sans-serif',
@@ -45,6 +47,8 @@ export default function Logo({ height = 32, href = "/", onClick }: { height?: nu
           fontWeight: '700',
           color: '#6366F1',
           letterSpacing: '0',
+          alignSelf: 'flex-end',
+          paddingBottom: `${3 * scale}px`
         }}>.in</span>
       </span>
     </Link>
