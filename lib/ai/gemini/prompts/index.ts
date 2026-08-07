@@ -191,16 +191,21 @@ You MUST rely ONLY on the provided deterministic scores, probabilities, and cont
 Context Provided:
 ${JSON.stringify(context, null, 2)}
 
-Return your analysis as a valid JSON object matching this schema:
+Return your analysis as a valid JSON object matching this exact schema. Each field (except summary and finalVerdict) must contain an object with 'winner' (the name of the university) and 'reason' (a concise explanation of WHY based on data):
 {
   "summary": "A concise, 3-sentence personalized comparison summary highlighting the best fit, safe choice, and required improvements.",
-  "bestOverallChoice": "Name of the university that represents the strongest holistic option.",
-  "safestOption": "Name of the university with the highest admission probability and lowest risk.",
-  "mostAmbitiousChoice": "Name of the university that is a reach but offers great potential.",
-  "actionableAdvice": [
-    "Actionable step 1 (e.g. 'To improve your BITS chances, upload your entrance score')",
-    "Actionable step 2"
-  ]
+  "overallWinner": { "winner": "University Name", "reason": "Explanation" },
+  "bestROI": { "winner": "University Name", "reason": "Explanation" },
+  "bestPlacements": { "winner": "University Name", "reason": "Explanation" },
+  "bestAcademics": { "winner": "University Name", "reason": "Explanation" },
+  "bestResearch": { "winner": "University Name", "reason": "Explanation" },
+  "bestCampusLife": { "winner": "University Name", "reason": "Explanation" },
+  "bestScholarships": { "winner": "University Name", "reason": "Explanation" },
+  "bestStudentExperience": { "winner": "University Name", "reason": "Explanation" },
+  "bestInternationalExposure": { "winner": "University Name", "reason": "Explanation" },
+  "safestAdmission": { "winner": "University Name", "reason": "Explanation" },
+  "stretchChoice": { "winner": "University Name", "reason": "Explanation" },
+  "finalVerdict": "A 2-sentence final recommendation telling the student exactly what to do next based on their profile."
 }
 Make sure the response contains ONLY the valid JSON and no markdown formatting or backticks around it.`;
   }

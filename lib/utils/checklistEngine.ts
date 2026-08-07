@@ -109,7 +109,7 @@ export function generateAdmissionChecklist(data: {
       priority: 'Low',
       estimatedTime: 2,
       actionLabel: 'Explore',
-      actionUrl: '/student/discover',
+      actionUrl: '/student/universities',
       iconType: 'Bookmark'
     });
   }
