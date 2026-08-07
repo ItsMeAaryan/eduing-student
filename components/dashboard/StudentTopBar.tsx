@@ -12,7 +12,6 @@ const PAGE_TITLES: Record<string, string> = {
     '/student/applications': 'My Applications',
     '/student/universities': 'Universities',
     '/student/scholarships': 'Scholarships',
-    '/student/discover': 'Discover',
     '/student/saved': 'Saved',
     '/student/compare': 'Compare',
     '/student/calendar': 'Calendar',
