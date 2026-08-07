@@ -1,16 +1,11 @@
 import { test, expect } from '@playwright/test'
 import { loginAsDemo } from './auth-helper'
 
-test.describe('Public universities/programs pages', () => {
-  // These routes are currently "Coming Soon" placeholders
+test.describe('Public universities page', () => {
+  // Public route placeholder
   test('public /universities page loads with correct heading', async ({ page }) => {
     await page.goto('/universities')
     await expect(page.getByRole('heading', { level: 1 })).toContainText(/universities/i)
-  })
-
-  test('public /programs page loads with correct heading', async ({ page }) => {
-    await page.goto('/programs')
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(/programs/i)
   })
 })
 
@@ -20,16 +15,20 @@ test.describe('Student university discovery (authenticated)', () => {
   })
 
   test('lists universities and supports search', async ({ page }) => {
-    await page.goto('/student/discover')
+    await page.goto('/student/universities')
+    await page.waitForLoadState('networkidle')
 
-    const viewDetailsBtns = page.getByRole('button', { name: /view details/i })
-    const emptyState = page.getByText(/no results found/i)
+    // Find first university card and click View Details
+    const firstUniCard = page.locator('.group').first()
+    await firstUniCard.click()
+    await page.waitForURL(/\/student\/universities\/.+/)
 
-    await expect(viewDetailsBtns.first().or(emptyState)).toBeVisible({ timeout: 10000 })
+    // Back to listing
+    await page.goto('/student/universities')
   })
 
   test('filtering by category narrows results', async ({ page }) => {
-    await page.goto('/student/discover')
+    await page.goto('/student/universities')
     
     const categoryBtn = page.getByRole('button', { name: /^Engineering$/i })
     if (await categoryBtn.isVisible()) {

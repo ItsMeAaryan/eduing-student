@@ -7,7 +7,7 @@ test.describe('Discovery & Comparison Workflows', () => {
   });
 
   test('Discover Universities - Search and filter', async ({ page }) => {
-    await page.goto('/student/discover');
+    await page.goto('/student/universities');
     await expect(page.getByText('Discover Universities')).toBeVisible();
 
     const searchInput = page.getByPlaceholder(/What are the best Computer Science colleges/i);

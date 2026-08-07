@@ -7,7 +7,7 @@ test.describe('Application submission', () => {
   });
 
   test('browse programs → apply → confirmation', async ({ page }) => {
-    await page.goto('/student/discover');
+    await page.goto('/student/universities');
 
     // "View Details" on the discover card navigates to the university detail page
     const viewDetailsBtn = page.getByRole('button', { name: /view details/i }).first();
@@ -35,7 +35,7 @@ test.describe('Application submission', () => {
   });
 
   test('an unverified student cannot submit an application', async ({ page }) => {
-    await page.goto('/student/discover');
+    await page.goto('/student/universities');
     const viewDetailsBtn = page.getByRole('button', { name: /view details/i }).first();
     await viewDetailsBtn.waitFor({ state: 'visible' });
     await viewDetailsBtn.click();
