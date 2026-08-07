@@ -1,5 +1,7 @@
 /* app/globals.css */
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* ─── Notion-Inspired Design Tokens ─────────────────────────────────── */
 :root {
