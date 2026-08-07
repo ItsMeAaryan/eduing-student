@@ -6,7 +6,7 @@ import Link from 'next/link'
 import {
     LayoutDashboard, FileText, Building2, BookOpen,
     Bell, Settings, Bookmark, GitCompare, Compass,
-    Bot, Briefcase, FileUser, Mail, MessageSquare,
+    Bot, Briefcase, User, Mail, MessageSquare,
     GraduationCap, ChevronLeft, ChevronRight, X,
     CalendarDays
 } from 'lucide-react'
@@ -24,18 +24,15 @@ const primaryNav: NavItem[] = [
     { label: 'Dashboard', href: '/student/dashboard', icon: LayoutDashboard },
     { label: 'Applications', href: '/student/applications', icon: FileText },
     { label: 'Universities', href: '/student/universities', icon: Building2 },
-    { label: 'Programs', href: '/programs', icon: GraduationCap },
     { label: 'Scholarships', href: '/student/scholarships', icon: BookOpen },
-    { label: 'Discover', href: '/student/discover', icon: Compass },
     { label: 'Saved', href: '/student/saved', icon: Bookmark },
-    { label: 'Compare', href: '/student/compare', icon: GitCompare },
     { label: 'Calendar', href: '/student/calendar', icon: CalendarDays },
 ]
 
 const aiNav: NavItem[] = [
     { label: 'AI Copilot', href: '/student/copilot', icon: Bot },
     { label: 'Career', href: '/student/career', icon: Briefcase },
-    { label: 'Resume', href: '/student/resume', icon: FileUser },
+    { label: 'Resume', href: '/student/resume', icon: User },
     { label: 'SOP Builder', href: '/student/sop', icon: FileText },
     { label: 'Email Writer', href: '/student/email', icon: Mail },
     { label: 'Interview Prep', href: '/student/interview', icon: MessageSquare },
