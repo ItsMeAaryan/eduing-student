@@ -4,7 +4,7 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: '*',
-      allow: ['/', '/about', '/programs', '/universities'],
+      allow: ['/', '/about', '/universities'],
       disallow: ['/student/', '/admin/', '/auth/'],
     },
     // TODO: confirm actual production domain
