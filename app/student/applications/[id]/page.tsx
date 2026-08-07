@@ -97,8 +97,8 @@ export default function ApplicationDetailsPage() {
     { id: 'passport_photo', label: 'Passport Photo' },
   ]
 
-  const appliedDate = application.appliedAt?.toDate?.()
-  const updatedDate = application.updatedAt?.toDate?.()
+  const appliedDate = (application as any).appliedAt?.toDate?.()
+  const updatedDate = (application as any).updatedAt?.toDate?.()
 
   return (
     <ProtectedRoute allowedRoles={['student']}>
