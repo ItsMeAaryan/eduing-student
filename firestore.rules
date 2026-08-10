@@ -2,137 +2,63 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function isSignedIn() {
-      return request.auth != null;
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    function isOwner(uid) {
-      return isSignedIn() && request.auth.uid == uid;
-    }
+    match /universities/{universityId} {
+      allow read, write: if request.auth != null && request.auth.uid == universityId;
 
-    function isApprovedUniAdmin() {
-      return isSignedIn()
-        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'uni_admin'
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.approvalStatus == 'approved';
-    }
-
-    // Universities — only approved ones are publicly readable.
-    // Unapproved (pending/rejected) require authentication and ownership.
-    match /universities/{id} {
-      allow read: if resource.data.approvalStatus == 'approved'
-        || (isSignedIn() && request.auth.uid == id);
-
-      allow create: if isSignedIn()
-        && request.auth.uid == id
-        && request.resource.data.approvalStatus == 'pending'
-        && request.resource.data.isVerified == false;
-
-      allow update: if isSignedIn()
-        && request.auth.uid == id
-        && !request.resource.data.diff(resource.data).affectedKeys()
-              .hasAny(['approvalStatus', 'isVerified', 'isFeatured', 'rating']);
-
-      allow delete: if isSignedIn() && request.auth.uid == id;
-    }
-
-    // Programs — public read, approved uni admin write scoped to their own uni.
-    match /programs/{id} {
-      allow read: if true;
-
-      allow create: if isApprovedUniAdmin()
-        && request.resource.data.universityId == request.auth.uid;
-
-      allow update, delete: if isApprovedUniAdmin()
-        && resource.data.universityId == request.auth.uid;
-    }
-
-    // Applications
-    match /applications/{id} {
-      allow create: if isSignedIn()
-        && request.resource.data.studentId == request.auth.uid
-        && request.resource.data.status == 'submitted';
-
-      allow read: if isSignedIn()
-        && (request.auth.uid == resource.data.studentId
-            || request.auth.uid == resource.data.universityId);
-
-      // Student may only withdraw their own application.
-      allow update: if isSignedIn()
-        && request.auth.uid == resource.data.studentId
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
-        && request.resource.data.status == 'withdrawn';
-
-      // University may update review fields on applications addressed to it.
-      allow update: if isApprovedUniAdmin()
-        && resource.data.universityId == request.auth.uid
-        && !request.resource.data.diff(resource.data).affectedKeys()
-              .hasAny(['studentId', 'universityId']);
-
-      allow delete: if isSignedIn()
-        && request.auth.uid == resource.data.studentId;
-    }
-
-    // Student profiles — owner only.
-    match /student_profiles/{uid} {
-      allow read, write: if isOwner(uid);
-    }
-
-    // Users
-    match /users/{uid} {
-      allow read: if isOwner(uid);
-
-      // FIXED: student registration does NOT write approvalStatus.
-      // Only require approvalStatus == 'pending' when the field IS present
-      // (university admin registrations set it; student registrations don't).
-      allow create: if isOwner(uid)
-        && (
-          // Student path: role must be 'student', no approvalStatus required
-          (request.resource.data.role == 'student'
-           && !request.resource.data.keys().hasAll(['approvalStatus']))
-          ||
-          // University admin path: must set pending status
-          (request.resource.data.role == 'uni_admin'
-           && request.resource.data.approvalStatus == 'pending')
-        );
-
-      allow update: if isOwner(uid)
-        && !request.resource.data.diff(resource.data).affectedKeys()
-              .hasAny(['role', 'approvalStatus']);
-
-      // Documents subcollection for onboarding uploads
-      match /documents/{docId} {
-        allow read, write: if isOwner(uid);
+      match /staff/{staffId} {
+        allow read, write: if request.auth != null && request.auth.uid == universityId;
+      }
+      match /invitations/{inviteId} {
+        allow read, write: if request.auth != null && request.auth.uid == universityId;
+      }
+      match /audit_logs/{logId} {
+        allow read, write: if request.auth != null && request.auth.uid == universityId;
+      }
+      match /notifications/{notifId} {
+        allow read, write: if request.auth != null && request.auth.uid == universityId;
       }
     }
 
-    // Notifications — recipient-scoped.
-    match /notifications/{id} {
-      allow read: if isSignedIn()
-        && request.auth.uid == resource.data.userId;
-
-      allow update, delete: if isSignedIn()
-        && request.auth.uid == resource.data.userId;
-
-      allow create: if isSignedIn()
-        && (request.resource.data.userId == request.auth.uid
-            || isApprovedUniAdmin());
+    match /applications/{appId} {
+      allow read: if request.auth != null && (
+        request.auth.uid == resource.data.universityId ||
+        request.auth.uid == resource.data.studentId
+      );
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && (
+        request.auth.uid == resource.data.universityId ||
+        request.auth.uid == resource.data.studentId
+      );
     }
 
-    // Payments — student reads their own payments only. Writes are
-    // platform-only (Cloud Functions / admin SDK); students cannot
-    // create or modify payment records from the client.
-    match /payments/{id} {
-      allow read: if isSignedIn()
-        && request.auth.uid == resource.data.userId;
-
-      allow create, update, delete: if false;
-    }
-
-    // Scholarships — public read, platform write only.
-    match /scholarships/{id} {
+    match /programs/{programId} {
       allow read: if true;
-      allow write: if false;
+      allow write: if request.auth != null && request.auth.uid == resource.data.universityId;
+      allow create: if request.auth != null;
+    }
+
+    match /scholarships/{scholarshipId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    match /payments/{paymentId} {
+      allow read, write: if request.auth != null && (
+        request.auth.uid == resource.data.userId ||
+        request.auth.uid == resource.data.universityId
+      );
+    }
+
+    match /documents/{docId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+
+    match /notifications/{notifId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
     }
   }
 }
