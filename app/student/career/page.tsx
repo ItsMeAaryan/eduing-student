@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, Suspense } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStudentData } from '@/components/providers/StudentDataProvider';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -11,91 +12,391 @@ import { recommendUniversities } from '@/lib/utils/recommendationEngine';
 import { calculateScholarshipEligibility } from '@/lib/utils/scholarshipEngine';
 
 import {
-  Sparkles, Briefcase, BookOpen, ChevronRight,
-  Compass, Zap, TrendingUp, RefreshCcw
+  Sparkles, Briefcase, ChevronRight, Compass, Zap,
+  TrendingUp, RefreshCcw, IndianRupee, GraduationCap,
+  CheckCircle2, Clock, Circle, ArrowRight
 } from 'lucide-react';
+import AIMarkdown from '@/components/ai/AIMarkdown';
 
-// ─── Skill Gap Bar ─────────────────────────────────────────────────────────────
-function SkillGapBar({ skill, current, required }: { skill: string; current: number; required: number }) {
-  const color = current >= required ? '#10B981' : current >= required * 0.6 ? '#F59E0B' : '#EF4444';
+// ─── Types ───────────────────────────────────────────────────────────────────
+interface CareerFormState {
+  careerInterest: string;
+  degreeLevel: string;
+  strengths: string[];
+  targetGoal: string;
+  timeline: string;
+}
+
+const STRENGTHS_OPTIONS = [
+  'Technology', 'Science', 'Arts', 'Commerce',
+  'Management', 'Healthcare', 'Law', 'Design', 'Other',
+];
+
+const DEGREE_LEVELS = ['UG', 'PG', 'Diploma', 'Certificate'];
+const TIMELINES = ['6 months', '1 year', '2 years', '3+ years'];
+const GOALS = [
+  { value: 'top_college', label: 'Get into Top College' },
+  { value: 'build_skill', label: 'Build a Skill' },
+  { value: 'switch_career', label: 'Switch Career' },
+  { value: 'explore', label: 'Explore Options' },
+];
+
+const MILESTONE_COLORS = ['#F59E0B', '#10B981', '#6366F1', '#EC4899'];
+
+// ─── Roadmap Timeline ────────────────────────────────────────────────────────
+function RoadmapTimeline({ steps }: { steps: any[] }) {
+  const statuses = ['done', 'in-progress', 'upcoming', 'upcoming'];
+  const timeLabels = ['Month 1–3', 'Month 4–6', 'Month 7–12', 'Year 2+'];
   return (
-    <div className="flex items-center gap-3">
-      <span className="text-[12px] text-muted-foreground w-32 shrink-0 truncate">{skill}</span>
-      <div className="flex-1 relative h-2 rounded-full bg-secondary overflow-hidden">
-        <motion.div className="absolute inset-y-0 left-0 rounded-full"
-          style={{ background: color }}
-          initial={{ width: 0 }}
-          animate={{ width: `${Math.min(100, current)}%` }}
-          transition={{ duration: 0.8, ease: 'easeOut', delay: 0.2 }}
-        />
-      </div>
-      <span className="text-[11px] font-semibold w-8 text-right shrink-0" style={{ color }}>{current}%</span>
+    <div className="flex flex-col">
+      {steps.map((step: any, idx: number) => {
+        const status = statuses[Math.min(idx, statuses.length - 1)];
+        const isLast = idx === steps.length - 1;
+        const color = MILESTONE_COLORS[idx % MILESTONE_COLORS.length];
+        const timeLabel = timeLabels[Math.min(idx, timeLabels.length - 1)];
+        return (
+          <motion.div
+            key={idx}
+            className="flex gap-4"
+            initial={{ opacity: 0, x: -12 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: idx * 0.1 + 0.1 }}
+          >
+            <div className="flex flex-col items-center">
+              <div
+                className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 z-10 border-2"
+                style={{
+                  borderColor: color,
+                  background: status === 'done' ? color : status === 'in-progress' ? `${color}22` : 'var(--bg-card)',
+                }}
+              >
+                {status === 'done' ? (
+                  <CheckCircle2 size={16} color="#fff" />
+                ) : status === 'in-progress' ? (
+                  <Clock size={14} style={{ color }} />
+                ) : (
+                  <Circle size={14} style={{ color }} />
+                )}
+              </div>
+              {!isLast && (
+                <div className="w-0.5 flex-1 mt-1" style={{ background: `linear-gradient(to bottom, ${color}60, transparent)`, minHeight: 32 }} />
+              )}
+            </div>
+            <div className="flex-1 pb-8">
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                <span className="text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border"
+                  style={{ background: `${color}18`, borderColor: `${color}40`, color }}>
+                  {timeLabel}
+                </span>
+                <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                  status === 'done' ? 'bg-emerald-50 text-emerald-600 border border-emerald-200'
+                    : status === 'in-progress' ? 'bg-amber-50 text-amber-600 border border-amber-200'
+                    : 'bg-gray-50 text-gray-400 border border-gray-200'}`}>
+                  {status === 'done' ? '✓ Done' : status === 'in-progress' ? '▶ In Progress' : '○ Upcoming'}
+                </span>
+              </div>
+              <h4 className="text-[13px] font-semibold text-foreground mb-1">{step.step}</h4>
+              <p className="text-[12px] text-muted-foreground leading-relaxed">{step.description}</p>
+            </div>
+          </motion.div>
+        );
+      })}
     </div>
   );
 }
 
-// ─── Roadmap Step ──────────────────────────────────────────────────────────────
-function RoadmapStep({ step, index, total }: { step: any; index: number; total: number }) {
-  const phases = ['Now', '6 months', '1 year', '3 years+'];
-  const phase = phases[Math.min(index, phases.length - 1)];
-  const isLast = index === total - 1;
-  return (
-    <div className="flex gap-4">
-      <div className="flex flex-col items-center">
-        <motion.div className="w-9 h-9 rounded-full bg-[#FFFBEB] border-2 border-[#FDE68A] flex items-center justify-center shrink-0 z-10"
-          initial={{ scale: 0 }} animate={{ scale: 1 }}
-          transition={{ type: 'spring', stiffness: 200, damping: 15, delay: index * 0.1 }}>
-          <span className="text-[11px] font-bold text-[#D97706]">{index + 1}</span>
-        </motion.div>
-        {!isLast && <div className="w-0.5 flex-1 bg-gradient-to-b from-[#FDE68A] to-transparent mt-1.5" />}
-      </div>
-      <motion.div className="flex-1 pb-7"
-        initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: index * 0.1 + 0.1 }}>
-        <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-[#FFFBEB] border border-[#FDE68A] text-[#D97706] uppercase tracking-wider mb-2 inline-block">{phase}</span>
-        <h4 className="text-[13px] font-semibold text-foreground mb-1">{step.step}</h4>
-        <p className="text-[12px] text-muted-foreground leading-relaxed">{step.description}</p>
-      </motion.div>
-    </div>
-  );
-}
+// ─── Career Path Card ─────────────────────────────────────────────────────────
+function CareerPathCard({ career, idx, profilePct }: { career: any; idx: number; profilePct: number }) {
+  const router = useRouter();
+  const matchPct = Math.min(99, Math.max(60, profilePct + (idx === 0 ? 18 : idx === 1 ? 9 : 2)));
+  const salaries = ['₹6–14 LPA', '₹12–22 LPA', '₹18–35 LPA'];
+  const salary = salaries[idx % salaries.length];
 
-// ─── Learning Card ─────────────────────────────────────────────────────────────
-function LearningCard({ title, platform, level, duration }: { title: string; platform: string; level: string; duration: string }) {
-  const colors: Record<string, { text: string; bg: string; border: string }> = {
-    'Coursera': { text: '#0056D2', bg: '#EFF6FF', border: '#BFDBFE' },
-    'Udemy': { text: '#EC5252', bg: '#FFF1F2', border: '#FECDD3' },
-    'edX': { text: '#374151', bg: '#F9FAFB', border: '#E5E7EB' },
-    'LinkedIn': { text: '#0077B5', bg: '#EFF6FF', border: '#BFDBFE' },
+  const handleExplore = () => {
+    const careerName = career.title || 'Software Engineer';
+    router.push(`/student/universities?career=${encodeURIComponent(careerName)}`);
   };
-  const c = colors[platform] || { text: '#6B7280', bg: '#F9FAFB', border: '#E5E7EB' };
+
   return (
-    <div className="flex items-start gap-3 p-3 rounded-[10px] bg-muted border border-border hover:border-[#D1D5DB] transition-all group cursor-pointer">
-      <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border" style={{ background: c.bg, borderColor: c.border }}>
-        <BookOpen size={12} style={{ color: c.text }} />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-[12px] font-semibold text-foreground leading-snug mb-1 group-hover:text-foreground">{title}</p>
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-[10px] text-muted-foreground">{platform}</span>
-          <span className="text-[10px] text-[#D1D5DB]">·</span>
-          <span className="text-[10px] text-muted-foreground">{level}</span>
-          <span className="text-[10px] text-[#D1D5DB]">·</span>
-          <span className="text-[10px] text-muted-foreground">{duration}</span>
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: idx * 0.1 }}
+      className="bg-card border border-border rounded-[16px] p-6 shadow-sm flex flex-col hover:border-[#FDE68A] hover:shadow-md transition-all group"
+    >
+      <div className="flex items-start justify-between mb-4">
+        <div className="w-11 h-11 bg-[#FFFBEB] border border-[#FDE68A] rounded-[12px] flex items-center justify-center">
+          <Briefcase size={18} className="text-[#F59E0B]" strokeWidth={1.5} />
+        </div>
+        <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200">
+          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-[10px] font-bold text-emerald-700">{matchPct}% match</span>
         </div>
       </div>
-      <ChevronRight size={12} className="text-[#D1D5DB] group-hover:text-muted-foreground transition-colors shrink-0 mt-0.5" />
-    </div>
+      <h3 className="text-[15px] font-semibold text-foreground mb-4 leading-snug">{career.title}</h3>
+      <ul className="flex flex-col gap-2.5 mb-5 flex-1">
+        <li className="flex items-start gap-2">
+          <GraduationCap size={13} className="text-[#F59E0B] shrink-0 mt-0.5" />
+          <span className="text-[12px] text-muted-foreground">
+            <span className="font-medium text-foreground">Qualification: </span>
+            {career.suggestedDegree || "Bachelor's / Master's Degree"}
+          </span>
+        </li>
+        <li className="flex items-start gap-2">
+          <Zap size={13} className="text-[#6366F1] shrink-0 mt-0.5" />
+          <span className="text-[12px] text-muted-foreground">
+            <span className="font-medium text-foreground">Key Skill: </span>
+            {career.requiredSkills?.[0] || 'Domain expertise'}
+          </span>
+        </li>
+        <li className="flex items-start gap-2">
+          <IndianRupee size={13} className="text-emerald-600 shrink-0 mt-0.5" />
+          <span className="text-[12px] text-muted-foreground">
+            <span className="font-medium text-foreground">Avg Salary: </span>
+            {salary} (India)
+          </span>
+        </li>
+      </ul>
+      <button
+        onClick={handleExplore}
+        className="flex items-center justify-center gap-1.5 w-full h-9 rounded-[8px] border border-[#FDE68A] bg-[#FFFBEB] text-[#D97706] text-[12px] font-semibold hover:bg-[#F59E0B] hover:text-white hover:border-[#F59E0B] transition-all"
+      >
+        Explore This Path <ArrowRight size={13} />
+      </button>
+    </motion.div>
   );
 }
 
+// ─── Loading Skeleton ─────────────────────────────────────────────────────────
+function LoadingSkeleton() {
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col gap-5">
+      <div className="bg-card border border-border rounded-[16px] p-6 shadow-sm flex items-center gap-4">
+        <div className="w-14 h-14 relative shrink-0">
+          <div className="absolute inset-0 border-2 border-[#F59E0B]/20 rounded-full animate-[spin_2.5s_linear_infinite]" />
+          <div className="absolute inset-2 border-2 border-[#F59E0B]/40 border-t-[#F59E0B] rounded-full animate-spin" />
+          <Compass size={20} className="absolute inset-0 m-auto text-[#F59E0B] animate-pulse" />
+        </div>
+        <div className="flex-1">
+          <div className="h-4 bg-muted rounded-full w-48 mb-2 animate-pulse" />
+          <div className="h-3 bg-muted rounded-full w-72 animate-pulse" />
+          <p className="text-[11px] text-muted-foreground mt-2">Mapping your profile to career paths…</p>
+        </div>
+      </div>
+      <div className="bg-card border border-border rounded-[16px] p-6 shadow-sm">
+        <div className="h-4 bg-muted rounded-full w-36 mb-5 animate-pulse" />
+        {[0, 1, 2, 3].map(i => (
+          <div key={i} className="flex gap-4 mb-7">
+            <div className="flex flex-col items-center">
+              <div className="w-9 h-9 rounded-full bg-muted animate-pulse" />
+              {i < 3 && <div className="w-0.5 bg-muted mt-1 animate-pulse" style={{ height: 40 }} />}
+            </div>
+            <div className="flex-1 pt-1">
+              <div className="h-3 bg-muted rounded-full w-20 mb-2 animate-pulse" />
+              <div className="h-3.5 bg-muted rounded-full w-48 mb-2 animate-pulse" />
+              <div className="h-2.5 bg-muted rounded-full w-full mb-1 animate-pulse" />
+              <div className="h-2.5 bg-muted rounded-full w-4/5 animate-pulse" />
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {[0, 1, 2].map(i => (
+          <div key={i} className="bg-card border border-border rounded-[16px] p-5 shadow-sm animate-pulse">
+            <div className="w-11 h-11 bg-muted rounded-[12px] mb-4" />
+            <div className="h-4 bg-muted rounded-full w-3/4 mb-3" />
+            <div className="h-3 bg-muted rounded-full w-full mb-2" />
+            <div className="h-3 bg-muted rounded-full w-4/5 mb-2" />
+            <div className="h-3 bg-muted rounded-full w-2/3 mb-5" />
+            <div className="h-9 bg-muted rounded-[8px] w-full" />
+          </div>
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── Phase 1: Input Form ──────────────────────────────────────────────────────
+function InputForm({ form, setForm, onSubmit }: {
+  form: CareerFormState;
+  setForm: React.Dispatch<React.SetStateAction<CareerFormState>>;
+  onSubmit: () => void;
+}) {
+  const toggleStrength = (s: string) => {
+    setForm(prev => ({
+      ...prev,
+      strengths: prev.strengths.includes(s)
+        ? prev.strengths.filter(x => x !== s)
+        : [...prev.strengths, s],
+    }));
+  };
+  const isValid = form.careerInterest.trim().length > 2 && form.degreeLevel && form.targetGoal && form.timeline;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      className="bg-card border border-border rounded-[16px] shadow-sm overflow-hidden"
+    >
+      <div className="px-6 pt-6 pb-4 border-b border-border">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-[#FFFBEB] border border-[#FDE68A] rounded-[12px] flex items-center justify-center shrink-0">
+            <Compass size={18} className="text-[#F59E0B]" strokeWidth={1.8} />
+          </div>
+          <div>
+            <h2 className="text-[15px] font-semibold text-foreground leading-tight">Discover Your Path</h2>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Answer 5 quick questions to get a personalized career roadmap</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-6 flex flex-col gap-6">
+        {/* 1. Career Interest */}
+        <div>
+          <label className="block text-[12px] font-semibold text-foreground mb-1.5">
+            Career Interest <span className="text-[#F59E0B]">*</span>
+          </label>
+          <input
+            id="career-interest-input"
+            type="text"
+            value={form.careerInterest}
+            onChange={e => setForm(p => ({ ...p, careerInterest: e.target.value }))}
+            placeholder="e.g. Software Engineering, Medicine, Law, Finance…"
+            className="w-full h-10 px-3 rounded-[8px] border border-border bg-muted text-[13px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-[#F59E0B]/30 focus:border-[#F59E0B] transition-all"
+          />
+        </div>
+
+        {/* 2. Degree Level */}
+        <div>
+          <label className="block text-[12px] font-semibold text-foreground mb-1.5">
+            Preferred Degree Level <span className="text-[#F59E0B]">*</span>
+          </label>
+          <select
+            id="degree-level-select"
+            value={form.degreeLevel}
+            onChange={e => setForm(p => ({ ...p, degreeLevel: e.target.value }))}
+            className="w-full h-10 px-3 rounded-[8px] border border-border bg-muted text-[13px] text-foreground focus:outline-none focus:ring-2 focus:ring-[#F59E0B]/30 focus:border-[#F59E0B] transition-all cursor-pointer"
+          >
+            <option value="">Select degree level…</option>
+            {DEGREE_LEVELS.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+        </div>
+
+        {/* 3. Strengths */}
+        <div>
+          <label className="block text-[12px] font-semibold text-foreground mb-1.5">
+            Your Strengths <span className="text-[11px] font-normal text-muted-foreground">(select all that apply)</span>
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {STRENGTHS_OPTIONS.map(s => {
+              const selected = form.strengths.includes(s);
+              return (
+                <button
+                  key={s}
+                  id={`strength-chip-${s.toLowerCase()}`}
+                  type="button"
+                  onClick={() => toggleStrength(s)}
+                  className="text-[12px] font-medium px-3 py-1.5 rounded-full border transition-all"
+                  style={{
+                    background: selected ? '#FFFBEB' : 'var(--bg-muted)',
+                    borderColor: selected ? '#F59E0B' : 'var(--border)',
+                    color: selected ? '#D97706' : 'var(--text-muted)',
+                  }}
+                >
+                  {selected && '✓ '}{s}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 4. Target Goal */}
+        <div>
+          <label className="block text-[12px] font-semibold text-foreground mb-2">
+            Target Goal <span className="text-[#F59E0B]">*</span>
+          </label>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {GOALS.map(g => {
+              const selected = form.targetGoal === g.value;
+              return (
+                <label
+                  key={g.value}
+                  id={`goal-option-${g.value}`}
+                  className="flex items-center gap-2 p-3 rounded-[10px] border cursor-pointer transition-all"
+                  style={{
+                    background: selected ? '#FFFBEB' : 'var(--bg-muted)',
+                    borderColor: selected ? '#F59E0B' : 'var(--border)',
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="targetGoal"
+                    value={g.value}
+                    checked={selected}
+                    onChange={() => setForm(p => ({ ...p, targetGoal: g.value }))}
+                    className="accent-[#F59E0B] shrink-0"
+                  />
+                  <span className="text-[12px] font-medium leading-tight" style={{ color: selected ? '#D97706' : 'var(--text-muted)' }}>
+                    {g.label}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 5. Timeline */}
+        <div>
+          <label className="block text-[12px] font-semibold text-foreground mb-1.5">
+            Timeline <span className="text-[#F59E0B]">*</span>
+          </label>
+          <select
+            id="timeline-select"
+            value={form.timeline}
+            onChange={e => setForm(p => ({ ...p, timeline: e.target.value }))}
+            className="w-full h-10 px-3 rounded-[8px] border border-border bg-muted text-[13px] text-foreground focus:outline-none focus:ring-2 focus:ring-[#F59E0B]/30 focus:border-[#F59E0B] transition-all cursor-pointer"
+          >
+            <option value="">Select timeline…</option>
+            {TIMELINES.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </div>
+
+        {/* CTA */}
+        <button
+          id="generate-roadmap-btn"
+          type="button"
+          onClick={onSubmit}
+          disabled={!isValid}
+          className="flex items-center justify-center gap-2 w-full h-11 rounded-[10px] bg-[#F59E0B] hover:bg-[#D97706] text-white text-[14px] font-semibold transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed mt-1"
+        >
+          <Sparkles size={15} />
+          Generate My Career Roadmap
+        </button>
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── Main Content ─────────────────────────────────────────────────────────────
 function CareerAdvisorContent() {
   const { profile, documents, uniqueApps, savedPrograms, universities: allUniversities, scholarships } = useStudentData();
   const { data: careerData, isGenerating: loading, generate, error } = useAIGeneration<any>();
 
   const profileEngine = useMemo(() => calculateProfileStrength(profile, documents || []), [profile, documents]);
 
+  const [form, setForm] = useState<CareerFormState>({
+    careerInterest: '',
+    degreeLevel: '',
+    strengths: [],
+    targetGoal: '',
+    timeline: '',
+  });
+
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+
   const handleGenerate = async () => {
+    setHasSubmitted(true);
     const recommendations = recommendUniversities(allUniversities, {
       profile, documents: documents || [], applications: uniqueApps || [],
       savedPrograms: savedPrograms || [], profileScore: profileEngine.percentage
@@ -106,23 +407,25 @@ function CareerAdvisorContent() {
     await generate(() => CareerAdvisorService.getCareerPaths({
       studentProfile: profile,
       profileStrength: profileEngine.percentage,
-      topRecommendations: recommendations.slice(0, 3).map(r => r.university.name),
-      topScholarships: scholarshipResults.slice(0, 2).map(s => s.scholarship.name)
+      topRecommendations: recommendations.slice(0, 3).map((r: any) => r.university.name),
+      topScholarships: scholarshipResults.slice(0, 2).map((s: any) => s.scholarship.name),
+      careerInterest: form.careerInterest,
+      degreeLevel: form.degreeLevel,
+      strengths: form.strengths,
+      targetGoal: GOALS.find(g => g.value === form.targetGoal)?.label || form.targetGoal,
+      timeline: form.timeline,
     }));
   };
 
-  const skillGaps = [
-    { skill: 'Communication', current: Math.min(90, profileEngine.percentage + 10), required: 85 },
-    { skill: 'Research', current: Math.min(80, profileEngine.percentage), required: 75 },
-    { skill: 'Technical Skills', current: Math.min(70, profileEngine.percentage - 5), required: 80 },
-    { skill: 'Leadership', current: Math.min(65, profileEngine.percentage - 15), required: 70 },
-  ];
+  const handleRegenerate = () => {
+    setHasSubmitted(false);
+    setForm({ careerInterest: '', degreeLevel: '', strengths: [], targetGoal: '', timeline: '' });
+    // clear the previous data by reloading component state
+    window.location.reload();
+  };
 
-  const mockLearning = [
-    { title: 'Academic Writing Mastery', platform: 'Coursera', level: 'Intermediate', duration: '4 weeks' },
-    { title: 'Research Methodology', platform: 'edX', level: 'Beginner', duration: '6 weeks' },
-    { title: 'Professional Communication', platform: 'LinkedIn', level: 'All levels', duration: '2 weeks' },
-  ];
+  const showForm = !hasSubmitted && !loading;
+  const showOutput = !!careerData && !loading;
 
   return (
     <div className="flex flex-col gap-5">
@@ -134,248 +437,119 @@ function CareerAdvisorContent() {
             <Compass size={17} strokeWidth={1.8} />
           </div>
           <div>
-            <h1 className="text-[18px] font-semibold text-foreground tracking-tight leading-none">Career Roadmap</h1>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-[18px] font-semibold text-foreground tracking-tight leading-none">Career Roadmap</h1>
+              {showOutput && (
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-600">
+                  Profile {profileEngine.percentage}% complete
+                </span>
+              )}
+            </div>
             <div className="flex items-center gap-1.5 mt-1">
               <span className="w-1.5 h-1.5 rounded-full bg-[#F59E0B] animate-pulse" />
               <span className="text-[11px] text-muted-foreground font-medium">Powered by EDUING AI</span>
             </div>
           </div>
         </div>
-        <button onClick={handleGenerate} disabled={loading}
-          className="flex items-center gap-1.5 px-4 h-[34px] rounded-[8px] bg-[#F59E0B] hover:bg-[#D97706] text-white text-[12px] font-semibold transition-colors disabled:opacity-60 shadow-sm">
-          {loading ? <span className="w-3 h-3 border border-white/40 border-t-white rounded-full animate-spin" /> : <Sparkles size={12} />}
-          {loading ? 'Analyzing…' : careerData ? 'Regenerate' : 'Generate Roadmap'}
-        </button>
+
+        {showOutput && (
+          <button
+            id="regenerate-roadmap-btn"
+            onClick={handleRegenerate}
+            className="flex items-center gap-1.5 px-4 h-[34px] rounded-[8px] border border-border bg-card hover:border-[#FDE68A] hover:bg-[#FFFBEB] text-[12px] font-semibold text-muted-foreground hover:text-[#D97706] transition-all shadow-sm"
+          >
+            <RefreshCcw size={13} />
+            Regenerate
+          </button>
+        )}
       </div>
 
-      {/* ── PAGE CONTENT ─────────────────────────────────────── */}
+      {/* ── CONTENT ────────────────────────────────────────────── */}
+      <AnimatePresence mode="wait">
 
-      {/* Pre-generation state */}
-      {!careerData && !loading && !error && (
-        <div className="flex flex-col gap-4">
-          {/* Hero card */}
-          <div className="bg-card border border-border rounded-[16px] p-8 shadow-sm relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-[#FEF3C7] to-transparent opacity-60 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-            <div className="relative z-10 max-w-xl">
-              <div className="flex items-center gap-3 mb-5">
-                <div className="w-12 h-12 bg-[#FFFBEB] border border-[#FDE68A] rounded-[14px] flex items-center justify-center">
-                  <Compass size={22} className="text-[#F59E0B]" strokeWidth={1.5} />
-                </div>
-                <div>
-                  <h2 className="text-[18px] font-semibold text-foreground">Discover Your Path</h2>
-                  <p className="text-[12px] text-muted-foreground">Personalized for {profile?.fullName || 'you'}</p>
-                </div>
-              </div>
+        {/* Phase 1: Form */}
+        {showForm && (
+          <InputForm key="form" form={form} setForm={setForm} onSubmit={handleGenerate} />
+        )}
 
-              {/* Profile bar */}
-              <div className="bg-muted border border-border rounded-[12px] p-4 mb-6">
-                <div className="flex justify-between mb-2">
-                  <span className="text-[12px] text-muted-foreground font-medium">Profile Strength</span>
-                  <span className="text-[12px] font-bold text-[#F59E0B]">{profileEngine.percentage}%</span>
-                </div>
-                <div className="h-2 rounded-full bg-secondary/80 overflow-hidden">
-                  <motion.div className="h-full rounded-full bg-gradient-to-r from-[#F59E0B] to-[#FBBF24]"
-                    initial={{ width: 0 }} animate={{ width: `${profileEngine.percentage}%` }}
-                    transition={{ duration: 1 }}
-                  />
-                </div>
-                <p className="text-[11px] text-muted-foreground mt-2">Your roadmap is calibrated to your {profileEngine.percentage}% profile.</p>
-              </div>
+        {/* Loading Skeleton */}
+        {loading && <LoadingSkeleton key="skeleton" />}
 
-              <button onClick={handleGenerate}
-                className="flex items-center gap-2 px-6 h-10 rounded-[10px] bg-[#F59E0B] hover:bg-[#D97706] text-white text-[13px] font-semibold transition-colors shadow-sm">
-                <Sparkles size={14} /> Map My Future
-              </button>
-            </div>
-          </div>
+        {/* Error */}
+        {error && !loading && (
+          <motion.div
+            key="error"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="bg-card border border-red-200 rounded-[16px] p-12 shadow-sm flex flex-col items-center text-center"
+          >
+            <Zap size={32} className="text-red-400 mb-3 opacity-60" />
+            <h3 className="text-[15px] font-semibold text-red-500 mb-2">Something went wrong</h3>
+            <p className="text-[12px] text-muted-foreground mb-4">{error}</p>
+            <button
+              onClick={handleRegenerate}
+              className="flex items-center gap-1.5 px-4 h-9 rounded-[8px] border border-border text-[12px] font-semibold text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <RefreshCcw size={13} /> Try Again
+            </button>
+          </motion.div>
+        )}
 
-          {/* Locked teaser cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {['Product Manager', 'Data Scientist', 'UX Researcher'].map((title, i) => (
-              <div key={title} className="bg-card border border-border rounded-[16px] p-5 shadow-sm relative overflow-hidden select-none">
-                <div className="w-10 h-10 bg-[#FFFBEB] border border-[#FDE68A] rounded-[12px] flex items-center justify-center mb-3">
-                  <Briefcase size={16} className="text-[#F59E0B] opacity-40" />
-                </div>
-                <div className="h-3 rounded bg-secondary w-3/4 mb-2" />
-                <div className="h-2 rounded bg-muted w-1/2 mb-1" />
-                <div className="h-2 rounded bg-muted w-2/3" />
-                {/* Blur overlay */}
-                <div className="absolute inset-0 bg-card/70 backdrop-blur-[3px] flex items-center justify-center rounded-[16px]">
-                  <div className="w-8 h-8 bg-[#FFFBEB] border border-[#FDE68A] rounded-full flex items-center justify-center">
-                    <Zap size={14} className="text-[#F59E0B]" />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Error */}
-      {error && (
-        <div className="bg-card border border-border rounded-[16px] p-12 shadow-sm flex flex-col items-center text-center">
-          <Zap size={32} className="text-red-400 mb-3 opacity-60" />
-          <h3 className="text-[15px] font-semibold text-red-500 mb-2">Generation Failed</h3>
-          <p className="text-[12px] text-muted-foreground">{error}</p>
-        </div>
-      )}
-
-      {/* Loading */}
-      {loading && (
-        <div className="bg-card border border-border rounded-[16px] p-16 shadow-sm flex flex-col items-center text-center">
-          <div className="w-16 h-16 relative mb-5">
-            <div className="absolute inset-0 border-2 border-[#F59E0B]/20 rounded-full animate-[spin_2.5s_linear_infinite]" />
-            <div className="absolute inset-2 border-2 border-[#F59E0B]/40 border-t-[#F59E0B] rounded-full animate-spin" />
-            <Compass size={22} className="absolute inset-0 m-auto text-[#F59E0B] animate-pulse" />
-          </div>
-          <h3 className="text-[16px] font-semibold text-foreground mb-2">Analyzing Career Trajectories</h3>
-          <p className="text-[13px] text-muted-foreground">Mapping your profile to global career paths…</p>
-        </div>
-      )}
-
-      {/* Generated content */}
-      {careerData && !loading && (
-        <AnimatePresence>
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col gap-5">
-
-            {/* AI Analysis banner */}
+        {/* Phase 2: Output */}
+        {showOutput && (
+          <motion.div
+            key="output"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col gap-5"
+          >
+            {/* AI Summary */}
             <div className="bg-[#FFFBEB] border border-[#FDE68A] rounded-[16px] p-5 shadow-sm">
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 bg-card border border-[#FDE68A] rounded-[10px] flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 bg-white border border-[#FDE68A] rounded-[10px] flex items-center justify-center shrink-0">
                   <Sparkles size={14} className="text-[#F59E0B]" />
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <p className="text-[11px] font-bold uppercase tracking-wider text-[#D97706] mb-1">AI Analysis</p>
-                  <p className="text-[14px] text-foreground leading-relaxed font-medium">&ldquo;{careerData.summary}&rdquo;</p>
-                </div>
-                <button onClick={handleGenerate} className="shrink-0 text-muted-foreground hover:text-[#F59E0B] transition-colors">
-                  <RefreshCcw size={14} />
-                </button>
-              </div>
-            </div>
-
-            {/* Two-column row: Skill Gaps + Salary Insights */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-              {/* Skill Gap */}
-              <div className="bg-card border border-border rounded-[16px] p-6 shadow-sm">
-                <div className="flex items-center gap-2 mb-1">
-                  <TrendingUp size={16} className="text-foreground" />
-                  <h3 className="text-[14px] font-semibold text-foreground">Skill Gap Analysis</h3>
-                </div>
-                <p className="text-[12px] text-muted-foreground mb-5">Current level vs. required for your target career</p>
-                <div className="flex flex-col gap-3">
-                  {skillGaps.map(sg => <SkillGapBar key={sg.skill} {...sg} />)}
-                </div>
-              </div>
-
-              {/* Salary Insights */}
-              <div className="bg-card border border-border rounded-[16px] p-6 shadow-sm">
-                <div className="flex items-center gap-2 mb-1">
-                  <Briefcase size={16} className="text-foreground" />
-                  <h3 className="text-[14px] font-semibold text-foreground">Salary Insights</h3>
-                </div>
-                <p className="text-[12px] text-muted-foreground mb-5">Expected compensation by seniority</p>
-
-                <div className="flex flex-col gap-3">
-                  {[
-                    { label: 'Entry Level', amount: '₹8–12 LPA', width: '35%', color: '#10B981' },
-                    { label: 'Mid Level', amount: '₹18–25 LPA', width: '65%', color: '#F59E0B' },
-                    { label: 'Senior Level', amount: '₹30–50 LPA', width: '100%', color: '#4F6BFF' },
-                  ].map(tier => (
-                    <div key={tier.label} className="flex items-center gap-3">
-                      <span className="text-[11px] text-muted-foreground w-24 shrink-0">{tier.label}</span>
-                      <div className="flex-1 h-2 rounded-full bg-secondary overflow-hidden">
-                        <motion.div className="h-full rounded-full" style={{ background: tier.color }}
-                          initial={{ width: 0 }} animate={{ width: tier.width }}
-                          transition={{ duration: 0.8, ease: 'easeOut', delay: 0.3 }}
-                        />
-                      </div>
-                      <span className="text-[11px] font-semibold text-foreground w-24 text-right shrink-0">{tier.amount}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-5 pt-4 border-t border-border flex items-center gap-2">
-                  <TrendingUp size={12} className="text-[#10B981]" />
-                  <p className="text-[11px] text-muted-foreground">Industry demand growing <span className="text-[#10B981] font-semibold">+24%</span> YoY</p>
+                  <AIMarkdown content={careerData.summary} className="text-[13px] font-medium" />
                 </div>
               </div>
             </div>
 
-            {/* Learning Recommendations */}
-            <div className="bg-card border border-border rounded-[16px] p-6 shadow-sm">
-              <div className="flex items-center gap-2 mb-1">
-                <BookOpen size={16} className="text-foreground" />
-                <h3 className="text-[14px] font-semibold text-foreground">Learning Recommendations</h3>
-              </div>
-              <p className="text-[12px] text-muted-foreground mb-4">Bridge your skill gaps with these courses</p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                {mockLearning.map(l => <LearningCard key={l.title} {...l} />)}
-              </div>
-            </div>
-
-            {/* Roadmap */}
+            {/* A. Roadmap Timeline */}
             <div className="bg-card border border-border rounded-[16px] p-6 shadow-sm">
               <div className="flex items-center gap-2 mb-1">
                 <Compass size={16} className="text-foreground" />
-                <h3 className="text-[14px] font-semibold text-foreground">Strategic Roadmap</h3>
+                <h2 className="text-[14px] font-semibold text-foreground">Career Roadmap Timeline</h2>
               </div>
-              <p className="text-[12px] text-muted-foreground mb-6">Your personalized journey, phase by phase</p>
-              <div className="flex flex-col">
-                {careerData.roadmap.map((step: any, idx: number) => (
-                  <RoadmapStep key={idx} step={step} index={idx} total={careerData.roadmap.length} />
-                ))}
-              </div>
+              <p className="text-[12px] text-muted-foreground mb-6">Your personalized journey, milestone by milestone</p>
+              {careerData.roadmap && careerData.roadmap.length > 0
+                ? <RoadmapTimeline steps={careerData.roadmap} />
+                : <p className="text-[12px] text-muted-foreground">No roadmap steps available.</p>}
             </div>
 
-            {/* Career Cards */}
+            {/* B. Recommended Career Paths */}
             <div>
-              <h3 className="text-[15px] font-semibold text-foreground mb-4">Top Career Fits</h3>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                {careerData.recommendedCareers.map((career: any, idx: number) => (
-                  <motion.div key={idx}
-                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.08 }}
-                    className="bg-card border border-border rounded-[16px] p-6 shadow-sm flex flex-col hover:border-[#FDE68A] hover:shadow-md transition-all"
-                  >
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="w-11 h-11 bg-[#FFFBEB] border border-[#FDE68A] rounded-[12px] flex items-center justify-center">
-                        <Briefcase size={18} className="text-[#F59E0B]" strokeWidth={1.5} />
-                      </div>
-                      <span className="text-[10px] font-semibold px-2.5 py-1 rounded-full bg-muted border border-border text-muted-foreground uppercase tracking-wide">
-                        {career.suggestedDegree}
-                      </span>
-                    </div>
-
-                    <h3 className="text-[15px] font-semibold text-foreground mb-2">{career.title}</h3>
-                    <p className="text-[12px] text-muted-foreground leading-relaxed mb-4 flex-1">{career.reasoning}</p>
-
-                    {/* Skills */}
-                    <div className="mb-4">
-                      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Required Skills</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {career.requiredSkills.map((skill: string, i: number) => (
-                          <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-muted border border-[#E5E7EB] text-foreground font-medium">{skill}</span>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Future scope */}
-                    <div className="flex items-start gap-2 p-3 rounded-[10px] bg-[#FFFBEB] border border-[#FDE68A]">
-                      <Zap size={12} className="text-[#F59E0B] shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-[9px] font-bold text-[#D97706] uppercase tracking-wider mb-0.5">Future Scope</p>
-                        <p className="text-[11px] text-muted-foreground leading-relaxed">{career.futureScope}</p>
-                      </div>
-                    </div>
-                  </motion.div>
+              <div className="flex items-center gap-2 mb-4">
+                <TrendingUp size={16} className="text-foreground" />
+                <h2 className="text-[15px] font-semibold text-foreground">Recommended Career Paths</h2>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {(careerData.recommendedCareers && careerData.recommendedCareers.length > 0
+                  ? careerData.recommendedCareers.slice(0, 3)
+                  : [
+                      { title: 'Software Engineer at Product Company', suggestedDegree: 'B.Tech / B.E. Computer Science', requiredSkills: ['Data Structures', 'System Design', 'Python'] },
+                      { title: 'Business Analyst at Consulting Firm', suggestedDegree: 'BBA / MBA Finance', requiredSkills: ['Excel & SQL', 'Stakeholder Management', 'Presentation'] },
+                      { title: 'UI/UX Designer at Startup', suggestedDegree: 'B.Des / Certificate in UX', requiredSkills: ['Figma', 'User Research', 'Prototyping'] },
+                    ]
+                ).map((career: any, idx: number) => (
+                  <CareerPathCard key={idx} career={career} idx={idx} profilePct={profileEngine.percentage} />
                 ))}
               </div>
             </div>
-
           </motion.div>
-        </AnimatePresence>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 }
