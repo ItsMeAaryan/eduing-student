@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useSearchParams } from 'next/navigation'
 import {
   Search, MapPin, Heart, ArrowUpRight, SlidersHorizontal, ChevronDown, X, Mic,
   BookOpen, Award, Globe, Building2, Zap, Home, Check, Scale, GraduationCap,
@@ -18,6 +19,36 @@ import { CompareWorkspace } from '@/components/compare/CompareWorkspace'
 
 const STREAM_TABS = ['All', 'Engineering', 'Management', 'Sciences', 'Arts', 'Medical']
 const DEGREE_LEVELS = ['All Levels', 'UG', 'PG', 'PhD', 'Diploma']
+
+/**
+ * Maps career path names (from /student/career) to program keyword sets
+ * used to filter university program lists. Case-insensitive substring match.
+ */
+const CAREER_PROGRAM_MAP: Record<string, string[]> = {
+  'software engineer':    ['cse', 'computer science', 'software engineering', 'information technology', 'it'],
+  'data scientist':       ['data science', 'artificial intelligence', 'machine learning', 'statistics', 'ai', 'ml'],
+  'cybersecurity':        ['cybersecurity', 'information security', 'cyber security', 'cse', 'network security'],
+  'cybersecurity specialist': ['cybersecurity', 'information security', 'cse', 'network security'],
+  'business analyst':     ['business administration', 'bba', 'mba', 'commerce', 'management', 'finance'],
+  'product manager':      ['management', 'mba', 'business administration', 'product design'],
+  'ui/ux designer':       ['design', 'human computer interaction', 'visual communication', 'fine arts'],
+  'mechanical engineer':  ['mechanical engineering', 'production engineering', 'manufacturing'],
+  'civil engineer':       ['civil engineering', 'structural engineering', 'construction'],
+  'electrical engineer':  ['electrical engineering', 'electronics', 'eee'],
+  'doctor':               ['mbbs', 'medicine', 'medical', 'bds', 'dentistry'],
+  'lawyer':               ['law', 'llb', 'llm', 'legal studies'],
+  'chartered accountant': ['commerce', 'accounting', 'finance', 'ca', 'bcom'],
+}
+
+/** Returns program keywords for a given career name, or [] if unrecognized. */
+function getCareerKeywords(career: string): string[] {
+  const lower = career.toLowerCase().trim()
+  // Exact key match first
+  if (CAREER_PROGRAM_MAP[lower]) return CAREER_PROGRAM_MAP[lower]
+  // Partial key match
+  const partialKey = Object.keys(CAREER_PROGRAM_MAP).find(k => lower.includes(k) || k.includes(lower))
+  return partialKey ? CAREER_PROGRAM_MAP[partialKey] : []
+}
 
 const CHIP_ICONS: Record<string, React.ReactNode> = {
   Scholarships: <Award size={10} />, Hostel: <Home size={10} />, Placements: <Zap size={10} />,
@@ -571,6 +602,7 @@ function CompareTray({ ids, unis, onRemove, onClear, onOpenCompare }: {
 const SORT_OPTIONS_LOCAL = ['NIRF Rank', 'Highest Placement', 'Lowest Fees', 'Highest Package', 'Name A–Z']
 
 export default function UniversitiesPage() {
+  const searchParams = useSearchParams()
   const { universities: allUnis, loading, error } = useUniversities()
   const [viewMode, setViewMode] = useState<'universities' | 'programs'>('universities')
   const [activeTab, setActiveTab] = useState('All')
@@ -583,6 +615,15 @@ export default function UniversitiesPage() {
   const [typeFilter, setTypeFilter] = useState('All Types')
   const [showCompareWorkspace, setShowCompareWorkspace] = useState(false)
   const searchRef = useRef<HTMLInputElement>(null)
+
+  // Career filter from query param
+  const [careerFilter, setCareerFilter] = useState<string | null>(
+    () => searchParams.get('career')
+  )
+  // Sync if param changes (e.g. browser back/forward)
+  useEffect(() => {
+    setCareerFilter(searchParams.get('career'))
+  }, [searchParams])
 
   const toggleShortlist = (id: string) => setShortlisted(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
   const toggleCompare = (id: string) => setCompareList(prev => {
@@ -618,6 +659,8 @@ export default function UniversitiesPage() {
 
   // Filtered Universities
   const filteredUnis = useMemo(() => {
+    const careerKeywords = careerFilter ? getCareerKeywords(careerFilter) : []
+
     let list = allUnis.filter(u => {
       const matchSearch = !search || u.name.toLowerCase().includes(search.toLowerCase()) ||
         (u.location?.city || '').toLowerCase().includes(search.toLowerCase()) ||
@@ -626,7 +669,12 @@ export default function UniversitiesPage() {
       const matchStream = activeTab === 'All' || (u as any).programs?.some((p: any) =>
         (typeof p === 'string' ? p : p.name).toLowerCase().includes(activeTab.toLowerCase())
       )
-      return matchSearch && matchType && matchStream
+      // Career keyword filter — pass all unis when no known keywords
+      const matchCareer = careerKeywords.length === 0 || (u as any).programs?.some((p: any) => {
+        const pName = (typeof p === 'string' ? p : p.name).toLowerCase()
+        return careerKeywords.some(kw => pName.includes(kw))
+      })
+      return matchSearch && matchType && matchStream && matchCareer
     })
     if (sortBy === 'NIRF Rank') list = [...list].sort((a, b) => (a.rankings?.nirfOverall || 9999) - (b.rankings?.nirfOverall || 9999))
     else if (sortBy === 'Highest Placement') list = [...list].sort((a, b) => (b.placementRate || 0) - (a.placementRate || 0))
@@ -634,7 +682,7 @@ export default function UniversitiesPage() {
     else if (sortBy === 'Highest Package') list = [...list].sort((a, b) => (b.avgPackageLpa || 0) - (a.avgPackageLpa || 0))
     else if (sortBy === 'Name A–Z') list = [...list].sort((a, b) => a.name.localeCompare(b.name))
     return list
-  }, [allUnis, search, sortBy, typeFilter, activeTab])
+  }, [allUnis, search, sortBy, typeFilter, activeTab, careerFilter])
 
   // Filtered Programs
   const filteredPrograms = useMemo(() => {
@@ -681,6 +729,29 @@ export default function UniversitiesPage() {
           viewMode={viewMode}
           setViewMode={setViewMode}
         />
+
+        {/* Career Filter Banner */}
+        {careerFilter && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="flex items-center justify-between gap-[12px] px-[16px] py-[10px] rounded-[10px] bg-amber-50 border border-amber-200"
+          >
+            <div className="flex items-center gap-[8px]">
+              <span className="w-[7px] h-[7px] rounded-full bg-amber-400 animate-pulse shrink-0" />
+              <p className="text-[13px] font-medium text-amber-800">
+                Showing universities for <strong className="font-semibold">{careerFilter}</strong> path
+              </p>
+            </div>
+            <button
+              onClick={() => setCareerFilter(null)}
+              className="flex items-center gap-[4px] text-[12px] font-semibold text-amber-700 hover:text-amber-900 transition-colors shrink-0"
+            >
+              Clear Filter <X size={13} />
+            </button>
+          </motion.div>
+        )}
 
         {/* Search + Filter Bar */}
         <div className="flex flex-col gap-[10px]">
@@ -784,7 +855,7 @@ export default function UniversitiesPage() {
                   ))}
 
                   <button
-                    onClick={() => { setTypeFilter('All Types'); setDegreeLevel('All Levels'); setSearch(''); setActiveTab('All') }}
+                    onClick={() => { setTypeFilter('All Types'); setDegreeLevel('All Levels'); setSearch(''); setActiveTab('All'); setCareerFilter(null) }}
                     className="ml-auto text-[12px] font-medium text-primary hover:underline flex items-center gap-[4px]"
                   >
                     <X size={12} />
