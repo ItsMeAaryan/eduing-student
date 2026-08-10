@@ -9,6 +9,7 @@ import ProtectedRoute from '@/components/ProtectedRoute'
 import { useAIChat } from '@/hooks/useAIChat'
 import { CopilotService } from '@/lib/ai/gemini/services'
 import { calculateProfileStrength } from '@/lib/utils/profileStrength'
+import AIMarkdown from '@/components/ai/AIMarkdown'
 
 const TABS = ['AI Assistant', 'History', 'Saved Prompts']
 const SUGGESTIONS = [
@@ -46,24 +47,17 @@ export default function CopilotPage() {
     setInput('')
     await sendMessage(text, async (msgText) => {
       const aiContext = {
-        // FIXED: use firstName derived from fullName
         studentName: firstName,
         profileStrength: context.profileEngine.percentage,
         missingProfileFields: context.profileEngine.missingFields,
       }
-      return await CopilotService.processChat(msgText, aiContext)
+      // Pass all existing messages as history for multi-turn context
+      const history = messages.map(m => ({ role: m.role, content: m.content }))
+      return await CopilotService.processChat(msgText, aiContext, history)
     })
   }
 
-  const formatInlineText = (text: string) => {
-    const parts = text.split(/(\*\*.*?\*\*)/g)
-    return parts.map((part, i) => {
-      if (part.startsWith('**') && part.endsWith('**')) {
-        return <strong key={i} className="font-semibold" style={{ color: 'var(--text-primary)' }}>{part.slice(2, -2)}</strong>
-      }
-      return part
-    })
-  }
+
 
   return (
     <ProtectedRoute allowedRoles={['student']}>
@@ -189,7 +183,6 @@ export default function CopilotPage() {
                       }}>
                         <div style={{
                           padding: '12px 16px', borderRadius: 12, fontSize: 14, lineHeight: 1.6,
-                          // FIXED: replaced text-white / bg-foreground with CSS vars
                           ...(m.role === 'user'
                             ? {
                               background: 'var(--text-primary)',
@@ -204,7 +197,9 @@ export default function CopilotPage() {
                             }
                           ),
                         }}>
-                          {formatInlineText(m.content)}
+                          {m.role === 'user'
+                            ? m.content
+                            : <AIMarkdown content={m.content} className="text-[14px]" />}
                         </div>
                         {m.role === 'assistant' && (
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, opacity: 0 }}
