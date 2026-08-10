@@ -1,6 +1,19 @@
 // hooks/useAIChat.ts
 import { useState, useCallback } from 'react';
 
+/** Converts any raw error (API JSON, exception message, etc.) into a friendly string. */
+function toFriendlyError(raw: unknown): string {
+  if (!raw) return 'Something went wrong. Please try again later.';
+  const str = raw instanceof Error ? raw.message : String(raw);
+  // If it looks like JSON or an API error object, don't show it
+  if (str.startsWith('{') || str.startsWith('[') || str.includes('API key') || str.includes('quota')) {
+    return 'Something went wrong. Please try again later.';
+  }
+  // Truncate extremely long technical messages
+  if (str.length > 120) return 'Something went wrong. Please try again later.';
+  return str || 'Something went wrong. Please try again later.';
+}
+
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
@@ -38,17 +51,17 @@ export function useAIChat(initialMessages: ChatMessage[] = []) {
         role: 'assistant',
         content: res.success
           ? (res.text || 'No response provided.')
-          : (res.error || res.text || 'I encountered an error while processing your request.'),
+          : 'Something went wrong. Please try again later.',
         timestamp: new Date()
       };
       setMessages(prev => [...prev, assistantMsg]);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'An error occurred.';
-      setError(msg);
+      const friendly = toFriendlyError(e);
+      setError(friendly);
       setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: 'I encountered an error connecting to the AI service. Please try again.',
+        content: 'Something went wrong. Please try again later.',
         timestamp: new Date()
       }]);
     } finally {

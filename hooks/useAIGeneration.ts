@@ -1,6 +1,17 @@
 // hooks/useAIGeneration.ts
 import { useState, useCallback } from 'react';
 
+/** Converts any raw error (API JSON, exception message, etc.) into a friendly string. */
+function toFriendlyError(raw: unknown): string {
+  if (!raw) return 'Something went wrong. Please try again later.';
+  const str = raw instanceof Error ? raw.message : String(raw);
+  if (str.startsWith('{') || str.startsWith('[') || str.includes('API key') || str.includes('quota')) {
+    return 'Something went wrong. Please try again later.';
+  }
+  if (str.length > 120) return 'Something went wrong. Please try again later.';
+  return str || 'Something went wrong. Please try again later.';
+}
+
 export function useAIGeneration<T = unknown>() {
   const [data, setData] = useState<T | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -16,13 +27,13 @@ export function useAIGeneration<T = unknown>() {
       if (res.success && res.data !== undefined) {
         setData(res.data);
       } else {
-        setError(res.error || res.text || 'An error occurred during AI generation.');
+        setError('Something went wrong. Please try again later.');
       }
       return res;
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'An unexpected error occurred.';
-      setError(msg);
-      return { success: false, error: msg, data: undefined };
+      const friendly = toFriendlyError(e);
+      setError(friendly);
+      return { success: false, error: friendly, data: undefined };
     } finally {
       setIsGenerating(false);
     }
