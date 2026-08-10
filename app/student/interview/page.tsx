@@ -11,6 +11,7 @@ import {
   CheckCircle2, RefreshCw, FileText, LayoutTemplate, User, Send,
   Target, TrendingUp, BarChart2
 } from 'lucide-react';
+import AIMarkdown from '@/components/ai/AIMarkdown';
 
 // ─── Tracks + Difficulty ──────────────────────────────────────────────────────
 const INTERVIEW_TRACKS = [
@@ -481,7 +482,7 @@ function InterviewCoachContent() {
                       {latestEval.strengths.map((s: string, i: number) => (
                         <div key={i} className="flex items-start gap-2 p-2.5 rounded-[8px] bg-[#F0FDF4] border border-[#BBF7D0] mb-1.5">
                           <div className="w-1.5 h-1.5 rounded-full bg-[#10B981] mt-1.5 shrink-0" />
-                          <p className="text-[11px] text-foreground leading-relaxed">{s}</p>
+                          <AIMarkdown content={s} className="text-[11px]" />
                         </div>
                       ))}
                     </div>
@@ -493,7 +494,7 @@ function InterviewCoachContent() {
                       {latestEval.missingPoints.map((s: string, i: number) => (
                         <div key={i} className="flex items-start gap-2 p-2.5 rounded-[8px] bg-[#FFFBEB] border border-[#FDE68A] mb-1.5">
                           <div className="w-1.5 h-1.5 rounded-full bg-[#F59E0B] mt-1.5 shrink-0" />
-                          <p className="text-[11px] text-foreground leading-relaxed">{s}</p>
+                          <AIMarkdown content={s} className="text-[11px]" />
                         </div>
                       ))}
                     </div>
@@ -502,7 +503,7 @@ function InterviewCoachContent() {
                   {latestEval.suggestedBetterAnswer && (
                     <div className="bg-muted border border-border rounded-[12px] p-3">
                       <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5"><MessageSquare size={9} /> Model Response</p>
-                      <p className="text-[11px] text-muted-foreground italic leading-relaxed">&ldquo;{latestEval.suggestedBetterAnswer}&rdquo;</p>
+                      <AIMarkdown content={latestEval.suggestedBetterAnswer} className="text-[11px] italic" />
                     </div>
                   )}
                 </motion.div>

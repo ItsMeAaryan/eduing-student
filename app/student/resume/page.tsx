@@ -289,13 +289,13 @@ export default function ResumePage() {
                               </button>
                             </div>
                             {/* Content textarea — slightly tinted for editor feel */}
-                            <textarea value={sec.content}
+                            <textarea value={String(sec.content ?? '')}
                               onChange={(e) => {
                                 const s = [...resumeSections]; s[i].content = e.target.value
                                 setResumeSections({ sections: s })
                               }}
                               className="w-full text-[13px] text-foreground bg-card p-4 focus:outline-none focus:bg-[#FAFBFF] transition-colors resize-none leading-relaxed"
-                              style={{ minHeight: 100, height: `${Math.max(100, sec.content.split('\n').length * 22 + 40)}px` }}
+                              style={{ minHeight: 100, height: `${Math.max(100, String(sec.content ?? '').split('\n').length * 22 + 40)}px` }}
                               placeholder="Start writing…"
                             />
                           </motion.div>
