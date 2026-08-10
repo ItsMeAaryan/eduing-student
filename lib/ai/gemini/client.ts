@@ -1,35 +1,40 @@
-import { GoogleGenAI } from '@google/genai';
+import Groq from 'groq-sdk';
 import { geminiConfig } from './config';
 
-class GeminiClient {
-  private static instance: GoogleGenAI | null = null;
+class GroqClient {
+  private static instance: Groq | null = null;
 
   private constructor() {}
 
-  public static getInstance(): GoogleGenAI {
-    if (!GeminiClient.instance) {
+  public static getInstance(): Groq {
+    if (!GroqClient.instance) {
       if (!geminiConfig.apiKey) {
-        console.warn('[Gemini Client] API key is missing. AI features will fail or run in fallback mode.');
+        console.warn('[Groq Client] API key is missing. AI features will fail or run in fallback mode.');
       }
-      GeminiClient.instance = new GoogleGenAI({
-        apiKey: geminiConfig.apiKey
+      GroqClient.instance = new Groq({
+        apiKey: geminiConfig.apiKey,
+        dangerouslyAllowBrowser: true,
       });
     }
-    return GeminiClient.instance;
+    return GroqClient.instance;
   }
 }
 
-export const getGeminiClient = () => GeminiClient.getInstance();
+/** Returns the singleton Groq client instance. */
+export const getGroqClient = () => GroqClient.getInstance();
+
+/** Alias kept for zero import-churn in existing files. */
+export const getGeminiClient = getGroqClient;
 
 export async function executeWithRetry<T>(
-  operation: () => Promise<T>, 
+  operation: () => Promise<T>,
   retries = geminiConfig.maxRetries
 ): Promise<T> {
   try {
     return await operation();
   } catch (error: any) {
     if (retries > 0) {
-      console.warn(`[Gemini Client] Operation failed. Retrying... (${retries} attempts left). Error: ${error.message}`);
+      console.warn(`[Groq Client] Operation failed. Retrying... (${retries} attempts left). Error: ${error.message}`);
       await new Promise(resolve => setTimeout(resolve, geminiConfig.retryDelayMs));
       return executeWithRetry(operation, retries - 1);
     }
