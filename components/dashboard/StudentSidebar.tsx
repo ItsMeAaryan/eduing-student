@@ -5,12 +5,11 @@ import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import {
     LayoutDashboard, FileText, Building2, BookOpen,
-    Bell, Settings, Bookmark, GitCompare, Compass,
+    Settings, Bookmark, GitCompare, Compass,
     Bot, Briefcase, User, Mail, MessageSquare,
     GraduationCap, ChevronLeft, ChevronRight, X,
     CalendarDays
 } from 'lucide-react'
-import { useStudentData } from '@/components/providers/StudentDataProvider'
 import Logo from '@/components/Logo'
 
 interface NavItem {
@@ -39,7 +38,6 @@ const aiNav: NavItem[] = [
 ]
 
 const bottomNav: NavItem[] = [
-    { label: 'Notifications', href: '/student/notifications', icon: Bell },
     { label: 'Settings', href: '/student/settings', icon: Settings },
 ]
 
@@ -139,10 +137,6 @@ function NavSection({
 }
 
 export default function StudentSidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
-    const { notifications } = useStudentData()
-    const unreadCount = Array.isArray(notifications)
-        ? notifications.filter((n: any) => !n.isRead).length
-        : 0
 
     return (
         <>
@@ -157,19 +151,46 @@ export default function StudentSidebar({ isCollapsed, setIsCollapsed }: SidebarP
             >
                 {/* Logo + collapse toggle */}
                 <div
-                    className="flex items-center justify-between px-3 h-[56px] shrink-0"
+                    className="relative flex items-center h-[56px] shrink-0"
                     style={{ borderBottom: '1px solid var(--border)' }}
                 >
-                    {!isCollapsed && <Logo />}
-                    <button
-                        type="button"
-                        onClick={() => setIsCollapsed(!isCollapsed)}
-                        className="p-1.5 rounded-[8px] transition-colors ml-auto"
-                        style={{ color: 'var(--text-muted)' }}
-                        aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-                    >
-                        {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-                    </button>
+                    {isCollapsed ? (
+                        /* Collapsed: icon perfectly centered, chevron pinned to right edge */
+                        <div className="flex-1 flex items-center justify-center">
+                            <Logo iconOnly height={32} />
+                        </div>
+                    ) : (
+                        /* Expanded: full logo + chevron side-by-side */
+                        <div className="flex items-center justify-between w-full px-3">
+                            <Logo />
+                            <button
+                                type="button"
+                                onClick={() => setIsCollapsed(!isCollapsed)}
+                                className="p-1.5 rounded-[8px] transition-colors"
+                                style={{ color: 'var(--text-muted)' }}
+                                aria-label="Collapse sidebar"
+                            >
+                                <ChevronLeft size={16} />
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Collapsed: expand chevron pinned to the right edge of the sidebar */}
+                    {isCollapsed && (
+                        <button
+                            type="button"
+                            onClick={() => setIsCollapsed(false)}
+                            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 flex items-center justify-center w-5 h-5 rounded-full z-50 transition-colors"
+                            style={{
+                                background: 'var(--bg-elevated)',
+                                border: '1px solid var(--border)',
+                                color: 'var(--text-muted)',
+                            }}
+                            aria-label="Expand sidebar"
+                        >
+                            <ChevronRight size={12} />
+                        </button>
+                    )}
                 </div>
 
                 {/* Scrollable nav */}
@@ -189,12 +210,7 @@ export default function StudentSidebar({ isCollapsed, setIsCollapsed }: SidebarP
                     className="px-2 py-3 space-y-0.5 shrink-0"
                     style={{ borderTop: '1px solid var(--border)' }}
                 >
-                    <NavLink
-                        item={bottomNav[0]}
-                        isCollapsed={isCollapsed}
-                        unreadCount={unreadCount}
-                    />
-                    <NavLink item={bottomNav[1]} isCollapsed={isCollapsed} />
+                    <NavLink item={bottomNav[0]} isCollapsed={isCollapsed} />
                 </div>
             </aside>
 
@@ -206,11 +222,9 @@ export default function StudentSidebar({ isCollapsed, setIsCollapsed }: SidebarP
                     borderTop: '1px solid var(--border)',
                 }}
             >
-                {[...primaryNav.slice(0, 4), ...bottomNav].map(item => {
-                    return (
-                        <NavLink key={item.href} item={item} isCollapsed={true} />
-                    )
-                })}
+                {primaryNav.slice(0, 5).map(item => (
+                    <NavLink key={item.href} item={item} isCollapsed={true} />
+                ))}
             </nav>
         </>
     )
