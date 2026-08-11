@@ -5,11 +5,24 @@ service cloud.firestore {
     // Users — students and university admins read/write own doc
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      // Nested documents subcollection
+      match /documents/{docId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+    match /student_profiles/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
     // Universities — public read for students browsing, write only by owner
     match /universities/{universityId} {
+<<<<<<< HEAD
       allow read: if true;
+=======
+      allow read: if request.auth != null;
+>>>>>>> 1b8e9e2 (fix: update Firestore access rules for student data)
       allow write: if request.auth != null && request.auth.uid == universityId;
 
       match /staff/{staffId} {
@@ -26,6 +39,7 @@ service cloud.firestore {
     // Applications — student creates and reads own, university reads/updates theirs
     match /applications/{appId} {
       allow read: if request.auth != null && (
+<<<<<<< HEAD
         request.auth.uid == resource.data.studentId ||
         request.auth.uid == resource.data.universityId
       );
@@ -33,6 +47,17 @@ service cloud.firestore {
       allow update: if request.auth != null && (
         request.auth.uid == resource.data.studentId ||
         request.auth.uid == resource.data.universityId
+=======
+        request.auth.uid == resource.data.universityId ||
+        request.auth.uid == resource.data.studentId ||
+        request.auth.uid == resource.data.userId
+      );
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && (
+        request.auth.uid == resource.data.universityId ||
+        request.auth.uid == resource.data.studentId ||
+        request.auth.uid == resource.data.userId
+>>>>>>> 1b8e9e2 (fix: update Firestore access rules for student data)
       );
       allow delete: if request.auth != null && request.auth.uid == resource.data.studentId;
     }
@@ -74,5 +99,17 @@ service cloud.firestore {
         request.auth.uid == resource.data.universityId
       );
     }
+<<<<<<< HEAD
+=======
+
+    // Top-level documents collection (if used elsewhere)
+    match /documents/{docId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+
+    match /notifications/{notifId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+>>>>>>> 1b8e9e2 (fix: update Firestore access rules for student data)
   }
 }
