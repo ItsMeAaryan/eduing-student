@@ -83,20 +83,28 @@ export function StudentDataProvider({ children }: { children: React.ReactNode })
       }
 
       // Profile
-      const unsubProfile = onSnapshot(
-        doc(db, 'student_profiles', user.uid),
-        (snap) => {
-          setProfile(snap.exists() ? snap.data() : {})
-          loadingProfile = false
-          checkLoading()
-        },
-        (err) => {
-          log('Profile listener error:', err)
-          setError('Failed to load profile')
-          loadingProfile = false
-          checkLoading()
-        }
-      )
+      let unsubProfile = () => {}
+      try {
+        unsubProfile = onSnapshot(
+          doc(db, 'users', user.uid),
+          (snap) => {
+            setProfile(snap.exists() ? snap.data() : {})
+            loadingProfile = false
+            checkLoading()
+          },
+          (err) => {
+            log('Profile listener error:', err)
+            setError('Failed to load profile')
+            loadingProfile = false
+            checkLoading()
+          }
+        )
+      } catch (err) {
+        log('Profile listener synchronous error:', err)
+        setError('Failed to load profile')
+        loadingProfile = false
+        checkLoading()
+      }
 
       // Applications (dual query for backward compat)
       let appsList1: Application[] = []
