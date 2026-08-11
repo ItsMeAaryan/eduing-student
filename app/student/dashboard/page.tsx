@@ -1094,6 +1094,16 @@ function FloatingAIAssistantWidget() {
    MAIN STUDENT DASHBOARD COMPONENT
    ========================================================================= */
 export default function StudentDashboard() {
+  console.log('dashboard mounting')
+
+  React.useEffect(() => {
+    try {
+      // Async error boundary
+    } catch (error) {
+      console.error('Dashboard async error:', error)
+    }
+  }, [])
+
   const {
     loading,
     error,
@@ -1123,14 +1133,6 @@ export default function StudentDashboard() {
     )
   }
 
-  if (error) {
-    return (
-      <div className="p-[24px] text-[13px] text-[#EF4444] bg-[#FEF2F2] rounded-[12px] border border-[#FECACA]">
-        Error loading dashboard: {error}
-      </div>
-    )
-  }
-
   const safeApps = uniqueApps || []
   const safeUnis = universities || []
   const safeUserDocs = userDocuments || {}
@@ -1138,6 +1140,22 @@ export default function StudentDashboard() {
 
   return (
     <div className="flex flex-col gap-[24px] pb-[40px]">
+      {error && (
+        <div className="p-[16px] flex items-center justify-between text-[13px] text-[#EF4444] bg-[#FEF2F2] rounded-[12px] border border-[#FECACA]">
+          <div className="flex items-center gap-[10px]">
+            <AlertCircle size={18} />
+            <span><strong>Warning:</strong> {error}. Some data may be missing or incomplete.</span>
+          </div>
+          <button 
+            onClick={() => window.location.reload()}
+            className="flex items-center gap-[6px] px-[12px] py-[6px] bg-[#EF4444] text-white rounded-[6px] font-medium transition-all hover:bg-[#DC2626]"
+          >
+            <RefreshCw size={14} />
+            Retry
+          </button>
+        </div>
+      )}
+
       {/* SECTION 1: Welcome Area */}
       <WelcomeArea profile={profile} profileScore={profileScore || 0} appsCount={safeApps.length} />
 
