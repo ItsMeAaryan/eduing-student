@@ -21,6 +21,7 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
       } else if (allowedRoles && role && !allowedRoles.includes(role)) {
         if (role === 'student') router.push('/student/dashboard')
         else if (role === 'super_admin') router.push('/admin/dashboard')
+        else router.push('/auth/login')
       }
     }
   }, [isLoggedIn, role, loading, router, allowedRoles])
