@@ -2,12 +2,15 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // Users — students and university admins read/write own doc
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
+    // Universities — public read for students browsing, write only by owner
     match /universities/{universityId} {
-      allow read, write: if request.auth != null && request.auth.uid == universityId;
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == universityId;
 
       match /staff/{staffId} {
         allow read, write: if request.auth != null && request.auth.uid == universityId;
@@ -18,47 +21,58 @@ service cloud.firestore {
       match /audit_logs/{logId} {
         allow read, write: if request.auth != null && request.auth.uid == universityId;
       }
-      match /notifications/{notifId} {
-        allow read, write: if request.auth != null && request.auth.uid == universityId;
-      }
     }
 
+    // Applications — student creates and reads own, university reads/updates theirs
     match /applications/{appId} {
       allow read: if request.auth != null && (
-        request.auth.uid == resource.data.universityId ||
-        request.auth.uid == resource.data.studentId
+        request.auth.uid == resource.data.studentId ||
+        request.auth.uid == resource.data.universityId
       );
       allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && (
-        request.auth.uid == resource.data.universityId ||
-        request.auth.uid == resource.data.studentId
+      allow update: if request.auth != null && (
+        request.auth.uid == resource.data.studentId ||
+        request.auth.uid == resource.data.universityId
       );
+      allow delete: if request.auth != null && request.auth.uid == resource.data.studentId;
     }
 
+    // Programs — public read so students can browse, university writes
     match /programs/{programId} {
       allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == resource.data.universityId;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.universityId;
+    }
+
+    // Documents — student reads/writes own documents
+    match /documents/{docId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
       allow create: if request.auth != null;
     }
 
+    // Scholarships — public read
     match /scholarships/{scholarshipId} {
       allow read: if true;
       allow write: if request.auth != null;
     }
 
+    // Notifications — user reads own
+    match /notifications/{notifId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null;
+    }
+
+    // Payments — student and university read own
     match /payments/{paymentId} {
-      allow read, write: if request.auth != null && (
+      allow read: if request.auth != null && (
         request.auth.uid == resource.data.userId ||
         request.auth.uid == resource.data.universityId
       );
-    }
-
-    match /documents/{docId} {
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
-    }
-
-    match /notifications/{notifId} {
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && (
+        request.auth.uid == resource.data.userId ||
+        request.auth.uid == resource.data.universityId
+      );
     }
   }
 }
