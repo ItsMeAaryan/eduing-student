@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import StudentLayout from '@/components/StudentLayout';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 export const metadata: Metadata = {
   title: 'Student Dashboard | EDUING.in',
@@ -7,5 +8,11 @@ export const metadata: Metadata = {
 };
 
 export default function RootStudentLayout({ children }: { children: React.ReactNode }) {
-  return <StudentLayout>{children}</StudentLayout>;
+  return (
+    <ErrorBoundary>
+      <StudentLayout>
+        {children}
+      </StudentLayout>
+    </ErrorBoundary>
+  );
 }
