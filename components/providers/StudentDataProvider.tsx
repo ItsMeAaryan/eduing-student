@@ -65,6 +65,7 @@ export function StudentDataProvider({ children }: { children: React.ReactNode })
   }
 
   useEffect(() => {
+    if (!auth) return
     const unsubAuth = onAuthStateChanged(auth, (user) => {
       // Clean up any previous listeners before setting up new ones
       clearFirestoreListeners()
