@@ -24,8 +24,8 @@ describe('calculateProfileStrength', () => {
     };
     const result = calculateProfileStrength(profile);
     
-    // Total fields = 15. Completed = 3. 3/15 = 20%
-    expect(result.percentage).toBe(20);
+    // Total fields = 27. Completed = 3. 3/27 = 11%
+    expect(result.percentage).toBe(11);
     expect(result.grade).toBe('Incomplete');
     expect(result.completedFields).toBe(3);
   });
