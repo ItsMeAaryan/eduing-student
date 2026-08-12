@@ -36,7 +36,7 @@ describe('StudentLayout', () => {
         <div>content</div>
       </StudentLayout>
     )
-    // StudentSidebar renders nav items like "Home" instead of "Dashboard"
-    expect(screen.getByRole('link', { name: /home/i })).toBeInTheDocument()
+    // StudentSidebar renders nav items like "Dashboard"
+    expect(screen.getByRole('link', { name: 'Dashboard' })).toBeInTheDocument()
   })
 })
