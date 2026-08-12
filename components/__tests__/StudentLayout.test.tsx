@@ -16,6 +16,27 @@ vi.mock('next/image', () => ({
   default: (props: any) => <img alt={props.alt ?? ''} {...props} />,
 }))
 
+vi.mock('@/lib/firebase/config', () => ({
+  app: {},
+  db: {},
+  auth: {},
+}))
+
+vi.mock('@/components/providers/StudentDataProvider', () => ({
+  StudentDataProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  useStudentData: () => ({ notifications: [] }),
+}))
+
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: () => ({
+    user: { uid: 'test-user', role: 'student' },
+    role: 'student',
+    isLoggedIn: true,
+    loading: false,
+  }),
+}))
+
+
 describe('StudentLayout', () => {
   // Regression test for a Phase 0 bug: StudentLayout was a leftover copy of
   // the marketing Navbar and never rendered {children} at all, so every
@@ -37,6 +58,6 @@ describe('StudentLayout', () => {
       </StudentLayout>
     )
     // StudentSidebar renders nav items like "Dashboard"
-    expect(screen.getByRole('link', { name: 'Dashboard' })).toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: 'Dashboard' }).length).toBeGreaterThan(0)
   })
 })
