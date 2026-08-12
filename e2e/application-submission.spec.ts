@@ -18,16 +18,13 @@ test.describe('Application submission', () => {
     await expect(page).toHaveURL(/\/student\/universities\/.+/);
 
     // Look for "View Programs" to scroll or just click the program detail button
-    // The program table has a "View Details" button
-    const programDetailsBtn = page.getByRole('button', { name: /view details/i }).first();
-    await programDetailsBtn.waitFor({ state: 'visible' });
-    await programDetailsBtn.click();
+    // The program table has "Apply" buttons for each program
+    const programApplyBtn = page.getByRole('button', { name: /^Apply$/i }).first();
+    await programApplyBtn.waitFor({ state: 'visible' });
+    await programApplyBtn.click();
 
     // The modal should appear
-    await expect(page.getByText(/Program Details/i)).toBeVisible();
-
-    // Click confirm & submit application
-    const submitBtn = page.getByRole('button', { name: /confirm & submit application|verify to apply/i });
+    const submitBtn = page.getByRole('button', { name: /^Apply for /i });
     await submitBtn.waitFor({ state: 'visible' });
     await submitBtn.click();
     
@@ -42,13 +39,16 @@ test.describe('Application submission', () => {
     await viewDetailsBtn.click({ timeout: 15000 });
     await page.waitForURL(/\/student\/universities\/.+/, { timeout: 10000 });
 
-    const programDetailsBtn = page.getByRole('button', { name: /view details/i }).first();
-    await programDetailsBtn.waitFor({ state: 'visible' });
-    await programDetailsBtn.click();
+    const programApplyBtn = page.getByRole('button', { name: /^Apply$/i }).first();
+    await programApplyBtn.waitFor({ state: 'visible' });
+    await programApplyBtn.click();
 
-    const verifyButton = page.getByRole('button', { name: /verify to apply/i });
-    if (await verifyButton.isVisible().catch(() => false)) {
-      await verifyButton.click();
+    // In the new UI, unverified status might not show "verify to apply" in the modal.
+    // It might just fail silently or the button might be disabled.
+    // The previous test logic looked for "verify to apply" which is now gone.
+    const submitBtn = page.getByRole('button', { name: /^Apply for /i });
+    if (await submitBtn.isVisible().catch(() => false)) {
+      await submitBtn.click();
       await expect(page).not.toHaveURL(/\/student\/applications\//);
     }
   });

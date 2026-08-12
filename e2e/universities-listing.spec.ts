@@ -17,12 +17,12 @@ test.describe('Student university discovery (authenticated)', () => {
   test('lists universities and supports search', async ({ page }) => {
     await page.goto('/student/universities')
     await page.waitForLoadState('domcontentloaded')
-    await page.locator('.group').first().waitFor({ state: 'visible', timeout: 15000 })
+    const firstUniCard = page.locator('[role="button"][aria-label^="View details for"]').first()
+    await firstUniCard.waitFor({ state: 'visible', timeout: 15000 })
 
-    // Find first university card and click View Details
-    const firstUniCard = page.locator('.group').first()
+    // Find first university card and click it
     await firstUniCard.click()
-    await page.waitForURL(/\/student\/universities\/.+/)
+    await page.waitForURL(/\/student\/universities\/.+/, { timeout: 10000 })
 
     // Back to listing
     await page.goto('/student/universities')
