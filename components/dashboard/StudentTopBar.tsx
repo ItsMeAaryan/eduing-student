@@ -190,7 +190,7 @@ export default function StudentTopBar() {
                                     <div className="flex flex-col items-center justify-center py-10 gap-2">
                                         <Inbox size={28} style={{ color: 'var(--text-faint)' }} />
                                         <p className="text-[13px]" style={{ color: 'var(--text-muted)' }}>
-                                            You're all caught up!
+                                            You&apos;re all caught up!
                                         </p>
                                     </div>
                                 ) : (

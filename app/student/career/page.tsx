@@ -254,7 +254,7 @@ function InputForm({ form, setForm, onSubmit }: {
       <div className="p-6 flex flex-col gap-6">
         {/* 1. Career Interest */}
         <div>
-          <label className="block text-[12px] font-semibold text-foreground mb-1.5">
+          <label htmlFor="career-interest-input" className="block text-[12px] font-semibold text-foreground mb-1.5">
             Career Interest <span className="text-[#F59E0B]">*</span>
           </label>
           <input
@@ -269,7 +269,7 @@ function InputForm({ form, setForm, onSubmit }: {
 
         {/* 2. Degree Level */}
         <div>
-          <label className="block text-[12px] font-semibold text-foreground mb-1.5">
+          <label htmlFor="degree-level-select" className="block text-[12px] font-semibold text-foreground mb-1.5">
             Preferred Degree Level <span className="text-[#F59E0B]">*</span>
           </label>
           <select
@@ -285,9 +285,9 @@ function InputForm({ form, setForm, onSubmit }: {
 
         {/* 3. Strengths */}
         <div>
-          <label className="block text-[12px] font-semibold text-foreground mb-1.5">
+          <div className="block text-[12px] font-semibold text-foreground mb-1.5">
             Your Strengths <span className="text-[11px] font-normal text-muted-foreground">(select all that apply)</span>
-          </label>
+          </div>
           <div className="flex flex-wrap gap-2">
             {STRENGTHS_OPTIONS.map(s => {
               const selected = form.strengths.includes(s);
@@ -313,9 +313,9 @@ function InputForm({ form, setForm, onSubmit }: {
 
         {/* 4. Target Goal */}
         <div>
-          <label className="block text-[12px] font-semibold text-foreground mb-2">
+          <div className="block text-[12px] font-semibold text-foreground mb-2">
             Target Goal <span className="text-[#F59E0B]">*</span>
-          </label>
+          </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {GOALS.map(g => {
               const selected = form.targetGoal === g.value;
@@ -348,7 +348,7 @@ function InputForm({ form, setForm, onSubmit }: {
 
         {/* 5. Timeline */}
         <div>
-          <label className="block text-[12px] font-semibold text-foreground mb-1.5">
+          <label htmlFor="timeline-select" className="block text-[12px] font-semibold text-foreground mb-1.5">
             Timeline <span className="text-[#F59E0B]">*</span>
           </label>
           <select

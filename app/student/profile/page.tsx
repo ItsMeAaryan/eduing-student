@@ -413,7 +413,6 @@ export default function ProfilePage() {
                     /* Inline single-field edit */
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <input
-                        autoFocus
                         value={editValue}
                         onChange={e => setEditValue(e.target.value)}
                         onKeyDown={e => { if (e.key === 'Enter') handleSave(field.key); if (e.key === 'Escape') setEditingKey(null) }}

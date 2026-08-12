@@ -360,10 +360,11 @@ function EmailAssistantContent() {
 
             {/* Recipient Name */}
             <div>
-              <label style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
+              <label htmlFor="recipientName" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
                 Recipient Name / University <span style={{ color: '#EF4444' }}>*</span>
               </label>
               <input
+                id="recipientName"
                 value={recipientName}
                 onChange={e => setRecipientName(e.target.value)}
                 placeholder="e.g. Prof. Sharma, IIT Delhi"
@@ -377,10 +378,11 @@ function EmailAssistantContent() {
 
             {/* Additional Context */}
             <div>
-              <label style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
+              <label htmlFor="additionalContext" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
                 Additional Context <span style={{ fontSize: 10, fontWeight: 400, color: 'var(--text-muted)', textTransform: 'none' }}>(optional)</span>
               </label>
               <textarea
+                id="additionalContext"
                 value={additionalContext}
                 onChange={e => setAdditionalContext(e.target.value)}
                 placeholder="e.g. I'm applying for B.Tech CSE for 2025 intake"
@@ -683,7 +685,7 @@ function EmailAssistantContent() {
                                 onClick={() => setSubject(s)}
                                 style={{ width: '100%', textAlign: 'left', padding: '7px 10px', borderRadius: 7, border: '1px solid var(--border)', background: 'var(--bg)', cursor: 'pointer', fontSize: 12, color: 'var(--text-primary)', lineHeight: 1.4 }}
                               >
-                                "{s}"
+                                &quot;{s}&quot;
                               </button>
                             ))}
                           </div>

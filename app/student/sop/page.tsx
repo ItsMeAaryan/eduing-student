@@ -292,8 +292,8 @@ function SOPBuilderContent() {
                 <LabeledInput label="Target Course" required value={course} onChange={setCourse} placeholder="e.g. M.Tech Computer Science" />
                 <LabeledInput label="Specialization" value={specialization} onChange={setSpecialization} placeholder="e.g. Machine Learning, VLSI" optional />
                 <div>
-                  <label style={labelStyle}>Word Limit</label>
-                  <select value={wordLimit} onChange={e => setWordLimit(e.target.value)} style={inputStyle}>
+                  <label htmlFor="wordLimit" style={labelStyle}>Word Limit</label>
+                  <select id="wordLimit" value={wordLimit} onChange={e => setWordLimit(e.target.value)} style={inputStyle}>
                     {WORD_LIMITS.map(w => <option key={w} value={w}>{w}</option>)}
                   </select>
                 </div>
@@ -335,8 +335,8 @@ function SOPBuilderContent() {
             <div>
               <SectionHeader number="3" title="Your Story" />
               <div style={{ marginTop: 16 }}>
-                <label style={labelStyle}>Personal Background & Motivation</label>
-                <textarea value={background} onChange={e => setBackground(e.target.value)}
+                <label htmlFor="background" style={labelStyle}>Personal Background & Motivation</label>
+                <textarea id="background" value={background} onChange={e => setBackground(e.target.value)}
                   placeholder="Describe your background, motivations, and what drives your interest in this program…"
                   style={{ ...inputStyle, minHeight: 140, resize: 'vertical', padding: '12px 14px', lineHeight: 1.65 }} />
                 <p style={{ fontSize: 11, color: '#6B7280', marginTop: 4, textAlign: 'right' }}>{background.length} characters</p>
@@ -344,7 +344,7 @@ function SOPBuilderContent() {
 
               <div style={{ marginTop: 20 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                  <label style={labelStyle}>Key Achievements</label>
+                  <div style={labelStyle}>Key Achievements</div>
                   {achievements.length < 5 && (
                     <button onClick={addAchievement}
                       style={{ display: 'inline-flex', alignItems: 'center', gap: 4, height: 28, padding: '0 12px', borderRadius: 8, cursor: 'pointer', border: '1px solid #DDD6FE', background: '#F5F3FF', fontSize: 12, fontWeight: 600, color: '#7C3AED', transition: 'all 0.2s ease' }}>
@@ -558,7 +558,7 @@ function SOPBuilderContent() {
                     {!reviewData && !isReviewing && (
                       <div style={{ textAlign: 'center', padding: '28px 0' }}>
                         <MessageSquareText size={28} style={{ color: 'var(--text-muted)', margin: '0 auto 8px', display: 'block' }} />
-                        <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0, lineHeight: 1.6 }}>Click "Run AI Review" to get dimension scores and improvement suggestions.</p>
+                        <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0, lineHeight: 1.6 }}>Click &quot;Run AI Review&quot; to get dimension scores and improvement suggestions.</p>
                       </div>
                     )}
 
@@ -660,12 +660,13 @@ const inputStyle: React.CSSProperties = {
 function LabeledInput({ label, value, onChange, placeholder, required, optional }: {
   label: string; value: string; onChange: (v: string) => void; placeholder?: string; required?: boolean; optional?: boolean;
 }) {
+  const inputId = label.toLowerCase().replace(/\s+/g, '-');
   return (
     <div>
-      <label style={labelStyle}>
+      <label htmlFor={inputId} style={labelStyle}>
         {label} {required && <span style={{ color: '#7C3AED' }}>*</span>} {optional && <span style={{ fontWeight: 400, fontSize: 11, color: '#9CA3AF', textTransform: 'none' }}>(optional)</span>}
       </label>
-      <input type="text" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
+      <input id={inputId} type="text" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
         style={inputStyle}
         onFocus={e => {
           e.target.style.borderColor = '#7C3AED';

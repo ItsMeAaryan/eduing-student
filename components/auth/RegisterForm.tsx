@@ -174,24 +174,24 @@ export default function RegisterForm() {
             {currentStep === 1 && (
               <div className="space-y-4">
                 <div>
-                  <label className={labelClasses} style={{ color: 'var(--text-secondary)' }}>Full Legal Name</label>
-                  <input className={inputClasses} style={inputStyle} value={formData.fullName}
+                  <label htmlFor="fullName" className={labelClasses} style={{ color: 'var(--text-secondary)' }}>Full Legal Name</label>
+                  <input id="fullName" className={inputClasses} style={inputStyle} value={formData.fullName}
                     onChange={e => update({ fullName: e.target.value })} placeholder="Enter your full name" />
                 </div>
                 <div>
-                  <label className={labelClasses} style={{ color: 'var(--text-secondary)' }}>Email Address</label>
-                  <input className={inputClasses} style={inputStyle} type="email" value={formData.email}
+                  <label htmlFor="email" className={labelClasses} style={{ color: 'var(--text-secondary)' }}>Email Address</label>
+                  <input id="email" className={inputClasses} style={inputStyle} type="email" value={formData.email}
                     onChange={e => update({ email: e.target.value })} placeholder="name@example.com" />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className={labelClasses} style={{ color: 'var(--text-secondary)' }}>Password</label>
-                    <input className={inputClasses} style={inputStyle} type="password" value={formData.password}
+                    <label htmlFor="password" className={labelClasses} style={{ color: 'var(--text-secondary)' }}>Password</label>
+                    <input id="password" className={inputClasses} style={inputStyle} type="password" value={formData.password}
                       onChange={e => update({ password: e.target.value })} placeholder="Min. 8 characters" />
                   </div>
                   <div>
-                    <label className={labelClasses} style={{ color: 'var(--text-secondary)' }}>Confirm Password</label>
-                    <input className={inputClasses} style={inputStyle} type="password" value={formData.confirmPassword}
+                    <label htmlFor="confirmPassword" className={labelClasses} style={{ color: 'var(--text-secondary)' }}>Confirm Password</label>
+                    <input id="confirmPassword" className={inputClasses} style={inputStyle} type="password" value={formData.confirmPassword}
                       onChange={e => update({ confirmPassword: e.target.value })} placeholder="••••••••" />
                   </div>
                 </div>
@@ -202,14 +202,14 @@ export default function RegisterForm() {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className={labelClasses} style={{ color: 'var(--text-secondary)' }}>Phone (10 Digits)</label>
-                    <input className={inputClasses} style={inputStyle} value={formData.phone}
+                    <label htmlFor="phone" className={labelClasses} style={{ color: 'var(--text-secondary)' }}>Phone (10 Digits)</label>
+                    <input id="phone" className={inputClasses} style={inputStyle} value={formData.phone}
                       onChange={e => update({ phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                       placeholder="9876543210" />
                   </div>
                   <div>
-                    <label className={labelClasses} style={{ color: 'var(--text-secondary)' }}>Date of Birth</label>
-                    <input type="date" className={inputClasses} style={{ ...inputStyle, colorScheme: 'dark' }}
+                    <label htmlFor="dob" className={labelClasses} style={{ color: 'var(--text-secondary)' }}>Date of Birth</label>
+                    <input id="dob" type="date" className={inputClasses} style={{ ...inputStyle, colorScheme: 'dark' }}
                       value={formData.dob} onChange={e => update({ dob: e.target.value })} />
                   </div>
                 </div>
@@ -231,13 +231,13 @@ export default function RegisterForm() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className={labelClasses} style={{ color: 'var(--text-secondary)' }}>State</label>
-                    <input className={inputClasses} style={inputStyle} value={formData.state}
+                    <label htmlFor="state" className={labelClasses} style={{ color: 'var(--text-secondary)' }}>State</label>
+                    <input id="state" className={inputClasses} style={inputStyle} value={formData.state}
                       onChange={e => update({ state: e.target.value })} placeholder="e.g. Karnataka" />
                   </div>
                   <div>
-                    <label className={labelClasses} style={{ color: 'var(--text-secondary)' }}>City</label>
-                    <input className={inputClasses} style={inputStyle} value={formData.city}
+                    <label htmlFor="city" className={labelClasses} style={{ color: 'var(--text-secondary)' }}>City</label>
+                    <input id="city" className={inputClasses} style={inputStyle} value={formData.city}
                       onChange={e => update({ city: e.target.value })} placeholder="e.g. Bengaluru" />
                   </div>
                 </div>
@@ -269,15 +269,15 @@ export default function RegisterForm() {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className={labelClasses} style={{ color: 'var(--text-secondary)' }}>Social Category</label>
-                    <select className={inputClasses} style={inputStyle}
+                    <label htmlFor="category" className={labelClasses} style={{ color: 'var(--text-secondary)' }}>Social Category</label>
+                    <select id="category" className={inputClasses} style={inputStyle}
                       value={formData.category} onChange={e => update({ category: e.target.value })}>
                       {['General', 'OBC', 'SC', 'ST', 'EWS'].map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className={labelClasses} style={{ color: 'var(--text-secondary)' }}>Nationality</label>
-                    <input className={inputClasses} style={inputStyle}
+                    <label htmlFor="nationality" className={labelClasses} style={{ color: 'var(--text-secondary)' }}>Nationality</label>
+                    <input id="nationality" className={inputClasses} style={inputStyle}
                       value={formData.nationality} onChange={e => update({ nationality: e.target.value })} />
                   </div>
                 </div>

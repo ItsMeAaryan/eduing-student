@@ -295,11 +295,14 @@ function PasswordSection() {
     } finally { setSaving(false) }
   }
 
-  const pwInput = (label: string, val: string, setVal: (v: string) => void, show: boolean, toggle: () => void, onKeyDown?: React.KeyboardEventHandler) => (
+  const pwInput = (label: string, val: string, setVal: (v: string) => void, show: boolean, toggle: () => void, onKeyDown?: React.KeyboardEventHandler) => {
+    const inputId = label.toLowerCase().replace(/\s+/g, '-');
+    return (
     <div>
-      <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>{label}</label>
+      <label htmlFor={inputId} style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>{label}</label>
       <div style={{ position: 'relative' }}>
         <input
+          id={inputId}
           type={show ? 'text' : 'password'}
           value={val}
           onChange={e => setVal(e.target.value)}
@@ -312,7 +315,7 @@ function PasswordSection() {
         </button>
       </div>
     </div>
-  )
+  )}
 
   return (
     <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)' }}>
@@ -338,8 +341,8 @@ function PasswordSection() {
           {pwInput('Current Password', currentPw, setCurrentPw, showCurrent, () => setShowCurrent(v => !v))}
           {pwInput('New Password', newPw, setNewPw, showNew, () => setShowNew(v => !v))}
           <div>
-            <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>Confirm New Password</label>
-            <input type="password" value={confirmPw} onChange={e => setConfirmPw(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') handleSave() }} placeholder="Re-enter new password" style={inputStyle} />
+            <label htmlFor="confirmPw" style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>Confirm New Password</label>
+            <input id="confirmPw" type="password" value={confirmPw} onChange={e => setConfirmPw(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') handleSave() }} placeholder="Re-enter new password" style={inputStyle} />
           </div>
           <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
             <button onClick={handleSave} disabled={saving} style={{ fontSize: 13, fontWeight: 600, padding: '8px 18px', borderRadius: 7, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', opacity: saving ? 0.6 : 1 }}>
@@ -407,12 +410,12 @@ function ChangeEmailSection({ currentEmail }: { currentEmail: string }) {
       {open && (
         <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 10, padding: 16, background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8 }}>
           <div>
-            <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>New Email Address</label>
-            <input type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="your@email.com" style={inputStyle} />
+            <label htmlFor="newEmail" style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>New Email Address</label>
+            <input id="newEmail" type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="your@email.com" style={inputStyle} />
           </div>
           <div>
-            <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>Current Password (to confirm)</label>
-            <input type="password" value={currentPw} onChange={e => setCurrentPw(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') handleSave() }} placeholder="Enter current password" style={inputStyle} />
+            <label htmlFor="currentPw" style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>Current Password (to confirm)</label>
+            <input id="currentPw" type="password" value={currentPw} onChange={e => setCurrentPw(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') handleSave() }} placeholder="Enter current password" style={inputStyle} />
           </div>
           <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
             <button onClick={handleSave} disabled={saving} style={{ fontSize: 13, fontWeight: 600, padding: '8px 18px', borderRadius: 7, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', opacity: saving ? 0.6 : 1 }}>
