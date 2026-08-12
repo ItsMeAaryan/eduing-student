@@ -16,7 +16,8 @@ test.describe('Student university discovery (authenticated)', () => {
 
   test('lists universities and supports search', async ({ page }) => {
     await page.goto('/student/universities')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
+    await page.locator('.group').first().waitFor({ state: 'visible', timeout: 15000 })
 
     // Find first university card and click View Details
     const firstUniCard = page.locator('.group').first()

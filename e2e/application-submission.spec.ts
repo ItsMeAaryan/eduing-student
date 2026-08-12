@@ -10,9 +10,10 @@ test.describe('Application submission', () => {
     await page.goto('/student/universities');
 
     // "View Details" on the discover card navigates to the university detail page
-    const viewDetailsBtn = page.getByRole('button', { name: /view details/i }).first();
+    const viewDetailsBtn = page.locator('[role="button"][aria-label^="View details for"]').first();
     await viewDetailsBtn.waitFor({ state: 'visible' });
-    await viewDetailsBtn.click();
+    await viewDetailsBtn.click({ timeout: 15000 });
+    await page.waitForURL(/\/student\/universities\/.+/, { timeout: 10000 });
 
     await expect(page).toHaveURL(/\/student\/universities\/.+/);
 
@@ -36,9 +37,10 @@ test.describe('Application submission', () => {
 
   test('an unverified student cannot submit an application', async ({ page }) => {
     await page.goto('/student/universities');
-    const viewDetailsBtn = page.getByRole('button', { name: /view details/i }).first();
+    const viewDetailsBtn = page.locator('[role="button"][aria-label^="View details for"]').first();
     await viewDetailsBtn.waitFor({ state: 'visible' });
-    await viewDetailsBtn.click();
+    await viewDetailsBtn.click({ timeout: 15000 });
+    await page.waitForURL(/\/student\/universities\/.+/, { timeout: 10000 });
 
     const programDetailsBtn = page.getByRole('button', { name: /view details/i }).first();
     await programDetailsBtn.waitFor({ state: 'visible' });

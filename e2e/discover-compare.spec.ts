@@ -8,9 +8,9 @@ test.describe('Discovery & Comparison Workflows', () => {
 
   test('Discover Universities - Search and filter', async ({ page }) => {
     await page.goto('/student/universities');
-    await expect(page.getByText('Discover Universities')).toBeVisible();
+    await expect(page.getByText('Explore Universities & Programs')).toBeVisible();
 
-    const searchInput = page.getByPlaceholder(/What are the best Computer Science colleges/i);
+    const searchInput = page.getByPlaceholder(/Search universities, locations/i);
     await searchInput.fill('VIT');
     
     const aiSearchBtn = page.getByRole('button', { name: 'Search', exact: true });
@@ -19,9 +19,9 @@ test.describe('Discovery & Comparison Workflows', () => {
     }
   });
 
-  test('Compare Universities - Renders empty state and matrix', async ({ page }) => {
+  test('Compare Universities - Redirects to discover', async ({ page }) => {
     await page.goto('/student/compare');
-    await expect(page.getByText(/AI University Comparison/i)).toBeVisible();
-    await expect(page.getByText(/Select Universities to Compare/i)).toBeVisible();
+    await expect(page.getByText('Explore Universities & Programs')).toBeVisible();
+    // The empty state is now just the discovery page since it redirects.
   });
 });

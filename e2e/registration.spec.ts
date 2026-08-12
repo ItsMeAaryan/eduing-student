@@ -13,9 +13,9 @@ test.describe('Student registration', () => {
 
     // Step 1: Account
     await page.getByLabel(/Full Legal Name/i).fill('E2E Test Student')
-    await page.getByLabel(/Email Access/i).fill(testEmail)
-    await page.getByLabel(/Secure Password/i).fill('TestPassword123!')
-    await page.getByLabel(/Confirm Access/i).fill('TestPassword123!')
+    await page.getByLabel(/Email Address/i).fill(testEmail)
+    await page.getByLabel(/^Password/i).fill('TestPassword123!')
+    await page.getByLabel(/Confirm Password/i).fill('TestPassword123!')
     await page.getByRole('button', { name: /Continue/i }).click()
 
     // Step 2: Contact
