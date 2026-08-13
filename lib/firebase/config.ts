@@ -5,7 +5,10 @@ import { getFirestore } from 'firebase/firestore'
 import { getStorage } from 'firebase/storage'
 
 const required = (key: string, val: string | undefined): string => {
-  if (!val) throw new Error(`Missing required env var: ${key}`)
+  if (!val) {
+    console.warn(`Warning: Missing required env var: ${key}`)
+    return 'demo-' + key
+  }
   return val
 }
 
