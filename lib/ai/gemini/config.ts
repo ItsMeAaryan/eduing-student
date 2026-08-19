@@ -1,7 +1,7 @@
 export const geminiConfig = {
   apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY || '',
-  defaultModel: 'llama-3.1-8b-instant',
-  proModel: 'llama-3.1-8b-instant',
+  defaultModel: 'llama-3.3-70b-versatile',
+  proModel: 'llama-3.3-70b-versatile',
   temperature: 0.7,
   maxTokens: 2048,
   timeoutMs: 30000,

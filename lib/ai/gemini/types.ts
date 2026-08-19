@@ -1,4 +1,4 @@
-export type GeminiModel = 'llama-3.1-8b-instant';
+export type GeminiModel = 'llama-3.3-70b-versatile';
 
 export interface GeminiResponse<T = any> {
   success: boolean;
