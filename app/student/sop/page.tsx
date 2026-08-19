@@ -114,8 +114,8 @@ function SOPBuilderContent() {
   const [isGenerating, setIsGenerating] = useState(false);
   const { data: reviewData, isGenerating: isReviewing, generate: runReview } = useAIGeneration<any>();
 
-  // Derived
-  const p = (profile as any) || {};
+  // Derived — `p` is memoized to prevent unstable dependencies in child hooks
+  const p = useMemo(() => (profile as any) || {}, [profile]);
   const wordCount = useMemo(() => sopText.trim() ? sopText.trim().split(/\s+/).length : 0, [sopText]);
   const wordTarget = parseInt(wordLimit) || 800;
   const canGenerate = university.trim() && course.trim() && !isGenerating;

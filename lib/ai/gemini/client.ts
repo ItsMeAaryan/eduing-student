@@ -1,30 +1,9 @@
-import Groq from 'groq-sdk';
+// lib/ai/gemini/client.ts
+// NOTE: This Groq client is no longer used for direct browser calls.
+// All AI generation is now proxied through /api/ai (server-side).
+// This file is kept for structural completeness and server-side use only.
+
 import { geminiConfig } from './config';
-
-class GroqClient {
-  private static instance: Groq | null = null;
-
-  private constructor() {}
-
-  public static getInstance(): Groq {
-    if (!GroqClient.instance) {
-      if (!geminiConfig.apiKey) {
-        console.warn('[Groq Client] API key is missing. AI features will fail or run in fallback mode.');
-      }
-      GroqClient.instance = new Groq({
-        apiKey: geminiConfig.apiKey,
-        dangerouslyAllowBrowser: true,
-      });
-    }
-    return GroqClient.instance;
-  }
-}
-
-/** Returns the singleton Groq client instance. */
-export const getGroqClient = () => GroqClient.getInstance();
-
-/** Alias kept for zero import-churn in existing files. */
-export const getGeminiClient = getGroqClient;
 
 export async function executeWithRetry<T>(
   operation: () => Promise<T>,
@@ -34,7 +13,7 @@ export async function executeWithRetry<T>(
     return await operation();
   } catch (error: any) {
     if (retries > 0) {
-      console.warn(`[Groq Client] Operation failed. Retrying... (${retries} attempts left). Error: ${error.message}`);
+      console.warn(`[AI Client] Operation failed. Retrying... (${retries} attempts left). Error: ${error.message}`);
       await new Promise(resolve => setTimeout(resolve, geminiConfig.retryDelayMs));
       return executeWithRetry(operation, retries - 1);
     }

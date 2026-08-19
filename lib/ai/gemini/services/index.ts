@@ -1,17 +1,20 @@
-import { getGroqClient, executeWithRetry } from '../client';
+// lib/ai/gemini/services/index.ts
+// All AI generation now routes through /api/ai (server-side proxy).
+// This keeps the GROQ_API_KEY off the client bundle.
+
 import { MODELS, getOptimalModelForTask } from '../models';
 import { PromptBuilder } from '../prompts';
 import { GeminiResponse, PromptConfig } from '../types';
 import { geminiConfig } from '../config';
 
-/** Rename: was parseGeminiResponse — logic unchanged, provider-agnostic. */
+/** Parse AI JSON response, normalize sections[].content to string. */
 function parseAIResponse(response: GeminiResponse, contextName: string): GeminiResponse {
   if (response.success && response.text) {
     try {
       const cleanedText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
       const parsed = JSON.parse(cleanedText);
 
-      // Normalize sections[].content to string — Groq can return arrays or other types
+      // Normalize sections[].content to string — model can return arrays or other types
       if (parsed && Array.isArray(parsed.sections)) {
         parsed.sections = parsed.sections.map((sec: any) => ({
           ...sec,
@@ -30,46 +33,66 @@ function parseAIResponse(response: GeminiResponse, contextName: string): GeminiR
   return response;
 }
 
+/** Retry helper for transient failures. */
+async function withRetry<T>(
+  operation: () => Promise<T>,
+  retries = geminiConfig.maxRetries
+): Promise<T> {
+  try {
+    return await operation();
+  } catch (error: any) {
+    if (retries > 0) {
+      await new Promise(resolve => setTimeout(resolve, geminiConfig.retryDelayMs));
+      return withRetry(operation, retries - 1);
+    }
+    throw error;
+  }
+}
+
+/**
+ * Sends a generation request to the server-side /api/ai proxy.
+ * The GROQ_API_KEY never leaves the server.
+ */
 async function generateAIResponse(
   prompt: string,
   config?: PromptConfig
 ): Promise<GeminiResponse> {
   try {
-    // Fallback if API key is missing
-    if (!geminiConfig.apiKey) {
-      return {
-        success: true,
-        text: 'AI capabilities are currently in fallback mode due to missing API key configuration.',
-        isFallback: true,
-      };
-    }
-
-    const client = getGroqClient();
-    const modelName = config?.model || geminiConfig.defaultModel;
-
-    // Build messages array — prepend system instruction if provided
-    const messages: { role: 'system' | 'user'; content: string }[] = [];
+    const messages: { role: string; content: string }[] = [];
     if (config?.systemInstruction) {
       messages.push({ role: 'system', content: config.systemInstruction });
     }
     messages.push({ role: 'user', content: prompt });
 
-    const completion = await executeWithRetry(() =>
-      client.chat.completions.create({
-        model: modelName,
-        messages,
-        temperature: config?.temperature ?? geminiConfig.temperature,
-        max_tokens: config?.maxTokens ?? geminiConfig.maxTokens,
+    const response = await withRetry(() =>
+      fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: config?.model || geminiConfig.defaultModel,
+          messages,
+          temperature: config?.temperature ?? geminiConfig.temperature,
+          max_tokens: config?.maxTokens ?? geminiConfig.maxTokens,
+        }),
       })
     );
 
-    const text = completion.choices[0]?.message?.content ?? '';
-    return { success: true, text };
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ error: 'Unknown error' }));
+      console.error('[AI Service] /api/ai error:', response.status, err);
+      return {
+        success: false,
+        error: err.error || 'AI service temporarily unavailable. Please try again.',
+      };
+    }
+
+    const data = await response.json();
+    return { success: true, text: data.text ?? '' };
   } catch (error: any) {
-    console.error('[Groq Service Error]', error);
+    console.error('[AI Service] Network error:', error);
     return {
       success: false,
-      error: 'Something went wrong. Please try again later.',
+      error: 'Unable to reach AI service. Check your connection and try again.',
     };
   }
 }
@@ -131,7 +154,6 @@ export class CopilotService {
     context: any,
     history: { role: 'user' | 'assistant'; content: string }[] = []
   ): Promise<GeminiResponse> {
-    // Build a multi-turn formatted history for context
     const historyText = history.length > 0
       ? history.map(m => `${m.role === 'user' ? 'Student' : 'Advisor'}: ${m.content}`).join('\n')
       : '';

@@ -208,12 +208,15 @@ export function CompareWorkspace({ selectedIds, onClose, onRemove, onAdd }: {
     };
   }, [profile, documents, uniqueApps, savedPrograms, selectedUniversities, scholarships]);
 
-  useEffect(() => { aiTriggered.current = false; setAiAnalysis(null); }, [selectedIds.join(',')]);
+  const selectedIdsKey = selectedIds.join(',');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { aiTriggered.current = false; setAiAnalysis(null); }, [selectedIdsKey]);
   useEffect(() => {
     if (comparisonData && comparisonData.universities.length >= 2 && !aiAnalysis && !loadingAI && !error && !aiTriggered.current) {
       aiTriggered.current = true;
       generate(() => UniversityComparisonService.compare(selectedUniversities, comparisonData));
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [comparisonData]);
   useEffect(() => {
     const fn = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };

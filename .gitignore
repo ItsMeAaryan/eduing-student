@@ -44,3 +44,24 @@ coverage/
 /playwright/.cache/
 *.tsbuildinfo
 tsconfig.tsbuildinfo
+
+# Development debug scripts (should not be in production repo)
+debug.js
+debug.py
+check_chars.js
+find_invisibles.js
+generate_page.js
+generate_enhanced_page.js
+generate_flagship_complete_page.js
+parse_eval.js
+replace_em_dash.js
+test-browser.js
+
+# Development logs
+dev.log
+dev_server.log
+eslint_out.txt
+
+# Backup files
+*.bak
+*.backup

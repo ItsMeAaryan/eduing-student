@@ -85,7 +85,7 @@ export default function OnboardingPage() {
     setSaving(true)
     setSaveError('')
     try {
-      await updateDoc(doc(db, 'student_profiles', user.uid), {
+      await updateDoc(doc(db, 'users', user.uid), {
         ...form.personal,
         academic: form.academic,
         exams: form.exams,

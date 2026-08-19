@@ -12,7 +12,7 @@ import { UserProfile, UserDocument } from '@/types/firebase'
 import { compressImage } from '../utils/compression'
 
 const log = (...args: unknown[]) => {
-  if (process.env.NODE_ENV === 'development') console.error(...args)
+  if (process.env.NODE_ENV === 'development') console.log(...args)
 }
 
 // Listen to user profile (real-time)
@@ -22,7 +22,7 @@ export function listenUserProfile(
   errorCallback?: (error: unknown) => void
 ) {
   return onSnapshot(
-    doc(db, 'student_profiles', uid),
+    doc(db, 'users', uid),
     (snap) => {
       if (snap.exists()) {
         callback({ uid: snap.id, ...snap.data() } as UserProfile)
@@ -43,7 +43,7 @@ export async function updateUserProfile(
   data: Partial<UserProfile>
 ) {
   await updateDoc(
-    doc(db, 'student_profiles', uid),
+    doc(db, 'users', uid),
     {
       ...data,
       updatedAt: serverTimestamp(),
@@ -58,12 +58,12 @@ export async function uploadProfilePhoto(
 ) {
   try {
     const compressed = await compressImage(file)
-    const path = `student_profiles/${uid}/profile_photo`
+    const path = `users/${uid}/profile_photo`
     const storageRef = ref(storage, path)
     await uploadBytes(storageRef, compressed)
     const url = await getDownloadURL(storageRef)
     await updateDoc(
-      doc(db, 'student_profiles', uid),
+      doc(db, 'users', uid),
       {
         profilePhotoURL: url,
         updatedAt: serverTimestamp(),
@@ -127,9 +127,9 @@ export function listenUserDocuments(
   )
 }
 
-// Remove profile photo URL from student_profiles (consistent collection)
+// Remove profile photo URL from users collection (canonical collection)
 export async function removeProfilePhoto(uid: string) {
-  await updateDoc(doc(db, 'student_profiles', uid), {
+  await updateDoc(doc(db, 'users', uid), {
     profilePhotoURL: '',
     updatedAt: serverTimestamp()
   })

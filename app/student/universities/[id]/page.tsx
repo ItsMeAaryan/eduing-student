@@ -4,8 +4,8 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react'
 import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
-import { onSnapshot, doc, collection, query, where, or } from 'firebase/firestore'
-import { db } from '@/lib/firebase/config'
+import { onSnapshot, doc, collection, query, where, or, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore'
+import { auth, db } from '@/lib/firebase/config'
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
 import {
   MapPin, Building2, ArrowRight, TrendingUp,
@@ -22,6 +22,7 @@ import ProtectedRoute from '@/components/ProtectedRoute'
 import { useStudentData } from '@/components/providers/StudentDataProvider'
 import { submitApplication } from '@/lib/firebase/applications'
 import { calculateAdmissionProbability } from '@/lib/utils/probabilityEngine'
+import { useToast } from '@/hooks/useToast'
 
 /* ── Deterministic color from name ─────────────────────────────────── */
 function logoColor(name = '') {
@@ -178,6 +179,7 @@ export default function UniversityDetailPage() {
 
   const { user } = useAuth()
   const { profile, documents, uniqueApps, savedPrograms, profileScore } = useStudentData()
+  const { toast } = useToast()
 
   const [university, setUniversity] = useState<any | null>(null)
   const [programs, setPrograms] = useState<any[]>([])
@@ -193,6 +195,35 @@ export default function UniversityDetailPage() {
   const [activeSection, setActiveSection] = useState('overview')
   const [selectedProgramDetail, setSelectedProgramDetail] = useState<any | null>(null)
   const [programLevelFilter, setProgramLevelFilter] = useState('All')
+
+  // Sync bookmark state from real savedPrograms (Firestore)
+  useEffect(() => {
+    const isSaved = Array.isArray(savedPrograms) &&
+      savedPrograms.some((p: any) => p?.universityId === id || p?.id === id)
+    setIsBookmarked(isSaved)
+  }, [savedPrograms, id])
+
+  // Persist bookmark to Firestore
+  const toggleBookmark = async () => {
+    const uid = auth.currentUser?.uid
+    if (!uid || !university) return
+    const savedEntry = { universityId: id, name: university.name, scholarshipAvailable: !!(university.scholarships?.length) }
+    try {
+      if (isBookmarked) {
+        setIsBookmarked(false)
+        await updateDoc(doc(db, 'users', uid), {
+          savedPrograms: arrayRemove(savedPrograms.find((p: any) => p?.universityId === id) || savedEntry)
+        })
+      } else {
+        setIsBookmarked(true)
+        await updateDoc(doc(db, 'users', uid), {
+          savedPrograms: arrayUnion(savedEntry)
+        })
+      }
+    } catch {
+      setIsBookmarked(v => !v) // Revert on failure
+    }
+  }
 
   const { scrollY } = useScroll()
   const heroOpacity = useTransform(scrollY, [0, 300], [1, 0.3])
@@ -256,7 +287,14 @@ export default function UniversityDetailPage() {
       await submitApplication(id, university.name, program?.name || 'General Admission')
       setApplicationSubmitted(true)
       setTimeout(() => { setApplying(false); setSelectedProgram(null) }, 1400)
-    } catch { setApplying(false) }
+    } catch (err: any) {
+      setApplying(false)
+      const msg = err?.message || 'Application failed. Please try again.'
+      if (msg.includes('already applied')) {
+        setApplicationSubmitted(true)
+      }
+      toast.error(msg)
+    }
   }
 
   const handleShare = () => {
@@ -382,7 +420,7 @@ export default function UniversityDetailPage() {
 
             <div className="flex items-center gap-2">
               {[
-                { icon: isBookmarked ? <Bookmark size={15} fill="white" /> : <Bookmark size={15} />, onClick: () => setIsBookmarked(v => !v), label: 'Bookmark', active: isBookmarked },
+                { icon: isBookmarked ? <Bookmark size={15} fill="white" /> : <Bookmark size={15} />, onClick: () => toggleBookmark(), label: 'Bookmark', active: isBookmarked },
                 { icon: copiedLink ? <CheckCircle2 size={15} /> : <Share2 size={15} />, onClick: handleShare, label: 'Share', active: copiedLink },
                 { icon: <Scale size={15} />, onClick: () => {}, label: 'Compare', active: false },
               ].map(({ icon, onClick, label, active }) => (
@@ -1183,7 +1221,7 @@ export default function UniversityDetailPage() {
                     )}
                   </button>
                   <button
-                    onClick={() => setIsBookmarked(v => !v)}
+                    onClick={() => toggleBookmark()}
                     className="flex items-center gap-2 h-12 px-6 rounded-xl text-[14px] font-semibold transition-all"
                     style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', cursor: 'pointer' }}
                   >
@@ -1248,7 +1286,7 @@ export default function UniversityDetailPage() {
                 {applicationSubmitted ? <><CheckCircle2 size={14} /> Applied!</> : <>Apply Now <ArrowRight size={13} strokeWidth={2.5} /></>}
               </button>
               <button
-                onClick={() => setIsBookmarked(v => !v)}
+                onClick={() => toggleBookmark()}
                 className="w-full h-9 rounded-xl text-[12.5px] font-semibold flex items-center justify-center gap-1.5 transition-all"
                 style={{
                   background: isBookmarked ? 'var(--accent-bg)' : 'var(--bg-elevated)',

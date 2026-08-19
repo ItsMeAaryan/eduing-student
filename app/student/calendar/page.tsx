@@ -1,7 +1,7 @@
 // app/student/calendar/page.tsx
 'use client'
 
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronLeft, ChevronRight, Plus, Bell,
@@ -11,6 +11,8 @@ import {
 import { useStudentData } from '@/components/providers/StudentDataProvider'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import { generateDeadlineInsights, DeadlineInsight } from '@/lib/utils/deadlineEngine'
+import { collection, addDoc, updateDoc, getDocs, doc, serverTimestamp } from 'firebase/firestore'
+import { auth, db } from '@/lib/firebase/config'
 
 const DAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 
@@ -165,24 +167,67 @@ export default function AdmissionPlannerPage() {
   const { deadlines, uniqueApps, documents, profileScore, loading } = useStudentData()
   const [search, setSearch] = useState('')
   const [tasks, setTasks] = useState<any[]>([])
+  const [tasksLoading, setTasksLoading] = useState(true)
   const [showAddTask, setShowAddTask] = useState(false)
   const [newTaskTitle, setNewTaskTitle] = useState('')
   const [newTaskCategory, setNewTaskCategory] = useState('Application')
 
-  const toggleTask = (id: string) => setTasks(prev => prev.map(t => t.id === id ? { ...t, done: !t.done } : t))
+  // Load persisted tasks from Firestore on mount
+  useEffect(() => {
+    const uid = auth.currentUser?.uid
+    if (!uid) { setTasksLoading(false); return }
+    getDocs(collection(db, 'users', uid, 'tasks'))
+      .then(snap => {
+        const loaded = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        setTasks(loaded)
+      })
+      .catch(() => {}) // Graceful fallback — no tasks shown if Firestore unreachable
+      .finally(() => setTasksLoading(false))
+  }, [])
 
-  const handleAddTask = () => {
+  // Toggle task completion and persist to Firestore
+  const toggleTask = async (id: string) => {
+    const uid = auth.currentUser?.uid
+    const task = tasks.find(t => t.id === id)
+    if (!task || !uid) return
+    const newDone = !task.done
+    // Optimistic update
+    setTasks(prev => prev.map(t => t.id === id ? { ...t, done: newDone } : t))
+    try {
+      await updateDoc(doc(db, 'users', uid, 'tasks', id), { done: newDone, updatedAt: serverTimestamp() })
+    } catch {
+      // Revert on failure
+      setTasks(prev => prev.map(t => t.id === id ? { ...t, done: task.done } : t))
+    }
+  }
+
+  // Add task and persist to Firestore
+  const handleAddTask = async () => {
     if (!newTaskTitle.trim()) return
-    setTasks(prev => [{
-      id: `t_${Date.now()}`,
+    const uid = auth.currentUser?.uid
+    const newTask = {
       done: false,
       title: newTaskTitle,
       category: newTaskCategory,
       due: 'Today',
       priority: 'Medium',
-    }, ...prev])
+      createdAt: serverTimestamp(),
+    }
+    // Optimistic update with temp id
+    const tempId = `temp_${Date.now()}`
+    setTasks(prev => [{ id: tempId, ...newTask, createdAt: null }, ...prev])
     setNewTaskTitle('')
     setShowAddTask(false)
+
+    if (uid) {
+      try {
+        const docRef = await addDoc(collection(db, 'users', uid, 'tasks'), newTask)
+        // Replace temp id with real Firestore id
+        setTasks(prev => prev.map(t => t.id === tempId ? { ...t, id: docRef.id } : t))
+      } catch {
+        // Keep optimistic entry even if Firestore fails
+      }
+    }
   }
 
   const { insights } = useMemo(() => generateDeadlineInsights({

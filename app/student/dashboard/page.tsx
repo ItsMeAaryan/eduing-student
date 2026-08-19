@@ -1090,19 +1090,7 @@ function FloatingAIAssistantWidget() {
   )
 }
 
-/* =========================================================================
-   MAIN STUDENT DASHBOARD COMPONENT
-   ========================================================================= */
 export default function StudentDashboard() {
-  console.log('dashboard mounting')
-
-  React.useEffect(() => {
-    try {
-      // Async error boundary
-    } catch (error) {
-      console.error('Dashboard async error:', error)
-    }
-  }, [])
 
   const {
     loading,

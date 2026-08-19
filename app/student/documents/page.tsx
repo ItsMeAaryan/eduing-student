@@ -30,6 +30,7 @@ const STICKER_GREEN = "bg-success/10 text-success border border-success/20"
 const STICKER_SKY = "bg-[#62aef0]/15 text-primary border border-[#62aef0]/30"
 
 /* =========================================================================
+/* =========================================================================
    TYPES & DATA
    ========================================================================= */
 type DocStatus = 'verified' | 'pending' | 'rejected' | 'missing'
@@ -46,40 +47,59 @@ interface Doc {
   required: boolean
 }
 
-const INITIAL_DOCS: Doc[] = [
-  { id: 'd1', name: '10th_Marksheet.pdf', category: 'Academic', status: 'verified', date: '20 May 2024', size: '2.4 MB', aiScore: 98, apps: 6, required: true },
-  { id: 'd2', name: '12th_Marksheet.pdf', category: 'Academic', status: 'pending', date: '19 May 2024', size: '2.1 MB', aiScore: 87, apps: 5, required: true },
-  { id: 'd3', name: 'Aadhaar_Card.jpg', category: 'Identity', status: 'verified', date: '18 May 2024', size: '0.8 MB', aiScore: 99, apps: 8, required: true },
-  { id: 'd4', name: 'JEE_Main_Scorecard.pdf', category: 'Entrance Exams', status: 'verified', date: '17 May 2024', size: '1.2 MB', aiScore: 95, apps: 4, required: true },
-  { id: 'd5', name: 'Caste_Certificate.jpg', category: 'Certificates', status: 'pending', date: '16 May 2024', size: '0.6 MB', aiScore: 76, apps: 3, required: false },
-  { id: 'd6', name: 'Income_Certificate.pdf', category: 'Certificates', status: 'rejected', date: '15 May 2024', size: '0.9 MB', aiScore: 42, apps: 2, required: false },
-  { id: 'd7', name: 'Gap_Certificate.docx', category: 'Academic', status: 'verified', date: '14 May 2024', size: '0.3 MB', aiScore: 91, apps: 2, required: false },
-  { id: 'd8', name: 'Passport_Copy.pdf', category: 'Identity', status: 'missing', date: '—', size: '—', aiScore: 0, apps: 0, required: true },
-  { id: 'd9', name: 'PAN_Card.jpg', category: 'Identity', status: 'missing', date: '—', size: '—', aiScore: 0, apps: 0, required: false },
-  { id: 'd10', name: 'Domicile_Certificate.pdf', category: 'Certificates', status: 'verified', date: '12 May 2024', size: '0.5 MB', aiScore: 93, apps: 1, required: false },
-]
+// Maps known docIds to human-readable display names and categories
+const DOC_ID_META: Record<string, { name: string; category: string; required: boolean }> = {
+  '10th_marksheet': { name: '10th Marksheet', category: 'Academic', required: true },
+  '12th_marksheet': { name: '12th Marksheet', category: 'Academic', required: true },
+  'id_proof': { name: 'ID Proof (Aadhaar/PAN)', category: 'Identity', required: true },
+  'passport_photo': { name: 'Passport Photo', category: 'Identity', required: true },
+}
 
-const CATEGORY_FOLDERS = [
-  { name: 'Academic', count: 4, verified: 3, missing: 0, icon: '📚', tagColor: STICKER_PURPLE },
-  { name: 'Identity', count: 3, verified: 1, missing: 2, icon: '🪪', tagColor: STICKER_SKY },
-  { name: 'Entrance Exams', count: 2, verified: 2, missing: 0, icon: '📝', tagColor: STICKER_TEAL },
-  { name: 'Certificates', count: 3, verified: 1, missing: 0, icon: '🏆', tagColor: STICKER_GREEN },
-  { name: 'Portfolio', count: 0, verified: 0, missing: 0, icon: '🎨', tagColor: STICKER_ORANGE },
-]
+// Maps Firestore doc status to display status
+function mapDocStatus(firestoreStatus: string): DocStatus {
+  if (firestoreStatus === 'verified') return 'verified'
+  if (firestoreStatus === 'rejected') return 'rejected'
+  if (firestoreStatus === 'removed') return 'missing'
+  return 'pending'
+}
+
+// Convert Firestore userDocuments map to Doc[] display format
+function firestoreDocsToDisplay(userDocuments: Record<string, any>): Doc[] {
+  return Object.entries(userDocuments)
+    .filter(([, d]) => d?.fileUrl && d?.status !== 'removed') // only real uploads
+    .map(([docId, d]) => {
+      const meta = DOC_ID_META[docId] || { name: docId, category: 'Other', required: false }
+      const uploadedAt = d.uploadedAt?.toDate
+        ? d.uploadedAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+        : 'Uploaded'
+      return {
+        id: docId,
+        name: meta.name,
+        category: meta.category,
+        status: mapDocStatus(d.status),
+        date: uploadedAt,
+        size: '—',
+        aiScore: d.aiScore || 0,
+        apps: 0,
+        required: meta.required,
+      } as Doc
+    })
+}
 
 const VERIFICATION_FLOW = [
   { step: '1. File Uploaded', desc: 'Secure cloud vault storage', status: 'completed' },
   { step: '2. OCR Data Extraction', desc: 'Parsing marks & candidate info', status: 'completed' },
   { step: '3. AI Authenticity Scan', desc: 'Blur & forgery detection', status: 'completed' },
   { step: '4. Counselor Verification', desc: 'Manual review by admissions team', status: 'active' },
-  { step: '5. University Dispatch', desc: 'Ready for 17 target universities', status: 'pending' },
+  { step: '5. University Dispatch', desc: 'Shared with partner universities', status: 'pending' },
 ]
 
 /* =========================================================================
    SECTION 1: DOCUMENT HEALTH OVERVIEW CARD
    ========================================================================= */
-function DocumentHealthOverview({ verified, pending, missing, total, onUploadClick }: { verified: number; pending: number; missing: number; total: number; onUploadClick: () => void }) {
+function DocumentHealthOverview({ verified, pending, missing, total, uploadedCount, onUploadClick }: { verified: number; pending: number; missing: number; total: number; uploadedCount: number; onUploadClick: () => void }) {
   const readiness = total ? Math.round((verified / total) * 100) : 0
+  const missingRequired = 4 - uploadedCount > 0 ? 4 - uploadedCount : 0
 
   return (
     <div className={CARD_STYLE}>
@@ -107,15 +127,21 @@ function DocumentHealthOverview({ verified, pending, missing, total, onUploadCli
           <div>
             <div className="flex items-center gap-[8px] mb-[4px]">
               <span className="text-[11px] font-bold uppercase tracking-wider text-primary">Document Vault Health</span>
-              <span className="text-[10px] font-semibold px-[8px] py-[2px] rounded-full bg-success/10 text-success">
-                +17 Universities Unlocked
-              </span>
+              {verified > 0 && (
+                <span className="text-[10px] font-semibold px-[8px] py-[2px] rounded-full bg-success/10 text-success">
+                  {verified} Document{verified > 1 ? 's' : ''} Verified
+                </span>
+              )}
             </div>
             <h1 className="text-[20px] font-bold text-foreground tracking-tight">
               Your profile is {readiness}% document ready.
             </h1>
             <p className="text-[13px] text-muted-foreground mt-[2px] max-w-[480px]">
-              Upload your <strong className="text-foreground">Passport Copy</strong> and <strong className="text-foreground">12th Marksheet</strong> to achieve 100% verification and speed up university admission decisions.
+              {missingRequired > 0
+                ? `Upload ${missingRequired} more required document${missingRequired > 1 ? 's' : ''} to boost your admission readiness.`
+                : pending > 0
+                  ? `${pending} document${pending > 1 ? 's are' : ' is'} pending verification by our team.`
+                  : 'All required documents verified. You are ready for university applications.'}
             </p>
           </div>
         </div>
@@ -148,14 +174,50 @@ function DocumentHealthOverview({ verified, pending, missing, total, onUploadCli
 }
 
 /* =========================================================================
-   SECTION 2: ACTION CENTER
+   SECTION 2: DATA-DRIVEN ACTION CENTER
    ========================================================================= */
-function DocumentActionCenter({ onUploadClick }: { onUploadClick: () => void }) {
-  const actions = [
-    { title: 'Upload Official Passport Copy', category: 'Identity Proof', due: 'Required for International Apps', priority: 'Urgent', tagColor: STICKER_ORANGE, icon: AlertTriangle },
-    { title: 'Re-upload 12th Marksheet', category: 'Academic', due: 'Blur detected on OCR scan', priority: 'High', tagColor: STICKER_PURPLE, icon: RefreshCw },
-    { title: 'Income Certificate Verification Pending', category: 'Certificates', due: 'Under manual review', priority: 'Medium', tagColor: STICKER_SKY, icon: Clock },
-  ]
+function DocumentActionCenter({ docs, onUploadClick }: { docs: Doc[]; onUploadClick: () => void }) {
+  // Build real actions from actual document states
+  const actions: { title: string; category: string; due: string; priority: string; tagColor: string; icon: typeof AlertTriangle }[] = []
+
+  const missingRequired = ['10th_marksheet', '12th_marksheet', 'id_proof', 'passport_photo'].filter(
+    id => !docs.find(d => d.id === id)
+  )
+  missingRequired.forEach(id => {
+    const meta = DOC_ID_META[id]
+    if (meta) actions.push({
+      title: `Upload ${meta.name}`,
+      category: meta.category,
+      due: 'Required for university applications',
+      priority: 'Urgent',
+      tagColor: STICKER_ORANGE,
+      icon: AlertTriangle,
+    })
+  })
+
+  const rejectedDocs = docs.filter(d => d.status === 'rejected')
+  rejectedDocs.forEach(d => {
+    actions.push({
+      title: `Re-upload ${d.name}`,
+      category: d.category,
+      due: 'Rejected — please re-upload a clear copy',
+      priority: 'High',
+      tagColor: STICKER_PURPLE,
+      icon: RefreshCw,
+    })
+  })
+
+  if (actions.length === 0) {
+    return (
+      <div className={CARD_STYLE}>
+        <div className="flex items-center gap-[10px] pb-[14px] mb-[14px] border-b border-border">
+          <CheckCircle2 size={18} className="text-success" />
+          <h2 className="text-[16px] font-bold text-foreground tracking-tight">No Actions Required</h2>
+        </div>
+        <p className="text-[13px] text-muted-foreground">All required documents are uploaded. No actions pending.</p>
+      </div>
+    )
+  }
 
   return (
     <div className={CARD_STYLE}>
@@ -165,12 +227,12 @@ function DocumentActionCenter({ onUploadClick }: { onUploadClick: () => void }) 
           <h2 className="text-[16px] font-bold text-foreground tracking-tight">Required Actions</h2>
         </div>
         <span className="text-[11px] font-bold px-[8px] py-[2px] rounded-full bg-[#dd5b00]/10 text-[#dd5b00]">
-          3 Actions Pending
+          {actions.length} Action{actions.length > 1 ? 's' : ''} Pending
         </span>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-[12px]">
-        {actions.map((act, i) => {
+        {actions.slice(0, 3).map((act, i) => {
           const IconComp = act.icon
           return (
             <div key={i} className="p-[14px] bg-card border border-border rounded-[10px] flex flex-col justify-between gap-[12px] hover:border-primary/30 transition-all">
@@ -209,23 +271,7 @@ function PremiumUploadWorkspace({ onFileSelect }: { onFileSelect: (files: FileLi
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)
 
-  const handleDrag = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    if (e.type === 'dragenter' || e.type === 'dragover') setDragActive(true)
-    else if (e.type === 'dragleave') setDragActive(false)
-  }, [])
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragActive(false)
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleUpload(e.dataTransfer.files)
-    }
-  }, [])
-
-  const handleUpload = async (files: FileList) => {
+  const handleUpload = useCallback(async (files: FileList) => {
     setUploading(true)
     setProgress(20)
     // Simulate progress bar while real upload runs
@@ -242,7 +288,23 @@ function PremiumUploadWorkspace({ onFileSelect }: { onFileSelect: (files: FileLi
       setProgress(100)
       setTimeout(() => { setUploading(false); setProgress(0) }, 600)
     }
-  }
+  }, [onFileSelect])
+
+  const handleDrag = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (e.type === 'dragenter' || e.type === 'dragover') setDragActive(true)
+    else if (e.type === 'dragleave') setDragActive(false)
+  }, [])
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(false)
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleUpload(e.dataTransfer.files)
+    }
+  }, [handleUpload])
 
   return (
     <div className={CARD_STYLE}>
@@ -450,9 +512,23 @@ function RecentDocumentsVault({ docs, onSelectDoc }: { docs: Doc[]; onSelectDoc:
 }
 
 /* =========================================================================
-   SECTION 5: DOCUMENT CATEGORY FOLDERS
+   SECTION 5: DOCUMENT CATEGORY FOLDERS (data-driven)
    ========================================================================= */
-function DocumentCategoryFolders() {
+function DocumentCategoryFolders({ docs }: { docs: Doc[] }) {
+  const FOLDERS = [
+    { name: 'Academic', icon: '📚', tagColor: STICKER_PURPLE },
+    { name: 'Identity', icon: '🪪', tagColor: STICKER_SKY },
+    { name: 'Entrance Exams', icon: '📝', tagColor: STICKER_TEAL },
+    { name: 'Certificates', icon: '🏆', tagColor: STICKER_GREEN },
+    { name: 'Other', icon: '🗂️', tagColor: STICKER_ORANGE },
+  ]
+
+  const folderStats = FOLDERS.map(folder => {
+    const folderDocs = docs.filter(d => d.category === folder.name)
+    const verified = folderDocs.filter(d => d.status === 'verified').length
+    return { ...folder, count: folderDocs.length, verified }
+  })
+
   return (
     <div className={CARD_STYLE}>
       <div className="flex items-center justify-between pb-[14px] mb-[16px] border-b border-border">
@@ -463,7 +539,7 @@ function DocumentCategoryFolders() {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-[12px]">
-        {CATEGORY_FOLDERS.map((folder, i) => {
+        {folderStats.map((folder, i) => {
           const completion = folder.count > 0 ? Math.round((folder.verified / folder.count) * 100) : 0
           return (
             <div key={i} className="p-[14px] bg-card border border-border rounded-[10px] flex flex-col justify-between gap-[10px] hover:border-primary/30 hover:shadow-xs transition-all cursor-pointer">
@@ -546,7 +622,7 @@ function AIDocumentAssistantCard({ onUploadClick }: { onUploadClick: () => void 
         </div>
         <div>
           <div className="flex items-center gap-[8px] mb-[2px]">
-            <span className="text-[11px] font-bold text-primary uppercase tracking-wide">EDING AI Document Assistant</span>
+            <span className="text-[11px] font-bold text-primary uppercase tracking-wide">EDUING AI Document Assistant</span>
             <span className="text-[10px] font-semibold bg-success/15 text-success px-[6px] py-[1px] rounded-full">+24% Admission Boost</span>
           </div>
           <p className="text-[13.5px] font-semibold text-foreground leading-snug">
@@ -568,9 +644,18 @@ function AIDocumentAssistantCard({ onUploadClick }: { onUploadClick: () => void 
    ========================================================================= */
 export default function DocumentsPage() {
   const { userDocuments } = useStudentData()
-  const [localDocs, setLocalDocs] = useState<Doc[]>(INITIAL_DOCS)
+  const [optimisticDocs, setOptimisticDocs] = useState<Doc[]>([])
   const [selectedDoc, setSelectedDoc] = useState<Doc | null>(null)
   const uploadTriggerRef = useRef<HTMLInputElement>(null)
+
+  // Derive display docs from real Firestore data + optimistic local additions
+  const firestoreDocs = firestoreDocsToDisplay(userDocuments)
+  // Merge: prefer Firestore data for known ids, append local optimistic ones not yet in Firestore
+  const firestoreIds = new Set(firestoreDocs.map(d => d.id))
+  const localDocs: Doc[] = [
+    ...firestoreDocs,
+    ...optimisticDocs.filter(d => !firestoreIds.has(d.id)),
+  ]
 
   // Map filename to a known docId
   const inferDocId = (filename: string): '10th_marksheet' | '12th_marksheet' | 'id_proof' | 'passport_photo' => {
@@ -586,31 +671,39 @@ export default function DocumentsPage() {
     if (!uid || !files[0]) return
     const file = files[0]
     const docId = inferDocId(file.name)
+    // Optimistic UI: show immediately while Firestore listener catches up
+    const optimisticDoc: Doc = {
+      id: docId,
+      name: DOC_ID_META[docId]?.name || file.name,
+      category: DOC_ID_META[docId]?.category || 'Other',
+      status: 'pending',
+      date: 'Just Now',
+      size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
+      aiScore: 0,
+      apps: 0,
+      required: DOC_ID_META[docId]?.required || false,
+    }
+    setOptimisticDocs(prev => {
+      const filtered = prev.filter(d => d.id !== docId)
+      return [optimisticDoc, ...filtered]
+    })
     try {
       await uploadUserDocument(uid, file, docId)
-      // The Firestore listener in StudentDataProvider will update userDocuments automatically.
-      // Also update local display state so the table reflects the upload immediately.
-      const newDoc: Doc = {
-        id: `d_${Date.now()}`,
-        name: file.name,
-        category: 'Academic',
-        status: 'pending',
-        date: 'Just Now',
-        size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
-        aiScore: 0,
-        apps: 0,
-        required: false,
-      }
-      setLocalDocs(prev => [newDoc, ...prev])
+      // Firestore listener in StudentDataProvider will update userDocuments, which updates firestoreDocs
     } catch (err: unknown) {
       if (process.env.NODE_ENV === 'development') console.error('[DocumentsPage] upload failed', err)
+      // Remove optimistic doc on failure
+      setOptimisticDocs(prev => prev.filter(d => d.id !== docId))
     }
   }
 
   const verified = localDocs.filter(d => d.status === 'verified').length
   const pending = localDocs.filter(d => d.status === 'pending').length
-  const missing = localDocs.filter(d => d.status === 'missing').length
-  const total = localDocs.length
+  const uploadedCount = localDocs.length
+  // missing = required docs not in localDocs
+  const requiredIds = ['10th_marksheet', '12th_marksheet', 'id_proof', 'passport_photo']
+  const missing = requiredIds.filter(id => !localDocs.find(d => d.id === id)).length
+  const total = Math.max(localDocs.length, requiredIds.length)
 
   return (
     <ProtectedRoute allowedRoles={['student']}>
@@ -628,17 +721,18 @@ export default function DocumentsPage() {
           pending={pending}
           missing={missing}
           total={total}
+          uploadedCount={uploadedCount}
           onUploadClick={() => uploadTriggerRef.current?.click()}
         />
 
-        <DocumentActionCenter onUploadClick={() => uploadTriggerRef.current?.click()} />
+        <DocumentActionCenter docs={localDocs} onUploadClick={() => uploadTriggerRef.current?.click()} />
 
         <PremiumUploadWorkspace onFileSelect={handleFileSelect} />
 
         <RecentDocumentsVault docs={localDocs} onSelectDoc={setSelectedDoc} />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-[24px]">
-          <DocumentCategoryFolders />
+          <DocumentCategoryFolders docs={localDocs} />
           <VerificationTimeline />
         </div>
 

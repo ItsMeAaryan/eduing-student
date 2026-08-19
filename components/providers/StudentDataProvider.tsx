@@ -9,7 +9,7 @@ import { calculateProfileStrength } from '@/lib/utils/profileStrength'
 import type { Application, Notification, Payment, University, Scholarship } from '@/types/firebase'
 
 const log = (...args: unknown[]) => {
-  if (process.env.NODE_ENV === 'development') console.error(...args)
+  if (process.env.NODE_ENV === 'development') console.log(...args)
 }
 
 const normalizeArray = <T,>(data: unknown): T[] =>

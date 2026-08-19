@@ -166,7 +166,7 @@ export default function ProfilePage() {
     if (!uid) return
     setSaving(true)
     try {
-      await updateDoc(doc(db, 'student_profiles', uid), {
+      await updateDoc(doc(db, 'users', uid), {
         ...editDraft,
         updatedAt: serverTimestamp(),
       })
@@ -190,7 +190,7 @@ export default function ProfilePage() {
     if (!uid) return
     setSaving(true)
     try {
-      await updateDoc(doc(db, 'student_profiles', uid), {
+      await updateDoc(doc(db, 'users', uid), {
         [key]: editValue,
         updatedAt: serverTimestamp(),
       })
@@ -220,8 +220,9 @@ export default function ProfilePage() {
     <ProtectedRoute allowedRoles={['student']}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20, fontFamily: 'Inter, system-ui, sans-serif' }}>
 
-        {/* ── Stats row (unchanged) ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+        {/* ── Stats row (responsive grid) ── */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }} className="lg:grid-cols-4" id="profile-stats-grid">
+          <style>{`@media (min-width: 1024px) { #profile-stats-grid { grid-template-columns: repeat(4, 1fr) !important; } }`}</style>
           <StatCard label="Profile Strength" value={`${strength}%`} sub="AI completion score" color={strengthColor} />
           <StatCard label="Docs Verified" value={verifiedDocs} sub={`of ${docValues.length} uploaded`} color="var(--green)" />
           <StatCard label="Applications" value={uniqueApps?.length || 0} sub="Submitted" />

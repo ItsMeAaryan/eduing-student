@@ -48,10 +48,23 @@ export default function ScholarshipsPage() {
   }, [profile, documents, profileScore, scholarships])
 
   const eligibleCount = results.filter(r => r.eligibilityScore >= 75).length
-  const safeApps = Array.isArray(applications) ? applications : []
-  const safeSaved = Array.isArray(savedPrograms) ? savedPrograms : []
-  const appliedCount = safeApps.filter((a: any) => a.type === 'scholarship').length
-  const savedCount = safeSaved.filter((p: any) => p.scholarshipAvailable).length
+  const safeApps = useMemo(() => Array.isArray(applications) ? applications : [], [applications])
+  const safeSaved = useMemo(() => Array.isArray(savedPrograms) ? savedPrograms : [], [savedPrograms])
+
+  // Build stable Sets for Applied and Saved tabs
+  const appliedScholarshipIds = useMemo(() => new Set(
+    safeApps
+      .filter((a: any) => a.type === 'scholarship' || a.scholarshipId)
+      .map((a: any) => a.scholarshipId || a.universityId)
+  ), [safeApps])
+  const savedScholarshipIds = useMemo(() => new Set(
+    safeSaved
+      .filter((p: any) => p.scholarshipAvailable && p.scholarshipId)
+      .map((p: any) => p.scholarshipId)
+  ), [safeSaved])
+
+  const appliedCount = appliedScholarshipIds.size
+  const savedCount = savedScholarshipIds.size
 
   const filteredResults = useMemo(() => results.filter(r => {
     const matchSearch = !search ||
@@ -59,10 +72,17 @@ export default function ScholarshipsPage() {
       r.scholarship.provider?.toLowerCase().includes(search.toLowerCase())
     let matchTab = true
     if (activeTab === 'Eligible') matchTab = r.eligibilityScore >= 75
-    if (activeTab === 'Applied') matchTab = false
-    if (activeTab === 'Saved') matchTab = false
+    if (activeTab === 'Applied') {
+      // Show scholarships that the student has applied to
+      matchTab = appliedScholarshipIds.has(r.scholarship.id)
+    }
+    if (activeTab === 'Saved') {
+      // Show scholarships that the student has saved
+      matchTab = savedScholarshipIds.has(r.scholarship.id)
+    }
     return matchSearch && matchTab
-  }), [results, search, activeTab])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [results, search, activeTab, appliedScholarshipIds, savedScholarshipIds])
 
   if (loading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>

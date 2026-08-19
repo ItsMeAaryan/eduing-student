@@ -15,7 +15,8 @@ import { useAuth } from '@/hooks/useAuth'
 import { useStudentData } from '@/components/providers/StudentDataProvider'
 import { useTheme } from 'next-themes'
 import { useToast } from '@/hooks/useToast'
-import { auth } from '@/lib/firebase/config'
+import { auth, db } from '@/lib/firebase/config'
+import { doc, updateDoc, serverTimestamp } from 'firebase/firestore'
 import {
   updatePassword,
   updateEmail,
@@ -539,12 +540,25 @@ export default function SettingsPage() {
   }
 
   const handleSaveName = async (val: string) => {
-    // Profile name update would use Firestore — no-op placeholder
-    toast.success('Name updated.')
+    const uid = auth.currentUser?.uid
+    if (!uid) { toast.error('Not authenticated.'); return }
+    try {
+      await updateDoc(doc(db, 'users', uid), { fullName: val, name: val, updatedAt: serverTimestamp() })
+      toast.success('Name updated.')
+    } catch {
+      toast.error('Failed to update name.')
+    }
   }
 
   const handleSavePhone = async (val: string) => {
-    toast.success('Phone updated.')
+    const uid = auth.currentUser?.uid
+    if (!uid) { toast.error('Not authenticated.'); return }
+    try {
+      await updateDoc(doc(db, 'users', uid), { phone: val, updatedAt: serverTimestamp() })
+      toast.success('Phone updated.')
+    } catch {
+      toast.error('Failed to update phone.')
+    }
   }
 
   return (

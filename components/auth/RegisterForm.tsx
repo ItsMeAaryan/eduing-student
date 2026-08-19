@@ -9,7 +9,7 @@ import {
   GraduationCap, ShieldCheck, CheckCircle2, AlertCircle
 } from 'lucide-react'
 import { registerStudent } from '@/lib/firebase/auth'
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore'
+import { doc, serverTimestamp } from 'firebase/firestore'
 import { db } from '@/lib/firebase/config'
 
 const steps = [
@@ -91,8 +91,13 @@ export default function RegisterForm() {
         updatedAt: serverTimestamp(),
       }
 
-      // student_profiles is what StudentDataProvider reads
-      await setDoc(doc(db, 'student_profiles', user.uid), profileData)
+      // registerStudent() already creates the users/{uid} document with core fields.
+      // We merge the full profile data into the same document so StudentDataProvider reads everything.
+      const { updateDoc } = await import('firebase/firestore')
+      await updateDoc(doc(db, 'users', user.uid), {
+        ...profileData,
+        updatedAt: serverTimestamp(),
+      })
 
       router.push('/student/onboarding')
     } catch (err: unknown) {

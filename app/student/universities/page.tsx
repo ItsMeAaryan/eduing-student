@@ -63,7 +63,7 @@ function DiscoveryHeader({ uniCount, progCount, viewMode, setViewMode }: {
     <div className="bg-card border border-border rounded-[12px] p-[16px] md:p-[20px] shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex flex-col md:flex-row md:items-center justify-between gap-[16px]">
       <div>
         <div className="flex items-center gap-[8px] mb-[2px]">
-          <span className="text-[11px] font-bold text-primary uppercase tracking-wider">EDING Marketplace Discovery</span>
+          <span className="text-[11px] font-bold text-primary uppercase tracking-wider">EDUING Marketplace Discovery</span>
           <span className="w-[6px] h-[6px] rounded-full bg-success animate-pulse" />
         </div>
         <h1 className="text-[20px] font-bold text-foreground tracking-tight">Explore Universities & Programs</h1>

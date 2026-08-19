@@ -15,6 +15,21 @@ export async function submitApplication(
   if (!currentUser) throw new Error('Not authenticated')
 
   const userId = currentUser.uid
+
+  // Prevent duplicate applications: check for existing submission for same university+program
+  const existingQuery = query(
+    collection(db, 'applications'),
+    where('userId', '==', userId),
+    where('universityId', '==', universityId)
+  )
+  const existingSnap = await import('firebase/firestore').then(({ getDocs }) => getDocs(existingQuery))
+  const duplicate = existingSnap.docs.find(
+    d => (d.data().program === program) || !program
+  )
+  if (duplicate) {
+    throw new Error('You have already applied to this program. Check your Applications page.')
+  }
+
   const docRef = await addDoc(collection(db, 'applications'), {
     userId,
     studentId: userId,

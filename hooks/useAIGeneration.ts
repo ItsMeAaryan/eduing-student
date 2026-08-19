@@ -26,6 +26,11 @@ export function useAIGeneration<T = unknown>() {
       const res = await apiCall();
       if (res.success && res.data !== undefined) {
         setData(res.data);
+      } else if (res.success && res.text !== undefined) {
+        // Services that return raw text (not parsed JSON) use res.text
+        setData(res.text as unknown as T);
+      } else if (!res.success) {
+        setError(res.error || 'Something went wrong. Please try again later.');
       } else {
         setError('Something went wrong. Please try again later.');
       }
