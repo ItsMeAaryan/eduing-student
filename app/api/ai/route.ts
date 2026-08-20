@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: body.model || 'llama-3.3-70b-versatile',
+        model: 'openai/gpt-oss-20b', // ✅ fixed — ignores whatever the client sends
         messages: body.messages,
         temperature: body.temperature ?? 0.7,
         max_tokens: body.max_tokens ?? 2048,
