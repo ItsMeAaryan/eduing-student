@@ -26,7 +26,6 @@ const PAGE_TITLES: Record<string, string> = {
     '/student/documents': 'Documents',
     '/student/onboarding': 'Onboarding',
     '/student/copilot': 'AI Copilot',
-    '/student/career': 'Career',
     '/student/resume': 'Resume Builder',
     '/student/sop': 'SOP Builder',
     '/student/email': 'Email Writer',

@@ -17,11 +17,6 @@ test.describe('AI Tools Workflows', () => {
     await expect(page.getByText('What universities are good for Computer Science?')).toBeVisible();
   });
 
-  test('Career Advisor - Renders correctly', async ({ page }) => {
-    await page.goto('/student/career');
-    await expect(page.getByRole('heading', { name: /Career/i }).first()).toBeVisible();
-  });
-
   test('SOP Generator - Renders and initiates', async ({ page }) => {
     await page.goto('/student/sop');
     await expect(page.getByRole('heading', { name: /SOP/i }).first()).toBeVisible();
