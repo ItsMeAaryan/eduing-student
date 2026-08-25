@@ -104,13 +104,6 @@ export class AdmissionAdvisorService {
   }
 }
 
-export class CareerAdvisorService {
-  static async getCareerPaths(context: any): Promise<GeminiResponse> {
-    const prompt = PromptBuilder.buildCareerAdvisorPrompt(context);
-    const response = await generateAIResponse(prompt, { model: getOptimalModelForTask('high') });
-    return parseAIResponse(response, 'career');
-  }
-}
 
 export class SOPService {
   static async generateSOP(context: any, mode: string = 'Formal Tone'): Promise<GeminiResponse> {

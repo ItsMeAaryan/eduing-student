@@ -11,12 +11,6 @@ Context: ${JSON.stringify(context)}
 Do not hallucinate. Base all suggestions on the context provided.`;
   }
 
-  static buildCareerPrompt(context: any): string {
-    return `You are a Career Counselor.
-Based on the student's profile and branch preference, suggest optimal career paths.
-Context: ${JSON.stringify(context)}`;
-  }
-
   static buildScholarshipPrompt(context: any): string {
     return `You are a Financial Aid Expert.
 The student has the following eligibility profile. Recommend steps to maximize their chances.
@@ -244,35 +238,6 @@ Results: ${JSON.stringify(context.results.map((r: any) => r.university?.name))}
 
 Provide a 2-sentence conversational summary of what you found and highlight the top match.
 Do not invent any data.`;
-  }
-
-  static buildCareerAdvisorPrompt(context: any): string {
-    return `You are an expert AI Career Advisor.
-Based on the provided student context and deterministic scores, recommend suitable career paths.
-Context Provided:
-${JSON.stringify(context, null, 2)}
-
-Return ONLY a JSON object matching this exact schema:
-{
-  "summary": "2-3 sentences summarizing the student's strengths and overall career alignment.",
-  "recommendedCareers": [
-    {
-      "title": "Job Title / Career Path",
-      "reasoning": "Why this fits the student",
-      "suggestedDegree": "Ideal degree/major",
-      "requiredSkills": ["Skill 1", "Skill 2", "Skill 3"],
-      "futureScope": "Brief outlook on this career"
-    }
-  ],
-  "roadmap": [
-    { "step": "Today", "description": "What to do right now" },
-    { "step": "Short-term", "description": "What to focus on in the next 6-12 months" },
-    { "step": "University", "description": "What to accomplish during degree" },
-    { "step": "Career", "description": "Entry into the field" }
-  ],
-  "nextSteps": ["Actionable step 1", "Actionable step 2"]
-}
-Ensure no markdown formatting or backticks around the JSON.`;
   }
 
 
