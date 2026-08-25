@@ -5,10 +5,8 @@ import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import {
     LayoutDashboard, FileText, Building2, BookOpen,
-    Settings, Bookmark, GitCompare, Compass,
-    Bot, Briefcase, User, Mail, MessageSquare,
-    GraduationCap, ChevronLeft, ChevronRight, X,
-    CalendarDays
+    Settings, Bookmark, Bot, User, Bell,
+    ChevronLeft, ChevronRight, CalendarDays
 } from 'lucide-react'
 import Logo from '@/components/Logo'
 
@@ -20,25 +18,23 @@ interface NavItem {
 }
 
 const primaryNav: NavItem[] = [
-    { label: 'Dashboard', href: '/student/dashboard', icon: LayoutDashboard },
-    { label: 'Applications', href: '/student/applications', icon: FileText },
-    { label: 'Universities', href: '/student/universities', icon: Building2 },
-    { label: 'Scholarships', href: '/student/scholarships', icon: BookOpen },
-    { label: 'Saved', href: '/student/saved', icon: Bookmark },
-    { label: 'Calendar', href: '/student/calendar', icon: CalendarDays },
+    { label: 'Dashboard',     href: '/student/dashboard',    icon: LayoutDashboard },
+    { label: 'Universities',  href: '/student/universities',  icon: Building2 },
+    { label: 'Applications',  href: '/student/applications',  icon: FileText },
+    { label: 'Scholarships',  href: '/student/scholarships',  icon: BookOpen },
+    { label: 'Saved',         href: '/student/saved',         icon: Bookmark },
+    { label: 'Calendar',      href: '/student/calendar',      icon: CalendarDays },
 ]
 
 const aiNav: NavItem[] = [
-    { label: 'AI Copilot', href: '/student/copilot', icon: Bot },
-    { label: 'Career', href: '/student/career', icon: Briefcase },
-    { label: 'Resume', href: '/student/resume', icon: User },
-    { label: 'SOP Builder', href: '/student/sop', icon: FileText },
-    { label: 'Email Writer', href: '/student/email', icon: Mail },
-    { label: 'Interview Prep', href: '/student/interview', icon: MessageSquare },
+    { label: 'AI Copilot',      href: '/student/copilot', icon: Bot },
+    { label: 'Resume Builder',  href: '/student/resume',  icon: User },
+    { label: 'SOP Builder',     href: '/student/sop',     icon: FileText },
 ]
 
 const bottomNav: NavItem[] = [
-    { label: 'Settings', href: '/student/settings', icon: Settings },
+    { label: 'Notifications', href: '/student/notifications', icon: Bell },
+    { label: 'Settings',      href: '/student/settings',      icon: Settings },
 ]
 
 interface SidebarProps {
@@ -210,7 +206,9 @@ export default function StudentSidebar({ isCollapsed, setIsCollapsed }: SidebarP
                     className="px-2 py-3 space-y-0.5 shrink-0"
                     style={{ borderTop: '1px solid var(--border)' }}
                 >
-                    <NavLink item={bottomNav[0]} isCollapsed={isCollapsed} />
+                    {bottomNav.map(item => (
+                        <NavLink key={item.href} item={item} isCollapsed={isCollapsed} />
+                    ))}
                 </div>
             </aside>
 
