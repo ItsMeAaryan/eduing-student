@@ -4,11 +4,12 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
+import Link from 'next/link'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import {
   ChevronLeft, Clock, CheckCircle2, XCircle, AlertCircle,
   FileText, CreditCard, History, Building2, ExternalLink,
-  Download, ShieldCheck, Calendar, X
+  Download, ShieldCheck, Calendar, X, Mail, MessageSquare
 } from 'lucide-react'
 import { listenApplication } from '@/lib/firebase/applications'
 import { listenUserDocuments } from '@/lib/firebase/student'
@@ -249,6 +250,49 @@ export default function ApplicationDetailsPage() {
                 <p style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--text-secondary)', margin: 0, wordBreak: 'break-all' }}>{application.id}</p>
               </div>
             </div>
+
+            {status === 'interview' && (
+              <Link
+                id="prepare-interview-detail-btn"
+                href={`/student/interview?university=${encodeURIComponent(application.universityName || application.universityId || '')}&program=${encodeURIComponent(application.programName || application.programId || '')}`}
+                style={{
+                  width: '100%', height: 36,
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.3)',
+                  borderRadius: 8, fontSize: 13, fontWeight: 600,
+                  color: '#8B5CF6', cursor: 'pointer',
+                  textDecoration: 'none',
+                  transition: 'background 0.15s, border-color 0.15s',
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(139,92,246,0.18)'
+                  ;(e.currentTarget as HTMLAnchorElement).style.borderColor = '#8B5CF6'
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(139,92,246,0.1)'
+                  ;(e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(139,92,246,0.3)'
+                }}
+              >
+                <MessageSquare size={14} strokeWidth={1.8} />
+                Prepare for Interview
+              </Link>
+            )}
+
+            <Link
+              id="draft-email-detail-btn"
+              href={`/student/email?university=${encodeURIComponent(application.universityName || application.universityId || '')}&program=${encodeURIComponent(application.programName || application.programId || '')}`}
+              style={{
+                width: '100%', height: 36,
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                background: 'var(--accent)', border: 'none',
+                borderRadius: 8, fontSize: 13, fontWeight: 600,
+                color: '#fff', cursor: 'pointer',
+                textDecoration: 'none',
+              }}
+            >
+              <Mail size={14} strokeWidth={1.8} />
+              Draft an Email
+            </Link>
 
             <button
               onClick={() => router.push('/student/applications')}
