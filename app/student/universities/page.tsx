@@ -21,7 +21,7 @@ const STREAM_TABS = ['All', 'Engineering', 'Management', 'Sciences', 'Arts', 'Me
 const DEGREE_LEVELS = ['All Levels', 'UG', 'PG', 'PhD', 'Diploma']
 
 /**
- * Maps career path names (from /student/career) to program keyword sets
+ * Maps career path names to program keyword sets
  * used to filter university program lists. Case-insensitive substring match.
  */
 const CAREER_PROGRAM_MAP: Record<string, string[]> = {

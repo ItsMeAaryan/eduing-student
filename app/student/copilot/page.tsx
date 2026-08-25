@@ -13,16 +13,14 @@ import AIMarkdown from '@/components/ai/AIMarkdown'
 
 const TABS = ['AI Assistant', 'History', 'Saved Prompts']
 const SUGGESTIONS = [
-  "Find universities for me",
-  "Improve my profile",
-  "Check admission chances",
-  "Recommend scholarships",
-  "Plan my admission",
-  "Ask anything"
+  "Why is my admission probability low for a university?",
+  "Which scholarships am I missing out on?",
+  "What documents are still pending on my applications?",
+  "What should I complete on my profile first?",
 ]
 
 export default function CopilotPage() {
-  const { profile, documents } = useStudentData()
+  const { profile, documents, uniqueApps, deadlines, scholarships, profileStrength } = useStudentData()
   const { messages, isTyping, sendMessage, clearMessages } = useAIChat()
   const [input, setInput] = useState('')
   const [activeTab, setActiveTab] = useState('AI Assistant')
@@ -38,6 +36,77 @@ export default function CopilotPage() {
     }
   }, [profile, documents])
 
+  /** Build the EDUING Copilot system instruction with live student data injected. */
+  const buildSystemContext = useMemo(() => {
+    if (!profile) return null
+
+    // ── Profile summary ──────────────────────────────────────────────────────
+    const pct = profileStrength.percentage
+    const topMissing = profileStrength.missingFields
+      .filter((f: any) => f.priority === 'High')
+      .slice(0, 3)
+      .map((f: any) => f.label)
+    const profileSummary = [
+      `Profile completion: ${pct}% (${profileStrength.grade})`,
+      topMissing.length > 0
+        ? `Top missing fields: ${topMissing.join(', ')}`
+        : 'Profile fields are well filled',
+    ].join('. ')
+
+    // ── Applications summary ─────────────────────────────────────────────────
+    const activeApps = (uniqueApps || []).filter(
+      (a: any) => !['rejected'].includes((a.status || '').toLowerCase())
+    )
+    const statusCounts: Record<string, number> = {}
+    activeApps.forEach((a: any) => {
+      const s = a.status || 'draft'
+      statusCounts[s] = (statusCounts[s] || 0) + 1
+    })
+    const statusSummary = Object.entries(statusCounts)
+      .map(([k, v]) => `${v} ${k}`)
+      .join(', ')
+    const appsSummary = activeApps.length > 0
+      ? `Active applications: ${activeApps.length} (${statusSummary})`
+      : 'No active applications yet'
+
+    // ── Deadlines summary ────────────────────────────────────────────────────
+    const upcomingDeadlines = (deadlines || [])
+      .filter((d: any) => d?.date && new Date(d.date) > new Date())
+      .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .slice(0, 3)
+    const deadlinesSummary = upcomingDeadlines.length > 0
+      ? `Upcoming deadlines: ${upcomingDeadlines.map((d: any) => `${d.title || d.universityName || 'Application'} on ${new Date(d.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`).join('; ')}`
+      : 'No upcoming deadlines recorded'
+
+    // ── Scholarships summary ─────────────────────────────────────────────────
+    const scholarshipCount = (scholarships || []).length
+    const scholarshipsSummary = scholarshipCount > 0
+      ? `${scholarshipCount} scholarships available in the system that may match this student`
+      : 'Scholarship data not yet loaded'
+
+    const profileDataBlock = [
+      profileSummary,
+      appsSummary,
+      deadlinesSummary,
+      scholarshipsSummary,
+      profile?.preferredPrograms?.length > 0
+        ? `Preferred programs: ${Array.isArray(profile.preferredPrograms) ? profile.preferredPrograms.join(', ') : profile.preferredPrograms}`
+        : null,
+      profile?.twelfthPercentage ? `12th percentage: ${profile.twelfthPercentage}%` : null,
+      profile?.testScores ? `Entrance exam scores: ${JSON.stringify(profile.testScores)}` : null,
+    ].filter(Boolean).join('. ')
+
+    return [
+      `You are EDUING's AI Copilot, a student admissions assistant.`,
+      `You only help with university admissions, applications, scholarships, and education decisions.`,
+      `You have access to this student's live data: ${profileDataBlock}.`,
+      `Use this data to give specific, personalised answers.`,
+      `If a student asks about their admission chances, refer to their profile.`,
+      `If they ask about deadlines, refer to their application data.`,
+      `Never answer questions unrelated to education and admissions.`,
+    ].join(' ')
+  }, [profile, profileStrength, uniqueApps, deadlines, scholarships])
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isTyping])
@@ -45,7 +114,9 @@ export default function CopilotPage() {
   const handleSend = async (text: string) => {
     if (!text.trim() || !context) return
     setInput('')
-    await sendMessage(text, async (msgText) => {
+    // Wrap user input in a structured tag to isolate it from injected context
+    const sanitisedMessage = `<user_query>${text.trim()}</user_query>`
+    await sendMessage(text, async () => {
       const aiContext = {
         studentName: firstName,
         profileStrength: context.profileEngine.percentage,
@@ -53,7 +124,12 @@ export default function CopilotPage() {
       }
       // Pass all existing messages as history for multi-turn context
       const history = messages.map(m => ({ role: m.role, content: m.content }))
-      return await CopilotService.processChat(msgText, aiContext, history)
+      return await CopilotService.processChat(
+        sanitisedMessage,
+        aiContext,
+        history,
+        buildSystemContext ?? undefined
+      )
     })
   }
 

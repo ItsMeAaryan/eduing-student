@@ -145,7 +145,8 @@ export class CopilotService {
   static async processChat(
     message: string,
     context: any,
-    history: { role: 'user' | 'assistant'; content: string }[] = []
+    history: { role: 'user' | 'assistant'; content: string }[] = [],
+    systemInstruction?: string
   ): Promise<GeminiResponse> {
     const historyText = history.length > 0
       ? history.map(m => `${m.role === 'user' ? 'Student' : 'Advisor'}: ${m.content}`).join('\n')
@@ -159,7 +160,7 @@ export class CopilotService {
 
     return generateAIResponse(prompt, {
       model: getOptimalModelForTask('high'),
-      systemInstruction:
+      systemInstruction: systemInstruction ??
         'You are an expert Indian university admissions counselor. Help the student with college selection, entrance exams, career planning, and application strategy. Be specific, actionable, and encouraging. Format your responses clearly with bullet points or numbered lists when appropriate.',
     });
   }
