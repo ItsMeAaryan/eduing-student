@@ -6,7 +6,7 @@ import {
   Search, Building2, X, FileText, Award,
   AlertCircle, ChevronDown, MoreHorizontal,
   CheckCircle2, Clock, Calendar, LayoutGrid, List,
-  Sparkles, Zap
+  Sparkles, Zap, Mail, MessageSquare
 } from 'lucide-react'
 import { useStudentData } from '@/components/providers/StudentDataProvider'
 import ProtectedRoute from '@/components/ProtectedRoute'
@@ -239,31 +239,84 @@ function DetailDrawer({ app, onClose }: { app: any; onClose: () => void }) {
           </div>
         </div>
 
-        {/* Drawer footer */}
-        <div style={{
-          position: 'sticky', bottom: 0,
-          background: 'var(--bg-elevated)',
-          borderTop: '1px solid var(--border)',
-          padding: '14px 20px',
-          display: 'flex', gap: 10,
-        }}>
-          <button style={{
-            flex: 1, height: 34,
-            background: 'var(--accent)', color: '#fff',
-            border: 'none', borderRadius: 8,
-            fontSize: 13, fontWeight: 600, cursor: 'pointer',
+          {/* Drawer footer */}
+          <div style={{
+            position: 'sticky', bottom: 0,
+            background: 'var(--bg-elevated)',
+            borderTop: '1px solid var(--border)',
+            padding: '14px 20px',
+            display: 'flex', gap: 10,
+            flexWrap: 'wrap',
           }}>
-            Continue Application
-          </button>
-          <button onClick={onClose} style={{
-            height: 34, padding: '0 14px',
-            background: 'var(--bg-elevated)', border: '1px solid var(--border)',
-            borderRadius: 8, fontSize: 13, fontWeight: 500,
-            color: 'var(--text-secondary)', cursor: 'pointer',
-          }}>
-            Close
-          </button>
-        </div>
+            <button style={{
+              flex: 1, height: 34,
+              background: 'var(--accent)', color: '#fff',
+              border: 'none', borderRadius: 8,
+              fontSize: 13, fontWeight: 600, cursor: 'pointer',
+            }}>
+              Continue Application
+            </button>
+            {st === 'interview' && (
+              <Link
+                href={`/student/interview?university=${encodeURIComponent(app.universityName || '')}&program=${encodeURIComponent(app.program || app.programName || '')}`}
+                id="prepare-interview-drawer-btn"
+                title="Open Interview Prep for this application"
+                style={{
+                  height: 34, padding: '0 12px',
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.3)',
+                  borderRadius: 8, fontSize: 13, fontWeight: 600,
+                  color: '#8B5CF6', cursor: 'pointer',
+                  textDecoration: 'none',
+                  transition: 'background 0.15s, border-color 0.15s',
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(139,92,246,0.18)'
+                  ;(e.currentTarget as HTMLAnchorElement).style.borderColor = '#8B5CF6'
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(139,92,246,0.1)'
+                  ;(e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(139,92,246,0.3)'
+                }}
+              >
+                <MessageSquare size={13} strokeWidth={1.8} />
+                Prepare for Interview
+              </Link>
+            )}
+            <Link
+              href={`/student/email?university=${encodeURIComponent(app.universityName || '')}&program=${encodeURIComponent(app.program || app.programName || '')}`}
+              id="draft-email-drawer-btn"
+              title="Open Email Writer for this application"
+              style={{
+                height: 34, padding: '0 14px',
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                background: 'var(--bg-elevated)', border: '1px solid var(--border)',
+                borderRadius: 8, fontSize: 13, fontWeight: 500,
+                color: 'var(--text-secondary)', cursor: 'pointer',
+                textDecoration: 'none',
+                transition: 'border-color 0.15s, color 0.15s',
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLAnchorElement).style.borderColor = 'var(--accent)'
+                ;(e.currentTarget as HTMLAnchorElement).style.color = 'var(--accent)'
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLAnchorElement).style.borderColor = 'var(--border)'
+                ;(e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-secondary)'
+              }}
+            >
+              <Mail size={13} strokeWidth={1.8} />
+              Draft an Email
+            </Link>
+            <button onClick={onClose} style={{
+              height: 34, padding: '0 14px',
+              background: 'var(--bg-elevated)', border: '1px solid var(--border)',
+              borderRadius: 8, fontSize: 13, fontWeight: 500,
+              color: 'var(--text-secondary)', cursor: 'pointer',
+            }}>
+              Close
+            </button>
+          </div>
       </motion.div>
     </>
   )
