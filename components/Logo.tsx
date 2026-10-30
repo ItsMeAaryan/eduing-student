@@ -17,11 +17,11 @@ export default function Logo({ height = 32, href = "/", onClick, iconOnly = fals
     >
       {/* Logo Image */}
       <Image
-        src="/bandwlogo.PNG"
+        src="/eduing-logo.png"
         alt="EDUING Logo"
-        width={326}
-        height={429}
-        className="w-auto object-contain mix-blend-multiply dark:invert dark:mix-blend-screen transition-all shrink-0"
+        width={990}
+        height={1024}
+        className="w-auto object-contain shrink-0"
         style={{ height: `${height}px` }}
         priority
       />

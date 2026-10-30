@@ -19,8 +19,12 @@ export const metadata: Metadata = {
   description:
     'EDUING.in is the unified admissions platform connecting Indian students with universities — discover programs, track applications, and get admitted, all in one place.',
   icons: {
-    icon: '/bandwlogo.PNG',
-    apple: '/bandwlogo.PNG',
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon-192.png', type: 'image/png', sizes: '192x192' },
+      { url: '/icon-512.png', type: 'image/png', sizes: '512x512' },
+    ],
+    apple: { url: '/apple-touch-icon.png', sizes: '180x180' },
   },
   openGraph: {
     type: 'website',
@@ -28,12 +32,14 @@ export const metadata: Metadata = {
     title: 'EDUING.in – Student Admissions Platform',
     description:
       'The unified admissions platform connecting Indian students with universities.',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'EDUING.in' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'EDUING.in – Student Admissions Platform',
     description:
       'The unified admissions platform connecting Indian students with universities.',
+    images: ['/og-image.png'],
   },
 }
 
