@@ -9,7 +9,7 @@ interface SegmentedTabsProps {
 
 export default function SegmentedTabs({ tabs, active, onChange, className = '' }: SegmentedTabsProps) {
   return (
-    <div className={`flex items-center bg-card border border-border rounded-[10px] p-[3px] gap-[2px] transition-colors ${className}`}>
+    <div className={`flex items-center bg-card border border-border rounded-[14px] p-[3px] gap-[2px] transition-colors ${className}`}>
       {tabs.map(t => (
         <button
           key={t}

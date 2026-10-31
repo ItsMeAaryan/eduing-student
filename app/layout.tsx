@@ -1,13 +1,21 @@
 // app/layout.tsx
 import type { Metadata } from 'next'
-import { Poppins } from 'next/font/google'
+import { Bricolage_Grotesque, Plus_Jakarta_Sans } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
 
-const poppins = Poppins({
-  weight: ['300', '400', '500', '600', '700', '800'],
+const bricolage = Bricolage_Grotesque({
+  weight: ['500', '600', '700', '800'],
   subsets: ['latin'],
-  variable: '--font-poppins',
+  variable: '--font-bricolage',
+  display: 'swap',
+})
+
+const jakarta = Plus_Jakarta_Sans({
+  weight: ['400', '500', '600', '700', '800'],
+  subsets: ['latin'],
+  variable: '--font-jakarta',
+  display: 'swap',
 })
 
 export const metadata: Metadata = {
@@ -45,7 +53,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning className={poppins.variable}>
+    <html lang="en" suppressHydrationWarning className={`${bricolage.variable} ${jakarta.variable}`}>
       <body className="antialiased font-sans" style={{ background: 'var(--bg)', color: 'var(--text-primary)' }}>
         <ThemeProvider>
           {children}

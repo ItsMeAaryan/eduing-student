@@ -107,10 +107,11 @@ export default function RegisterForm() {
     }
   }
 
-  const inputClasses = "w-full rounded-[12px] px-4 h-[48px] text-[14px] outline-none transition-all duration-200"
+  const inputClasses = "w-full rounded-[18px] px-4 h-[48px] text-[14px] outline-none transition-all duration-200"
   const inputStyle = {
-    background: 'rgba(255,255,255,0.03)',
-    border: '1px solid rgba(255,255,255,0.1)',
+    background: 'var(--bg-elevated)',
+    border: '1px solid var(--border-hover)',
+    boxShadow: 'var(--shadow-card)',
     color: 'var(--text-primary)',
   }
   const labelClasses = "block text-[13px] font-medium mb-1.5"
@@ -121,7 +122,7 @@ export default function RegisterForm() {
       <div className="mb-6 w-full relative">
         <div className="flex justify-between items-center relative mb-4">
           <div className="absolute top-1/2 left-0 right-0 h-[2px] -translate-y-1/2 z-0 rounded-full overflow-hidden"
-            style={{ background: 'rgba(255,255,255,0.06)' }}>
+            style={{ background: 'var(--bg-subtle)' }}>
             <motion.div
               className="h-full"
               style={{ background: 'var(--accent)' }}
@@ -141,7 +142,7 @@ export default function RegisterForm() {
                   className="w-2 h-2 rounded-full border-2"
                   style={{
                     background: isActive || isDone ? 'var(--accent)' : 'transparent',
-                    borderColor: isActive || isDone ? 'var(--accent)' : 'rgba(255,255,255,0.15)',
+                    borderColor: isActive || isDone ? 'var(--accent)' : 'var(--border-hover)',
                   }}
                 />
               </div>
@@ -162,7 +163,7 @@ export default function RegisterForm() {
 
       {/* Step error */}
       {stepError && (
-        <div className="mb-4 rounded-[12px] p-3 flex gap-2 items-center"
+        <div className="mb-4 rounded-[18px] p-3 flex gap-2 items-center"
           style={{ background: 'rgba(220,38,38,0.08)', border: '1px solid rgba(220,38,38,0.2)' }}>
           <AlertCircle size={16} style={{ color: 'var(--red)' }} className="shrink-0" />
           <p className="text-[13px] font-medium" style={{ color: 'var(--red)' }}>{stepError}</p>
@@ -174,7 +175,7 @@ export default function RegisterForm() {
           initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}>
           <div className="rounded-[24px] p-5 sm:p-6"
-            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+            style={{ background: 'var(--bg-subtle)', border: '1px solid var(--bg-subtle)' }}>
 
             {currentStep === 1 && (
               <div className="space-y-4">
@@ -223,9 +224,9 @@ export default function RegisterForm() {
                   <div className="flex gap-3" role="group">
                     {(['male', 'female', 'other'] as const).map(g => (
                       <button key={g} type="button" onClick={() => update({ gender: g })}
-                        className="flex-1 py-2.5 rounded-[12px] text-[13px] font-medium capitalize transition-all"
+                        className="flex-1 py-2.5 rounded-[18px] text-[13px] font-medium capitalize transition-all"
                         style={{
-                          border: `1px solid ${formData.gender === g ? 'var(--accent)' : 'rgba(255,255,255,0.08)'}`,
+                          border: `1px solid ${formData.gender === g ? 'var(--accent)' : 'var(--border-hover)'}`,
                           background: formData.gender === g ? 'var(--accent-bg)' : 'transparent',
                           color: formData.gender === g ? 'var(--accent)' : 'var(--text-muted)',
                         }}>
@@ -286,7 +287,7 @@ export default function RegisterForm() {
                       value={formData.nationality} onChange={e => update({ nationality: e.target.value })} />
                   </div>
                 </div>
-                <div className="flex items-start gap-4 mt-6 rounded-[16px] p-5"
+                <div className="flex items-start gap-4 mt-6 rounded-[22px] p-5"
                   style={{ background: 'var(--accent-bg)', border: '1px solid var(--accent-border)' }}>
                   <ShieldCheck size={24} style={{ color: 'var(--accent)' }} className="shrink-0" />
                   <p className="text-[13px] font-medium leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
@@ -298,8 +299,8 @@ export default function RegisterForm() {
 
             {currentStep === 5 && (
               <div className="space-y-5">
-                <div className="rounded-[16px] p-6 space-y-3"
-                  style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)' }}>
+                <div className="rounded-[22px] p-6 space-y-3"
+                  style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border)' }}>
                   {[
                     { l: 'Full Name', v: formData.fullName },
                     { l: 'Email Address', v: formData.email },
@@ -315,13 +316,13 @@ export default function RegisterForm() {
                   ))}
                 </div>
                 {formError && (
-                  <div className="rounded-[12px] p-3 flex gap-2 items-center"
+                  <div className="rounded-[18px] p-3 flex gap-2 items-center"
                     style={{ background: 'rgba(220,38,38,0.08)', border: '1px solid rgba(220,38,38,0.2)' }}>
                     <AlertCircle size={16} style={{ color: 'var(--red)' }} className="shrink-0" />
                     <p className="text-[13px] font-medium" style={{ color: 'var(--red)' }}>{formError}</p>
                   </div>
                 )}
-                <div className="flex items-center gap-3 rounded-[16px] p-4"
+                <div className="flex items-center gap-3 rounded-[22px] p-4"
                   style={{ background: 'rgba(217,119,6,0.08)', border: '1px solid rgba(217,119,6,0.2)' }}>
                   <AlertCircle size={18} style={{ color: 'var(--gold)' }} className="shrink-0" />
                   <p className="text-[13px] font-medium" style={{ color: 'var(--gold)' }}>
@@ -337,21 +338,21 @@ export default function RegisterForm() {
       <div className="mt-6 flex gap-3">
         {currentStep > 1 && (
           <button type="button" onClick={() => setCurrentStep(p => p - 1)}
-            className="flex-1 h-[48px] rounded-[14px] text-[14px] font-medium transition-all"
+            className="flex-1 h-[48px] rounded-[20px] text-[14px] font-medium transition-all"
             style={{ border: '1px solid var(--border)', color: 'var(--text-secondary)', background: 'transparent' }}>
             Back
           </button>
         )}
         {currentStep < 5 ? (
           <button type="button" onClick={handleNext}
-            className="flex-[2] h-[48px] rounded-[14px] font-bold text-[15px] transition-all flex items-center justify-center gap-2 group"
+            className="flex-[2] h-[48px] rounded-[20px] font-bold text-[15px] transition-all flex items-center justify-center gap-2 group"
             style={{ background: 'var(--accent)', color: '#fff' }}>
             <span>Continue</span>
             <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
           </button>
         ) : (
           <button type="button" onClick={handleFinalSubmit} disabled={loading}
-            className="flex-[2] h-[48px] rounded-[14px] font-bold text-[15px] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-[2] h-[48px] rounded-[20px] font-bold text-[15px] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ background: 'var(--accent)', color: '#fff' }}>
             {loading ? <Loader2 className="animate-spin" size={18} /> : <span>Finalize Registration</span>}
           </button>

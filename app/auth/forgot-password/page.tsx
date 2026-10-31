@@ -36,7 +36,7 @@ export default function ForgotPassword() {
       <div className="mb-8">
         <div
           style={{
-            width: 48, height: 48, borderRadius: 12,
+            width: 48, height: 48, borderRadius: 18,
             background: 'var(--accent-bg)',
             border: '1px solid var(--accent-border)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -58,7 +58,7 @@ export default function ForgotPassword() {
           <div style={{
             display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 14px',
             background: 'rgba(26,174,57,0.08)', border: '1px solid rgba(26,174,57,0.2)',
-            borderRadius: 8, fontSize: 13, color: '#1AAE39', lineHeight: 1.4,
+            borderRadius: 12, fontSize: 13, color: '#1AAE39', lineHeight: 1.4,
           }}>
             <CheckCircle2 size={15} style={{ flexShrink: 0, marginTop: 1 }} />
             {message}
@@ -69,7 +69,7 @@ export default function ForgotPassword() {
           <div style={{
             display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 14px',
             background: 'rgba(220,38,38,0.07)', border: '1px solid rgba(220,38,38,0.2)',
-            borderRadius: 8, fontSize: 13, color: '#DC2626', lineHeight: 1.4,
+            borderRadius: 12, fontSize: 13, color: 'var(--red)', lineHeight: 1.4,
           }}>
             <AlertCircle size={15} style={{ flexShrink: 0, marginTop: 1 }} />
             {error}
@@ -96,7 +96,7 @@ export default function ForgotPassword() {
               height: 40,
               background: 'var(--bg-elevated)',
               border: '1px solid var(--border)',
-              borderRadius: 8,
+              borderRadius: 12,
               padding: '0 12px',
               fontSize: 14,
               color: 'var(--text-primary)',
@@ -114,7 +114,7 @@ export default function ForgotPassword() {
           style={{
             width: '100%', height: 40,
             background: 'var(--accent)', color: '#fff',
-            border: 'none', borderRadius: 8,
+            border: 'none', borderRadius: 12,
             fontSize: 14, fontWeight: 600, cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             opacity: (loading || !!message) ? 0.6 : 1,

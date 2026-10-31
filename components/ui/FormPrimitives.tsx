@@ -21,7 +21,7 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
             onSearch?.(e.target.value);
           }}
           placeholder={placeholder}
-          className={`w-full h-[40px] pl-[40px] pr-[16px] bg-card border border-border rounded-[10px] text-[13.5px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#4F6BFF] focus:ring-2 focus:ring-[#4F6BFF]/10 transition-all ${className}`}
+          className={`w-full h-[40px] pl-[40px] pr-[16px] bg-card border border-border rounded-[14px] text-[13.5px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/10 transition-all ${className}`}
           {...props}
         />
       </div>
@@ -46,11 +46,11 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
 }) => {
   const variantStyles = {
     default: 'bg-secondary text-muted-foreground',
-    success: 'bg-[#F0FDF4] text-[#059669]',
-    warning: 'bg-[#FFFBEB] text-[#D97706]',
-    danger: 'bg-[#FEF2F2] text-[#DC2626]',
-    info: 'bg-primary/10 text-[#4F6BFF]',
-    purple: 'bg-[#F5F3FF] text-[#7C3AED]',
+    success: 'bg-[color-mix(in_srgb,_var(--green)_9%,_transparent)] text-[var(--green)]',
+    warning: 'bg-[var(--gold-bg)] text-[var(--gold)]',
+    danger: 'bg-[color-mix(in_srgb,_var(--red)_8%,_transparent)] text-[var(--red)]',
+    info: 'bg-primary/10 text-[var(--accent)]',
+    purple: 'bg-[var(--accent-bg)] text-[var(--accent)]',
   };
 
   return (
@@ -78,7 +78,7 @@ export const FormSection: React.FC<FormSectionProps> = ({
   className = '',
 }) => {
   return (
-    <div className={`bg-card border border-border rounded-[14px] p-[24px] flex flex-col gap-[20px] ${className}`}>
+    <div className={`bg-card border border-border rounded-[20px] p-[24px] flex flex-col gap-[20px] ${className}`}>
       <div>
         <h3 className="text-[16px] font-semibold text-foreground">{title}</h3>
         {description && <p className="text-[13px] text-muted-foreground mt-[2px]">{description}</p>}

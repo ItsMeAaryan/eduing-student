@@ -36,8 +36,8 @@ const RECIPIENT_TYPES = [
 
 const PURPOSES = [
   { id: 'Inquiry',     label: 'Inquiry',     color: '#6366F1', desc: 'Ask about programs, seats, fees' },
-  { id: 'Application', label: 'Application', color: '#10B981', desc: 'Submit or follow up on application' },
-  { id: 'Follow-up',  label: 'Follow-up',   color: '#F59E0B', desc: 'Check status after prior contact' },
+  { id: 'Application', label: 'Application', color: 'var(--green)', desc: 'Submit or follow up on application' },
+  { id: 'Follow-up',  label: 'Follow-up',   color: 'var(--gold)', desc: 'Check status after prior contact' },
   { id: 'Thank You',  label: 'Thank You',   color: '#EC4899', desc: 'Express gratitude' },
   { id: 'Request',    label: 'Request',     color: '#0EA5E9', desc: 'LOR, fee waiver, etc.' },
 ];
@@ -68,9 +68,9 @@ function deleteDraft(id: string) {
 
 /* ── Score badge ────────────────────────────────────────────────── */
 function ScoreBadge({ label, score }: { label: string; score: number }) {
-  const color = score >= 80 ? '#10B981' : score >= 60 ? '#F59E0B' : '#EF4444';
+  const color = score >= 80 ? 'var(--green)' : score >= 60 ? 'var(--gold)' : 'var(--red)';
   return (
-    <div style={{ textAlign: 'center', padding: '12px 8px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 10 }}>
+    <div style={{ textAlign: 'center', padding: '12px 8px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 14 }}>
       <p style={{ fontSize: 22, fontWeight: 800, color, margin: '0 0 2px', lineHeight: 1 }}>{score}</p>
       <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>{label}</p>
     </div>
@@ -272,7 +272,7 @@ function EmailAssistantContent() {
               onClick={handleOpenDrafts}
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: 6,
-                height: 34, padding: '0 14px', borderRadius: 8, cursor: 'pointer',
+                height: 34, padding: '0 14px', borderRadius: 12, cursor: 'pointer',
                 border: '1px solid var(--border)', background: 'var(--bg-elevated)',
                 fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)',
               }}
@@ -284,7 +284,7 @@ function EmailAssistantContent() {
       />
 
       {/* ── Three-panel layout ──────────────────────────────────── */}
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg-card)', marginTop: 16 }}>
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', borderRadius: 18, border: '1px solid var(--border)', background: 'var(--bg-card)', marginTop: 16 }}>
 
         {/* ════ LEFT PANEL ════════════════════════════════════════ */}
         <div style={{ width: 260, borderRight: '1px solid var(--border)', display: 'flex', flexDirection: 'column', overflowY: 'auto', background: 'var(--bg-card)' }}>
@@ -304,21 +304,21 @@ function EmailAssistantContent() {
                       onClick={() => setRecipientType(r.id)}
                       style={{
                         display: 'flex', alignItems: 'center', gap: 10,
-                        padding: '9px 10px', borderRadius: 8, cursor: 'pointer', border: 'none',
+                        padding: '9px 10px', borderRadius: 12, cursor: 'pointer', border: 'none',
                         background: active ? 'rgba(16,185,129,0.08)' : 'transparent',
                         outline: active ? '1.5px solid rgba(16,185,129,0.4)' : '1px solid transparent',
                         transition: 'all 0.15s', textAlign: 'left',
                       }}
                     >
                       <span style={{
-                        width: 30, height: 30, borderRadius: 8, flexShrink: 0,
+                        width: 30, height: 30, borderRadius: 12, flexShrink: 0,
                         background: active ? 'rgba(16,185,129,0.12)' : 'var(--bg)',
                         border: `1px solid ${active ? 'rgba(16,185,129,0.3)' : 'var(--border)'}`,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         fontSize: 14,
                       }}>{r.emoji}</span>
                       <div>
-                        <p style={{ fontSize: 13, fontWeight: 600, color: active ? '#10B981' : 'var(--text-primary)', margin: 0, lineHeight: 1.2 }}>{r.label}</p>
+                        <p style={{ fontSize: 13, fontWeight: 600, color: active ? 'var(--green)' : 'var(--text-primary)', margin: 0, lineHeight: 1.2 }}>{r.label}</p>
                         <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '1px 0 0' }}>{r.desc}</p>
                       </div>
                     </button>
@@ -342,8 +342,8 @@ function EmailAssistantContent() {
                       style={{
                         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                         padding: '8px 10px', borderRadius: 7, cursor: 'pointer', border: 'none',
-                        background: active ? `${p.color}14` : 'transparent',
-                        outline: active ? `1.5px solid ${p.color}55` : '1px solid transparent',
+                        background: active ? `color-mix(in srgb, ${p.color} 8%, transparent)` : 'transparent',
+                        outline: active ? `1.5px solid color-mix(in srgb, ${p.color} 33%, transparent)` : '1px solid transparent',
                         transition: 'all 0.15s', textAlign: 'left',
                       }}
                     >
@@ -361,7 +361,7 @@ function EmailAssistantContent() {
             {/* Recipient Name */}
             <div>
               <label htmlFor="recipientName" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
-                Recipient Name / University <span style={{ color: '#EF4444' }}>*</span>
+                Recipient Name / University <span style={{ color: 'var(--red)' }}>*</span>
               </label>
               <input
                 id="recipientName"
@@ -404,7 +404,7 @@ function EmailAssistantContent() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 width: '100%', height: 40, borderRadius: 9, cursor: canGenerate ? 'pointer' : 'not-allowed',
                 border: 'none',
-                background: canGenerate ? 'linear-gradient(135deg, #10B981, #059669)' : 'var(--bg-elevated)',
+                background: canGenerate ? 'linear-gradient(135deg, var(--green), var(--green))' : 'var(--bg-elevated)',
                 color: canGenerate ? '#fff' : 'var(--text-muted)',
                 fontSize: 14, fontWeight: 700, boxShadow: canGenerate ? '0 4px 14px rgba(16,185,129,0.35)' : 'none',
                 transition: 'all 0.2s',
@@ -429,7 +429,7 @@ function EmailAssistantContent() {
               </div>
               <p style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>New Message</p>
               <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: 0, textAlign: 'center', maxWidth: 260, lineHeight: 1.6 }}>
-                Select a recipient type and purpose, then click <strong style={{ color: '#10B981' }}>Generate Email</strong>
+                Select a recipient type and purpose, then click <strong style={{ color: 'var(--green)' }}>Generate Email</strong>
               </p>
             </div>
           )}
@@ -437,7 +437,7 @@ function EmailAssistantContent() {
           {/* ── Error state ── */}
           {genError && !isGenerating && (
             <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, zIndex: 10 }}>
-              <AlertCircle size={36} style={{ color: '#EF4444', opacity: 0.6 }} />
+              <AlertCircle size={36} style={{ color: 'var(--red)', opacity: 0.6 }} />
               <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Something went wrong</p>
               <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: 0 }}>Please try again.</p>
             </div>
@@ -446,8 +446,8 @@ function EmailAssistantContent() {
           {/* ── Loading overlay ── */}
           {isGenerating && (
             <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--bg-card-rgb,255,255,255),0.85)', backdropFilter: 'blur(6px)', zIndex: 20, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14 }}>
-              <div style={{ width: 44, height: 44, border: '3px solid rgba(16,185,129,0.25)', borderTopColor: '#10B981', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-              <p style={{ fontSize: 15, fontWeight: 600, color: '#10B981', margin: 0 }}>Composing your email…</p>
+              <div style={{ width: 44, height: 44, border: '3px solid rgba(16,185,129,0.25)', borderTopColor: 'var(--green)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+              <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--green)', margin: 0 }}>Composing your email…</p>
               <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>This takes a few seconds</p>
             </div>
           )}
@@ -508,7 +508,7 @@ function EmailAssistantContent() {
                 <button
                   onClick={handleRegenerate}
                   disabled={isGenerating}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 5, height: 30, padding: '0 12px', borderRadius: 7, cursor: 'pointer', border: '1px solid rgba(16,185,129,0.3)', background: 'rgba(16,185,129,0.06)', fontSize: 12, fontWeight: 600, color: '#10B981' }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 5, height: 30, padding: '0 12px', borderRadius: 7, cursor: 'pointer', border: '1px solid rgba(16,185,129,0.3)', background: 'rgba(16,185,129,0.06)', fontSize: 12, fontWeight: 600, color: 'var(--green)' }}
                 >
                   <RefreshCw size={12} /> Regenerate
                 </button>
@@ -520,7 +520,7 @@ function EmailAssistantContent() {
                 </button>
                 <button
                   onClick={handleClear}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 5, height: 30, padding: '0 10px', borderRadius: 7, cursor: 'pointer', border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.05)', fontSize: 12, fontWeight: 600, color: '#EF4444' }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 5, height: 30, padding: '0 10px', borderRadius: 7, cursor: 'pointer', border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.05)', fontSize: 12, fontWeight: 600, color: 'var(--red)' }}
                 >
                   <Trash2 size={12} /> Clear
                 </button>
@@ -541,8 +541,8 @@ function EmailAssistantContent() {
                   flex: 1, padding: '12px 0', fontSize: 11, fontWeight: 700,
                   textTransform: 'uppercase', letterSpacing: '0.07em', cursor: 'pointer',
                   border: 'none', background: 'transparent',
-                  color: rightTab === tab ? '#10B981' : 'var(--text-muted)',
-                  borderBottom: rightTab === tab ? '2px solid #10B981' : '2px solid transparent',
+                  color: rightTab === tab ? 'var(--green)' : 'var(--text-muted)',
+                  borderBottom: rightTab === tab ? '2px solid var(--green)' : '2px solid transparent',
                   transition: 'all 0.15s',
                 }}
               >
@@ -556,10 +556,10 @@ function EmailAssistantContent() {
             {rightTab === 'assistant' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 {/* Context card */}
-                <div style={{ background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 10, padding: '12px 14px' }}>
+                <div style={{ background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 14, padding: '12px 14px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-                    <Sparkles size={13} style={{ color: '#10B981' }} />
-                    <p style={{ fontSize: 11, fontWeight: 700, color: '#10B981', margin: 0, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Auto-Included Context</p>
+                    <Sparkles size={13} style={{ color: 'var(--green)' }} />
+                    <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--green)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Auto-Included Context</p>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
                     <ContextLine icon={User} label="Name" value={profileSnippet.name} />
@@ -582,13 +582,13 @@ function EmailAssistantContent() {
                   disabled={isToneChecking || !body.trim()}
                   style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-                    width: '100%', height: 36, borderRadius: 8, cursor: body.trim() ? 'pointer' : 'not-allowed',
+                    width: '100%', height: 36, borderRadius: 12, cursor: body.trim() ? 'pointer' : 'not-allowed',
                     border: '1px solid var(--border)', background: 'var(--bg-elevated)',
                     fontSize: 13, fontWeight: 600, color: body.trim() ? 'var(--text-primary)' : 'var(--text-muted)',
                   }}
                 >
                   {isToneChecking
-                    ? <><div style={{ width: 14, height: 14, border: '2px solid rgba(16,185,129,0.3)', borderTopColor: '#10B981', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} /> Analyzing…</>
+                    ? <><div style={{ width: 14, height: 14, border: '2px solid rgba(16,185,129,0.3)', borderTopColor: 'var(--green)', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} /> Analyzing…</>
                     : <><MessageSquareText size={14} /> Run Tone Check</>
                   }
                 </button>
@@ -602,7 +602,7 @@ function EmailAssistantContent() {
                     'End with a clear call to action',
                   ].map((tip, i) => (
                     <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                      <CheckCircle2 size={13} style={{ color: '#10B981', flexShrink: 0, marginTop: 1 }} />
+                      <CheckCircle2 size={13} style={{ color: 'var(--green)', flexShrink: 0, marginTop: 1 }} />
                       <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>{tip}</p>
                     </div>
                   ))}
@@ -623,9 +623,9 @@ function EmailAssistantContent() {
                       disabled={!body.trim()}
                       style={{
                         display: 'inline-flex', alignItems: 'center', gap: 7, height: 34, padding: '0 16px',
-                        borderRadius: 8, cursor: body.trim() ? 'pointer' : 'not-allowed',
+                        borderRadius: 12, cursor: body.trim() ? 'pointer' : 'not-allowed',
                         border: '1px solid rgba(16,185,129,0.3)', background: 'rgba(16,185,129,0.07)',
-                        fontSize: 13, fontWeight: 600, color: '#10B981',
+                        fontSize: 13, fontWeight: 600, color: 'var(--green)',
                       }}
                     >
                       <MessageSquareText size={13} /> Run Tone Check
@@ -635,8 +635,8 @@ function EmailAssistantContent() {
 
                 {isToneChecking && (
                   <div style={{ textAlign: 'center', padding: '40px 0' }}>
-                    <div style={{ width: 36, height: 36, border: '3px solid rgba(16,185,129,0.2)', borderTopColor: '#10B981', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 12px' }} />
-                    <p style={{ fontSize: 13, fontWeight: 600, color: '#10B981', margin: 0 }}>Analyzing tone…</p>
+                    <div style={{ width: 36, height: 36, border: '3px solid rgba(16,185,129,0.2)', borderTopColor: 'var(--green)', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 12px' }} />
+                    <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--green)', margin: 0 }}>Analyzing tone…</p>
                   </div>
                 )}
 
@@ -653,8 +653,8 @@ function EmailAssistantContent() {
 
                       {/* Readability */}
                       {toneData.readability && (
-                        <div style={{ background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 8, padding: '10px 12px' }}>
-                          <p style={{ fontSize: 10, fontWeight: 700, color: '#10B981', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 4px' }}>Readability</p>
+                        <div style={{ background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 12, padding: '10px 12px' }}>
+                          <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--green)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 4px' }}>Readability</p>
                           <p style={{ fontSize: 12, color: 'var(--text-primary)', margin: 0, lineHeight: 1.6 }}>{toneData.readability}</p>
                         </div>
                       )}
@@ -666,7 +666,7 @@ function EmailAssistantContent() {
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                             {(toneData.suggestedImprovements || toneData.improvements || []).slice(0, 4).map((s: string, i: number) => (
                               <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'flex-start', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 7, padding: '8px 10px' }}>
-                                <AlertCircle size={12} style={{ color: '#F59E0B', flexShrink: 0, marginTop: 1 }} />
+                                <AlertCircle size={12} style={{ color: 'var(--gold)', flexShrink: 0, marginTop: 1 }} />
                                 <p style={{ fontSize: 11, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>{s}</p>
                               </div>
                             ))}
@@ -695,7 +695,7 @@ function EmailAssistantContent() {
                       {/* Re-run */}
                       <button
                         onClick={handleToneCheck}
-                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, height: 34, borderRadius: 8, cursor: 'pointer', border: '1px solid var(--border)', background: 'var(--bg-elevated)', fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)' }}
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, height: 34, borderRadius: 12, cursor: 'pointer', border: '1px solid var(--border)', background: 'var(--bg-elevated)', fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)' }}
                       >
                         <RotateCcw size={12} /> Re-run Analysis
                       </button>
@@ -731,7 +731,7 @@ function EmailAssistantContent() {
                   <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>Saved Drafts</p>
                   <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '2px 0 0' }}>{drafts.length} draft{drafts.length !== 1 ? 's' : ''} stored locally</p>
                 </div>
-                <button onClick={() => setShowDrafts(false)} style={{ width: 30, height: 30, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-elevated)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <button onClick={() => setShowDrafts(false)} style={{ width: 30, height: 30, borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg-elevated)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <X size={14} style={{ color: 'var(--text-muted)' }} />
                 </button>
               </div>
@@ -745,7 +745,7 @@ function EmailAssistantContent() {
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {drafts.map(d => (
-                      <div key={d.id} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 10, padding: '12px 14px' }}>
+                      <div key={d.id} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 14, padding: '12px 14px' }}>
                         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 6 }}>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -757,7 +757,7 @@ function EmailAssistantContent() {
                           </div>
                           <button
                             onClick={() => { deleteDraft(d.id); setDrafts(loadDrafts()); }}
-                            style={{ width: 24, height: 24, borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                            style={{ width: 24, height: 24, borderRadius: 10, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                           >
                             <X size={12} style={{ color: 'var(--text-muted)' }} />
                           </button>
@@ -767,7 +767,7 @@ function EmailAssistantContent() {
                         </p>
                         <button
                           onClick={() => handleLoadDraft(d)}
-                          style={{ display: 'inline-flex', alignItems: 'center', gap: 5, height: 28, padding: '0 12px', borderRadius: 6, cursor: 'pointer', border: '1px solid rgba(16,185,129,0.3)', background: 'rgba(16,185,129,0.06)', fontSize: 12, fontWeight: 600, color: '#10B981' }}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 5, height: 28, padding: '0 12px', borderRadius: 10, cursor: 'pointer', border: '1px solid rgba(16,185,129,0.3)', background: 'rgba(16,185,129,0.06)', fontSize: 12, fontWeight: 600, color: 'var(--green)' }}
                         >
                           <RotateCcw size={11} /> Load Draft
                         </button>
@@ -791,7 +791,7 @@ function ContextLine({ icon: Icon, label, value }: { icon: React.ElementType; la
   if (!value || value === '[Name]' && label === 'Name') return null;
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-      <Icon size={12} style={{ color: '#10B981', flexShrink: 0 }} strokeWidth={1.8} />
+      <Icon size={12} style={{ color: 'var(--green)', flexShrink: 0 }} strokeWidth={1.8} />
       <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: 0, minWidth: 60 }}>{label}:</p>
       <p style={{ fontSize: 11, color: 'var(--text-primary)', margin: 0, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{value}</p>
     </div>

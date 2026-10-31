@@ -66,7 +66,7 @@ export default function AboutPage() {
             color: '#fff',
             fontSize: 13,
             fontWeight: 600,
-            borderRadius: 8,
+            borderRadius: 12,
             textDecoration: 'none',
             transition: 'opacity 0.15s',
           }}

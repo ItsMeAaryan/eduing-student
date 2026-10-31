@@ -33,7 +33,7 @@ const STATUS_CONFIG: Record<StatusKey, { label: string; dotColor: string; textCo
   draft: { label: 'Draft', dotColor: 'var(--text-muted)', textColor: 'var(--text-secondary)', bgColor: 'rgba(0,0,0,0.05)' },
   submitted: { label: 'Submitted', dotColor: 'var(--accent)', textColor: 'var(--accent)', bgColor: 'var(--accent-bg)' },
   under_review: { label: 'Under Review', dotColor: 'var(--gold)', textColor: 'var(--gold)', bgColor: 'rgba(217,119,6,0.08)' },
-  interview: { label: 'Interview', dotColor: '#8B5CF6', textColor: '#8B5CF6', bgColor: 'rgba(139,92,246,0.08)' },
+  interview: { label: 'Interview', dotColor: 'var(--accent-2)', textColor: 'var(--accent-2)', bgColor: 'rgba(139,92,246,0.08)' },
   accepted: { label: 'Accepted', dotColor: 'var(--green)', textColor: 'var(--green)', bgColor: 'rgba(26,174,57,0.08)' },
   rejected: { label: 'Rejected', dotColor: 'var(--red)', textColor: 'var(--red)', bgColor: 'rgba(220,38,38,0.07)' },
 }
@@ -116,7 +116,7 @@ function DetailDrawer({ app, onClose }: { app: any; onClose: () => void }) {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{
-              width: 38, height: 38, borderRadius: 10,
+              width: 38, height: 38, borderRadius: 14,
               background: 'var(--accent-bg)', border: '1px solid var(--accent-border)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 16, fontWeight: 700, color: 'var(--accent)',
@@ -135,7 +135,7 @@ function DetailDrawer({ app, onClose }: { app: any; onClose: () => void }) {
               width: 30, height: 30,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               background: 'var(--bg)', border: '1px solid var(--border)',
-              borderRadius: 6, cursor: 'pointer', color: 'var(--text-muted)',
+              borderRadius: 10, cursor: 'pointer', color: 'var(--text-muted)',
             }}
           >
             <X size={14} strokeWidth={2} />
@@ -155,7 +155,7 @@ function DetailDrawer({ app, onClose }: { app: any; onClose: () => void }) {
             ].map(({ label, value }) => (
               <div key={label} style={{
                 background: 'var(--bg)', border: '1px solid var(--border)',
-                borderRadius: 8, padding: '12px 14px',
+                borderRadius: 12, padding: '12px 14px',
               }}>
                 <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)', margin: '0 0 4px' }}>{label}</p>
                 <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>{value}</p>
@@ -164,7 +164,7 @@ function DetailDrawer({ app, onClose }: { app: any; onClose: () => void }) {
           </div>
 
           {/* AI Analysis */}
-          <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 10, padding: '16px' }}>
+          <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
               <Sparkles size={14} style={{ color: 'var(--accent)' }} strokeWidth={1.8} />
               <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>AI Analysis</span>
@@ -181,7 +181,7 @@ function DetailDrawer({ app, onClose }: { app: any; onClose: () => void }) {
           </div>
 
           {/* Timeline */}
-          <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 10, padding: '16px' }}>
+          <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px' }}>
             <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 14px' }}>Timeline</p>
             <div style={{ position: 'relative', paddingLeft: 18, borderLeft: '1px solid var(--border)', marginLeft: 5, display: 'flex', flexDirection: 'column', gap: 18 }}>
               {[
@@ -206,7 +206,7 @@ function DetailDrawer({ app, onClose }: { app: any; onClose: () => void }) {
           </div>
 
           {/* Documents */}
-          <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 10, padding: '16px' }}>
+          <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px' }}>
             <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 12px' }}>Required Documents</p>
             {['Transcripts', 'Statement of Purpose', 'Passport Copy'].map((docName, i) => (
               <div key={docName} style={{
@@ -251,7 +251,7 @@ function DetailDrawer({ app, onClose }: { app: any; onClose: () => void }) {
             <button style={{
               flex: 1, height: 34,
               background: 'var(--accent)', color: '#fff',
-              border: 'none', borderRadius: 8,
+              border: 'none', borderRadius: 12,
               fontSize: 13, fontWeight: 600, cursor: 'pointer',
             }}>
               Continue Application
@@ -265,14 +265,14 @@ function DetailDrawer({ app, onClose }: { app: any; onClose: () => void }) {
                   height: 34, padding: '0 12px',
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                   background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.3)',
-                  borderRadius: 8, fontSize: 13, fontWeight: 600,
-                  color: '#8B5CF6', cursor: 'pointer',
+                  borderRadius: 12, fontSize: 13, fontWeight: 600,
+                  color: 'var(--accent-2)', cursor: 'pointer',
                   textDecoration: 'none',
                   transition: 'background 0.15s, border-color 0.15s',
                 }}
                 onMouseEnter={(e) => {
                   (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(139,92,246,0.18)'
-                  ;(e.currentTarget as HTMLAnchorElement).style.borderColor = '#8B5CF6'
+                  ;(e.currentTarget as HTMLAnchorElement).style.borderColor = 'var(--accent-2)'
                 }}
                 onMouseLeave={(e) => {
                   (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(139,92,246,0.1)'
@@ -291,7 +291,7 @@ function DetailDrawer({ app, onClose }: { app: any; onClose: () => void }) {
                 height: 34, padding: '0 14px',
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                 background: 'var(--bg-elevated)', border: '1px solid var(--border)',
-                borderRadius: 8, fontSize: 13, fontWeight: 500,
+                borderRadius: 12, fontSize: 13, fontWeight: 500,
                 color: 'var(--text-secondary)', cursor: 'pointer',
                 textDecoration: 'none',
                 transition: 'border-color 0.15s, color 0.15s',
@@ -311,7 +311,7 @@ function DetailDrawer({ app, onClose }: { app: any; onClose: () => void }) {
             <button onClick={onClose} style={{
               height: 34, padding: '0 14px',
               background: 'var(--bg-elevated)', border: '1px solid var(--border)',
-              borderRadius: 8, fontSize: 13, fontWeight: 500,
+              borderRadius: 12, fontSize: 13, fontWeight: 500,
               color: 'var(--text-secondary)', cursor: 'pointer',
             }}>
               Close
@@ -344,7 +344,7 @@ export default function ApplicationsPage() {
   const kpis = [
     { label: 'Active', value: apps.filter((a: any) => !['accepted', 'rejected'].includes(normalizeStatus(a.status))).length, sub: 'In pipeline', color: 'var(--accent)', Icon: FileText },
     { label: 'Submitted', value: apps.filter((a: any) => normalizeStatus(a.status) === 'submitted').length, sub: 'Awaiting review', color: 'var(--green)', Icon: CheckCircle2 },
-    { label: 'Offers', value: apps.filter((a: any) => normalizeStatus(a.status) === 'accepted').length, sub: 'Accepted', color: '#8B5CF6', Icon: Award },
+    { label: 'Offers', value: apps.filter((a: any) => normalizeStatus(a.status) === 'accepted').length, sub: 'Accepted', color: 'var(--accent-2)', Icon: Award },
     { label: 'Deadlines', value: deadlines?.length || 0, sub: 'Upcoming', color: 'var(--gold)', Icon: Clock },
   ]
 
@@ -367,13 +367,13 @@ export default function ApplicationsPage() {
             <div key={label} style={{
               background: 'var(--bg-card)',
               border: '1px solid var(--border)',
-              borderRadius: 10, padding: '16px',
+              borderRadius: 14, padding: '16px',
               display: 'flex', alignItems: 'flex-start', gap: 12,
               boxShadow: '0 0.175px 1px rgba(0,0,0,0.015), 0 0.8px 2.9px rgba(0,0,0,0.022)',
             }}>
               <div style={{
-                width: 34, height: 34, borderRadius: 8,
-                background: `${color}12`, flexShrink: 0,
+                width: 34, height: 34, borderRadius: 12,
+                background: `color-mix(in srgb, ${color} 7%, transparent)`, flexShrink: 0,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
                 <Icon size={15} style={{ color }} strokeWidth={1.8} />
@@ -391,7 +391,7 @@ export default function ApplicationsPage() {
         <div style={{
           background: 'var(--bg-card)',
           border: '1px solid var(--border)',
-          borderRadius: 10,
+          borderRadius: 14,
           overflow: 'hidden',
           boxShadow: '0 0.175px 1px rgba(0,0,0,0.015), 0 0.8px 2.9px rgba(0,0,0,0.022)',
         }}>
@@ -413,7 +413,7 @@ export default function ApplicationsPage() {
                   style={{
                     width: 200, height: 30, paddingLeft: 28, paddingRight: 10,
                     background: 'var(--bg)', border: '1px solid var(--border)',
-                    borderRadius: 6, fontSize: 12,
+                    borderRadius: 10, fontSize: 12,
                     color: 'var(--text-primary)', outline: 'none',
                     transition: 'border-color 0.15s',
                   }}
@@ -426,7 +426,7 @@ export default function ApplicationsPage() {
               <div style={{
                 display: 'flex', alignItems: 'center',
                 background: 'var(--bg)', border: '1px solid var(--border)',
-                borderRadius: 6, padding: 2,
+                borderRadius: 10, padding: 2,
               }}>
                 {(['list', 'board'] as const).map(m => (
                   <button key={m} onClick={() => setViewMode(m)}
@@ -549,7 +549,7 @@ export default function ApplicationsPage() {
                     minWidth: 240, maxWidth: 240, flexShrink: 0,
                     background: 'var(--bg)',
                     border: '1px solid var(--border)',
-                    borderRadius: 10, padding: '10px',
+                    borderRadius: 14, padding: '10px',
                   }}>
                     {/* Column header */}
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '2px 4px', marginBottom: 10 }}>
@@ -576,7 +576,7 @@ export default function ApplicationsPage() {
                           style={{
                             background: 'var(--bg-elevated)',
                             border: '1px solid var(--border)',
-                            borderRadius: 8, padding: '12px',
+                            borderRadius: 12, padding: '12px',
                             cursor: 'pointer', transition: 'border-color 0.15s',
                           }}
                           onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border-hover)' }}
@@ -584,7 +584,7 @@ export default function ApplicationsPage() {
                         >
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                             <div style={{
-                              width: 28, height: 28, borderRadius: 6,
+                              width: 28, height: 28, borderRadius: 10,
                               background: 'var(--accent-bg)',
                               display: 'flex', alignItems: 'center', justifyContent: 'center',
                               fontSize: 12, fontWeight: 700, color: 'var(--accent)',

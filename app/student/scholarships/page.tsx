@@ -16,7 +16,7 @@ const TABS = ['All', 'Eligible', 'Applied', 'Saved']
 const CARD: React.CSSProperties = {
   background: 'var(--bg-card)',
   border: '1px solid var(--border)',
-  borderRadius: 10,
+  borderRadius: 14,
   overflow: 'hidden',
   boxShadow: '0 0.175px 1px rgba(0,0,0,0.015), 0 0.8px 2.9px rgba(0,0,0,0.022)',
 }
@@ -99,7 +99,7 @@ export default function ScholarshipsPage() {
           {[
             { label: 'Total Found', value: results.length, sub: 'In database', color: 'var(--accent)', Icon: Award },
             { label: 'Eligible', value: eligibleCount, sub: 'Match ≥ 75%', color: 'var(--green)', Icon: CheckCircle2 },
-            { label: 'Applied', value: appliedCount, sub: 'Applications sent', color: '#8B5CF6', Icon: Bookmark },
+            { label: 'Applied', value: appliedCount, sub: 'Applications sent', color: 'var(--accent-2)', Icon: Bookmark },
             { label: 'Saved', value: savedCount, sub: 'Bookmarked', color: 'var(--gold)', Icon: Bookmark },
           ].map(({ label, value, sub, color, Icon }) => (
             <div key={label} style={{
@@ -108,8 +108,8 @@ export default function ScholarshipsPage() {
               display: 'flex', alignItems: 'flex-start', gap: 12,
             }}>
               <div style={{
-                width: 34, height: 34, borderRadius: 8,
-                background: `${color}12`, flexShrink: 0,
+                width: 34, height: 34, borderRadius: 12,
+                background: `color-mix(in srgb, ${color} 7%, transparent)`, flexShrink: 0,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
                 <Icon size={15} style={{ color }} strokeWidth={1.8} />
@@ -138,7 +138,7 @@ export default function ScholarshipsPage() {
                 paddingLeft: 28, paddingRight: 10,
                 background: 'var(--bg-elevated)',
                 border: '1px solid var(--border)',
-                borderRadius: 6, fontSize: 12,
+                borderRadius: 10, fontSize: 12,
                 color: 'var(--text-primary)', outline: 'none',
                 transition: 'border-color 0.15s',
               }}
@@ -291,7 +291,7 @@ export default function ScholarshipsPage() {
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div style={{
-                      width: 38, height: 38, borderRadius: 10,
+                      width: 38, height: 38, borderRadius: 14,
                       background: 'var(--accent-bg)', border: '1px solid var(--accent-border)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
@@ -312,7 +312,7 @@ export default function ScholarshipsPage() {
                     style={{
                       width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
                       background: 'var(--bg)', border: '1px solid var(--border)',
-                      borderRadius: 6, cursor: 'pointer', color: 'var(--text-muted)',
+                      borderRadius: 10, cursor: 'pointer', color: 'var(--text-muted)',
                     }}
                   >
                     <X size={14} strokeWidth={2} />
@@ -330,7 +330,7 @@ export default function ScholarshipsPage() {
                       { label: 'Deadline', value: selectedSch.scholarship.deadline ? new Date(selectedSch.scholarship.deadline).toLocaleDateString('en-IN') : 'Rolling' },
                       { label: 'Level', value: selectedSch.scholarship.targetDegrees?.join(', ') || 'Any' },
                     ].map(({ label, value }) => (
-                      <div key={label} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '12px 14px' }}>
+                      <div key={label} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 12, padding: '12px 14px' }}>
                         <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)', margin: '0 0 4px' }}>{label}</p>
                         <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>{value}</p>
                       </div>
@@ -338,7 +338,7 @@ export default function ScholarshipsPage() {
                   </div>
 
                   {/* AI Analysis */}
-                  <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 10, padding: '16px' }}>
+                  <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                       <Sparkles size={14} style={{ color: 'var(--accent)' }} strokeWidth={1.8} />
                       <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>AI Match Analysis</span>
@@ -361,7 +361,7 @@ export default function ScholarshipsPage() {
 
                   {/* Description */}
                   {selectedSch.scholarship.description && (
-                    <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 10, padding: '16px' }}>
+                    <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px' }}>
                       <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 8px' }}>Description</p>
                       <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.6 }}>
                         {selectedSch.scholarship.description}
@@ -381,7 +381,7 @@ export default function ScholarshipsPage() {
                   <button style={{
                     flex: 1, height: 34,
                     background: 'var(--accent)', color: '#fff',
-                    border: 'none', borderRadius: 8,
+                    border: 'none', borderRadius: 12,
                     fontSize: 13, fontWeight: 600, cursor: 'pointer',
                   }}>
                     Apply Now
@@ -389,7 +389,7 @@ export default function ScholarshipsPage() {
                   <button style={{
                     height: 34, padding: '0 14px',
                     background: 'var(--bg-elevated)', border: '1px solid var(--border)',
-                    borderRadius: 8, fontSize: 13, fontWeight: 500,
+                    borderRadius: 12, fontSize: 13, fontWeight: 500,
                     color: 'var(--text-secondary)', cursor: 'pointer',
                     display: 'flex', alignItems: 'center', gap: 6,
                   }}>

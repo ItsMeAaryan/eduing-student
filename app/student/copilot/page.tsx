@@ -145,7 +145,7 @@ export default function CopilotPage() {
             {TABS.map(t => (
               <button key={t} onClick={() => setActiveTab(t)}
                 style={{
-                  padding: '0 16px', height: 34, borderRadius: 8,
+                  padding: '0 16px', height: 34, borderRadius: 12,
                   fontSize: 13, fontWeight: 500, whiteSpace: 'nowrap',
                   background: activeTab === t ? 'var(--bg-elevated)' : 'transparent',
                   color: activeTab === t ? 'var(--text-primary)' : 'var(--text-muted)',
@@ -158,7 +158,7 @@ export default function CopilotPage() {
           </div>
           <button onClick={clearMessages} style={{
             display: 'flex', alignItems: 'center', gap: 6,
-            padding: '0 14px', height: 34, borderRadius: 8,
+            padding: '0 14px', height: 34, borderRadius: 12,
             border: '1px solid var(--border)', fontSize: 13, fontWeight: 500,
             color: 'var(--text-primary)', background: 'var(--bg-card)',
             cursor: 'pointer', transition: 'background 0.15s',
@@ -171,7 +171,7 @@ export default function CopilotPage() {
         {activeTab === 'AI Assistant' && (
           <div style={{
             flex: 1, background: 'var(--bg-card)',
-            border: '1px solid var(--border)', borderRadius: 12,
+            border: '1px solid var(--border)', borderRadius: 18,
             display: 'flex', flexDirection: 'column', overflow: 'hidden',
           }}>
             {/* Header */}
@@ -209,7 +209,7 @@ export default function CopilotPage() {
                 <div style={{ margin: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', maxWidth: 440, textAlign: 'center' }}>
                   <div style={{
                     width: 64, height: 64, background: 'var(--accent-bg)',
-                    borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    borderRadius: 22, display: 'flex', alignItems: 'center', justifyContent: 'center',
                     marginBottom: 20,
                   }}>
                     <Sparkles size={32} style={{ color: 'var(--accent)' }} strokeWidth={1.5} />
@@ -258,7 +258,7 @@ export default function CopilotPage() {
                         alignItems: m.role === 'user' ? 'flex-end' : 'flex-start',
                       }}>
                         <div style={{
-                          padding: '12px 16px', borderRadius: 12, fontSize: 14, lineHeight: 1.6,
+                          padding: '12px 16px', borderRadius: 18, fontSize: 14, lineHeight: 1.6,
                           ...(m.role === 'user'
                             ? {
                               background: 'var(--text-primary)',
@@ -299,7 +299,7 @@ export default function CopilotPage() {
                         <Sparkles size={18} style={{ color: 'var(--accent)' }} />
                       </div>
                       <div style={{
-                        padding: '14px 16px', borderRadius: 12, borderTopLeftRadius: 4,
+                        padding: '14px 16px', borderRadius: 18, borderTopLeftRadius: 4,
                         background: 'var(--bg-elevated)', border: '1px solid var(--border)',
                         display: 'flex', alignItems: 'center', gap: 6,
                       }}>
@@ -376,11 +376,11 @@ export default function CopilotPage() {
         {activeTab === 'History' && (
           <div style={{
             flex: 1, background: 'var(--bg-card)', border: '1px solid var(--border)',
-            borderRadius: 12, padding: 40, display: 'flex', flexDirection: 'column',
+            borderRadius: 18, padding: 40, display: 'flex', flexDirection: 'column',
             alignItems: 'center', justifyContent: 'center', textAlign: 'center',
           }}>
             <div style={{
-              width: 56, height: 56, background: 'var(--accent-bg)', borderRadius: 16,
+              width: 56, height: 56, background: 'var(--accent-bg)', borderRadius: 22,
               display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16,
             }}>
               <Sparkles size={24} style={{ color: 'var(--accent)' }} />
@@ -391,7 +391,7 @@ export default function CopilotPage() {
             </p>
             <button onClick={() => setActiveTab('AI Assistant')} style={{
               padding: '0 16px', height: 36, background: 'var(--accent)', color: '#fff',
-              fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none', cursor: 'pointer',
+              fontSize: 13, fontWeight: 600, borderRadius: 12, border: 'none', cursor: 'pointer',
             }}>
               Start a Chat
             </button>
@@ -401,11 +401,11 @@ export default function CopilotPage() {
         {activeTab === 'Saved Prompts' && (
           <div style={{
             flex: 1, background: 'var(--bg-card)', border: '1px solid var(--border)',
-            borderRadius: 12, padding: 40, display: 'flex', flexDirection: 'column',
+            borderRadius: 18, padding: 40, display: 'flex', flexDirection: 'column',
             alignItems: 'center', justifyContent: 'center', textAlign: 'center',
           }}>
             <div style={{
-              width: 56, height: 56, background: 'var(--accent-bg)', borderRadius: 16,
+              width: 56, height: 56, background: 'var(--accent-bg)', borderRadius: 22,
               display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16,
             }}>
               <Sparkles size={24} style={{ color: 'var(--accent)' }} />
@@ -416,7 +416,7 @@ export default function CopilotPage() {
             </p>
             <button onClick={() => setActiveTab('AI Assistant')} style={{
               padding: '0 16px', height: 36, background: 'var(--accent)', color: '#fff',
-              fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none', cursor: 'pointer',
+              fontSize: 13, fontWeight: 600, borderRadius: 12, border: 'none', cursor: 'pointer',
             }}>
               Go to AI Assistant
             </button>

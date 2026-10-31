@@ -72,7 +72,7 @@ export default function FilterSidebar({ filters, setFilters, onCloseMobile }: Pr
               value={filters.searchQuery}
               onChange={(e) => setFilters(prev => ({ ...prev, searchQuery: e.target.value }))}
               placeholder="e.g. Delhi University"
-              className="w-full bg-background border border-border rounded-xl pl-10 pr-4 py-2.5 text-white focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-sm"
+              className="w-full bg-background border border-border rounded-2xl pl-10 pr-4 py-2.5 text-white focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-sm"
             />
             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-textSecondary" />
           </div>
@@ -105,7 +105,7 @@ export default function FilterSidebar({ filters, setFilters, onCloseMobile }: Pr
             value={filters.city}
             onChange={(e) => setFilters(prev => ({ ...prev, city: e.target.value }))}
             placeholder="e.g. Mumbai"
-            className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-white focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-sm"
+            className="w-full bg-background border border-border rounded-2xl px-4 py-2.5 text-white focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-sm"
           />
         </div>
 
@@ -130,7 +130,7 @@ export default function FilterSidebar({ filters, setFilters, onCloseMobile }: Pr
         {/* Entrance Exam Toggle */}
         <div>
           <span className="block text-sm font-medium text-textSecondary mb-2">Entrance Exam Required</span>
-          <div className="flex bg-background border border-border rounded-xl p-1" role="group" aria-label="Entrance Exam Required">
+          <div className="flex bg-background border border-border rounded-2xl p-1" role="group" aria-label="Entrance Exam Required">
             <button
               onClick={() => setFilters(prev => ({ ...prev, requiresEntranceExam: true }))}
               className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-colors ${filters.requiresEntranceExam === true ? "bg-primary text-white" : "text-textSecondary hover:text-white"}`}

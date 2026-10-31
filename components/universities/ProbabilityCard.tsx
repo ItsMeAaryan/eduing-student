@@ -51,7 +51,7 @@ export function ProbabilityCard({ university }: { university: any }) {
           <ShieldAlert size={32} className="text-amber-500 mb-4" />
           <h4 className="text-sm font-black text-white mb-2">Insufficient Data</h4>
           <p className="text-xs text-white/50 mb-6 max-w-[240px]">We need more information before estimating your admission probability.</p>
-          <Link href="/student/profile" className="px-6 py-3 bg-indigo-600 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-indigo-500 transition-colors">
+          <Link href="/student/profile" className="px-6 py-3 bg-indigo-600 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-indigo-500 transition-colors">
             Complete Profile
           </Link>
         </div>

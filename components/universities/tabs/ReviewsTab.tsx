@@ -60,7 +60,7 @@ export default function ReviewsTab({ university }: Props) {
       <div className="space-y-6">
         <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
           <h3 className="text-xl font-bold text-white">Student Reviews</h3>
-          <button className="px-4 py-2 bg-primary hover:bg-blue-600 text-white rounded-xl text-sm font-medium transition-colors">
+          <button className="px-4 py-2 bg-primary hover:bg-blue-600 text-white rounded-2xl text-sm font-medium transition-colors">
             Write a Review
           </button>
         </div>

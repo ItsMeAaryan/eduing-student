@@ -13,7 +13,7 @@ const INPUT_STYLE: React.CSSProperties = {
   height: 38,
   background: "var(--bg-elevated)",
   border: "1px solid var(--border)",
-  borderRadius: 6,
+  borderRadius: 10,
   padding: "7px 11px",
   fontSize: 14,
   color: "var(--text-primary)",
@@ -74,7 +74,7 @@ function VerifyEmailContent() {
       {/* Header */}
       <div style={{ marginBottom: 28 }}>
         <div style={{
-          width: 48, height: 48, borderRadius: 12,
+          width: 48, height: 48, borderRadius: 18,
           background: "var(--accent-bg)",
           border: "1px solid var(--accent-border)",
           display: "flex", alignItems: "center", justifyContent: "center",
@@ -101,7 +101,7 @@ function VerifyEmailContent() {
           padding: "11px 14px", marginBottom: 16,
           background: "rgba(26,174,57,0.08)",
           border: "1px solid rgba(26,174,57,0.2)",
-          borderRadius: 8, fontSize: 13, color: "#1AAE39", lineHeight: 1.4,
+          borderRadius: 12, fontSize: 13, color: "#1AAE39", lineHeight: 1.4,
         }}>
           <CheckCircle2 size={15} style={{ flexShrink: 0, marginTop: 1 }} />
           {message}
@@ -113,7 +113,7 @@ function VerifyEmailContent() {
           padding: "11px 14px", marginBottom: 16,
           background: "rgba(220,38,38,0.07)",
           border: "1px solid rgba(220,38,38,0.2)",
-          borderRadius: 8, fontSize: 13, color: "var(--red)", lineHeight: 1.4,
+          borderRadius: 12, fontSize: 13, color: "var(--red)", lineHeight: 1.4,
         }}>
           <AlertCircle size={15} style={{ flexShrink: 0, marginTop: 1 }} />
           {error}
@@ -128,7 +128,7 @@ function VerifyEmailContent() {
           style={{
             width: "100%", height: 38,
             background: "var(--accent)", color: "#fff",
-            border: "none", borderRadius: 8,
+            border: "none", borderRadius: 12,
             fontSize: 13, fontWeight: 600, cursor: verifying ? "wait" : "pointer",
             display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
             opacity: verifying ? 0.65 : 1, transition: "opacity 0.15s",
@@ -144,7 +144,7 @@ function VerifyEmailContent() {
             width: "100%", height: 38,
             background: "var(--bg-elevated)",
             border: "1px solid var(--border)",
-            borderRadius: 8, fontSize: 13, fontWeight: 500,
+            borderRadius: 12, fontSize: 13, fontWeight: 500,
             color: "var(--text-secondary)", cursor: loading ? "wait" : "pointer",
             display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
             opacity: loading ? 0.65 : 1, transition: "opacity 0.15s",

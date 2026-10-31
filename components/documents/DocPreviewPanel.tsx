@@ -7,10 +7,10 @@ type DocStatus = 'verified' | 'pending' | 'rejected' | 'missing'
 interface Doc { id:string; name:string; category:string; status:DocStatus; date:string; size:string; aiScore:number; apps:number; required:boolean }
 
 const STATUS: Record<DocStatus,{label:string;color:string;bg:string;icon:React.ReactNode}> = {
-  verified: { label:'Verified',  color:'#059669', bg:'#F0FDF4', icon:<CheckCircle2 size={11}/> },
-  pending:  { label:'Pending',   color:'#D97706', bg:'#FFFBEB', icon:<Clock size={11}/> },
-  rejected: { label:'Rejected',  color:'#DC2626', bg:'#FEF2F2', icon:<XCircle size={11}/> },
-  missing:  { label:'Missing',   color:'#6B7280', bg:'#F9FAFB', icon:<AlertTriangle size={11}/> },
+  verified: { label:'Verified',  color:'var(--green)', bg:'color-mix(in srgb, var(--green) 9%, transparent)', icon:<CheckCircle2 size={11}/> },
+  pending:  { label:'Pending',   color:'var(--gold)', bg:'var(--gold-bg)', icon:<Clock size={11}/> },
+  rejected: { label:'Rejected',  color:'var(--red)', bg:'color-mix(in srgb, var(--red) 8%, transparent)', icon:<XCircle size={11}/> },
+  missing:  { label:'Missing',   color:'var(--text-muted)', bg:'#F9FAFB', icon:<AlertTriangle size={11}/> },
 }
 
 const OCR_FIELDS: Record<string,string> = {
@@ -37,7 +37,7 @@ type Tab = 'preview'|'info'|'ai'|'ocr'
 export default function DocPreviewPanel({ doc, onClose }: { doc: Doc; onClose: ()=>void }) {
   const [tab, setTab] = useState<Tab>('preview')
   const s = STATUS[doc.status]
-  const scoreColor = doc.aiScore>=90?'#059669':doc.aiScore>=70?'#D97706':'#DC2626'
+  const scoreColor = doc.aiScore>=90?'var(--green)':doc.aiScore>=70?'var(--gold)':'var(--red)'
   const scoreLabel = doc.aiScore>=90?'Excellent':doc.aiScore>=70?'Needs Review':'Low Confidence'
 
   return (
@@ -48,15 +48,15 @@ export default function DocPreviewPanel({ doc, onClose }: { doc: Doc; onClose: (
       {/* Header */}
       <div className="flex items-center justify-between px-[20px] py-[14px] border-b border-border shrink-0">
         <div className="flex items-center gap-[10px]">
-          <div className="w-[34px] h-[34px] rounded-[8px] bg-primary/10 flex items-center justify-center shrink-0">
-            <FileText size={15} className="text-[#4F6BFF]" />
+          <div className="w-[34px] h-[34px] rounded-[12px] bg-primary/10 flex items-center justify-center shrink-0">
+            <FileText size={15} className="text-[var(--accent)]" />
           </div>
           <div>
             <p className="text-[13px] font-semibold text-foreground truncate max-w-[240px]">{doc.name}</p>
             <p className="text-[11px] text-muted-foreground">{doc.size !== '—' ? doc.size : 'Not uploaded'} · {doc.category}</p>
           </div>
         </div>
-        <button onClick={onClose} className="w-[28px] h-[28px] rounded-[6px] border border-border flex items-center justify-center text-muted-foreground hover:bg-secondary transition-colors">
+        <button onClick={onClose} className="w-[28px] h-[28px] rounded-[10px] border border-border flex items-center justify-center text-muted-foreground hover:bg-secondary transition-colors">
           <X size={14} />
         </button>
       </div>
@@ -65,7 +65,7 @@ export default function DocPreviewPanel({ doc, onClose }: { doc: Doc; onClose: (
       <div className="flex border-b border-border px-[16px] shrink-0 bg-muted">
         {(['preview','info','ai','ocr'] as Tab[]).map(t => (
           <button key={t} onClick={()=>setTab(t)}
-            className={`px-[14px] py-[10px] text-[12px] font-semibold capitalize transition-colors border-b-2 ${tab===t?'border-[#4F6BFF] text-[#4F6BFF]':'border-transparent text-muted-foreground hover:text-foreground'}`}>
+            className={`px-[14px] py-[10px] text-[12px] font-semibold capitalize transition-colors border-b-2 ${tab===t?'border-[var(--accent)] text-[var(--accent)]':'border-transparent text-muted-foreground hover:text-foreground'}`}>
             {t==='ai'?'AI Analysis':t==='ocr'?'OCR Data':t.charAt(0).toUpperCase()+t.slice(1)}
           </button>
         ))}
@@ -79,7 +79,7 @@ export default function DocPreviewPanel({ doc, onClose }: { doc: Doc; onClose: (
 
             {tab==='preview' && <>
               {/* Preview area */}
-              <div className="h-[200px] rounded-[12px] bg-gradient-to-br from-[#EEF2FF] to-[#E0E7FF] flex items-center justify-center relative overflow-hidden">
+              <div className="h-[200px] rounded-[18px] bg-gradient-to-br from-[#EEF2FF] to-[#E0E7FF] flex items-center justify-center relative overflow-hidden">
                 <div className="text-center z-10">
                   <FileText size={48} className="text-[#A5B4FC] mx-auto mb-[8px]" />
                   <p className="text-[12px] font-medium text-[#6366F1]">Document Preview</p>
@@ -88,14 +88,14 @@ export default function DocPreviewPanel({ doc, onClose }: { doc: Doc; onClose: (
                 {/* Toolbar overlay */}
                 <div className="absolute bottom-[10px] right-[10px] flex gap-[6px]">
                   {[ZoomIn, RotateCw, Eye].map((Icon,i)=>(
-                    <button key={i} className="w-[28px] h-[28px] rounded-[6px] bg-card/80 backdrop-blur-sm flex items-center justify-center text-foreground hover:bg-card shadow-sm transition-colors">
+                    <button key={i} className="w-[28px] h-[28px] rounded-[10px] bg-card/80 backdrop-blur-sm flex items-center justify-center text-foreground hover:bg-card shadow-sm transition-colors">
                       <Icon size={13}/>
                     </button>
                   ))}
                 </div>
               </div>
               {/* Status */}
-              <div className="flex items-center justify-between p-[12px] rounded-[10px] border border-border">
+              <div className="flex items-center justify-between p-[12px] rounded-[14px] border border-border">
                 <span className="text-[12px] text-muted-foreground">Status</span>
                 <span className="flex items-center gap-[4px] px-[8px] h-[22px] rounded-full text-[11px] font-semibold" style={{color:s.color,background:s.bg}}>
                   {s.icon}{s.label}
@@ -104,12 +104,12 @@ export default function DocPreviewPanel({ doc, onClose }: { doc: Doc; onClose: (
               {/* Actions */}
               <div className="grid grid-cols-3 gap-[8px]">
                 {[{I:Download,l:'Download'},{I:Share2,l:'Share'},{I:RefreshCcw,l:'Replace'}].map(({I,l})=>(
-                  <button key={l} className="flex flex-col items-center gap-[4px] py-[10px] rounded-[10px] border border-border text-[11px] font-medium text-foreground hover:bg-muted transition-colors">
+                  <button key={l} className="flex flex-col items-center gap-[4px] py-[10px] rounded-[14px] border border-border text-[11px] font-medium text-foreground hover:bg-muted transition-colors">
                     <I size={15} className="text-muted-foreground"/>{l}
                   </button>
                 ))}
               </div>
-              <button className="flex items-center justify-center gap-[6px] h-[36px] rounded-[8px] text-[12px] font-semibold text-[#DC2626] border border-[#FECACA] hover:bg-[#FEF2F2] transition-colors">
+              <button className="flex items-center justify-center gap-[6px] h-[36px] rounded-[12px] text-[12px] font-semibold text-[var(--red)] border border-[color-mix(in_srgb,_var(--red)_25%,_transparent)] hover:bg-[color-mix(in_srgb,_var(--red)_8%,_transparent)] transition-colors">
                 <Trash2 size={13}/>Delete Document
               </button>
             </>}
@@ -141,7 +141,7 @@ export default function DocPreviewPanel({ doc, onClose }: { doc: Doc; onClose: (
 
             {tab==='ai' && <>
               {/* AI Score hero */}
-              <div className="rounded-[12px] p-[16px] text-center" style={{background:'linear-gradient(135deg,#0F172A,#1E1B4B)'}}>
+              <div className="rounded-[18px] p-[16px] text-center" style={{background:'linear-gradient(135deg,#0F172A,#1E1B4B)'}}>
                 <div className="flex items-center justify-center gap-[6px] mb-[8px]">
                   <Sparkles size={14} className="text-[#818CF8]"/>
                   <span className="text-[11px] font-bold text-[#A5B4FC] uppercase tracking-[0.08em]">AI Confidence Score</span>
@@ -158,14 +158,14 @@ export default function DocPreviewPanel({ doc, onClose }: { doc: Doc; onClose: (
                 {AI_CHECKS.map(c=>(
                   <div key={c.label} className="flex items-center justify-between py-[6px] border-b border-border last:border-0">
                     <div className="flex items-center gap-[6px]">
-                      <Shield size={11} className={c.ok?'text-[#059669]':'text-[#DC2626]'}/>
+                      <Shield size={11} className={c.ok?'text-[var(--green)]':'text-[var(--red)]'}/>
                       <span className="text-[12px] text-foreground">{c.label}</span>
                     </div>
-                    <span className="text-[11px] font-semibold" style={{color:c.ok?'#059669':'#DC2626'}}>{c.value}</span>
+                    <span className="text-[11px] font-semibold" style={{color:c.ok?'var(--green)':'var(--red)'}}>{c.value}</span>
                   </div>
                 ))}
               </Section>
-              <div className="p-[12px] rounded-[10px] bg-[#F0FDF4] border border-[#BBF7D0] text-[12px] text-[#166534] leading-relaxed">
+              <div className="p-[12px] rounded-[14px] bg-[color-mix(in_srgb,_var(--green)_9%,_transparent)] border border-[color-mix(in_srgb,_var(--green)_28%,_transparent)] text-[12px] text-[#166534] leading-relaxed">
                 {doc.status==='verified'
                   ? `Document verified with ${doc.aiScore}% confidence. No inconsistencies detected. Accepted by ${doc.apps} applications.`
                   : doc.status==='pending' ? 'Under AI review. Initial scan shows good quality. Manual verification in progress.'
@@ -176,9 +176,9 @@ export default function DocPreviewPanel({ doc, onClose }: { doc: Doc; onClose: (
 
             {tab==='ocr' && <>
               {doc.status==='verified' ? <>
-                <div className="flex items-center gap-[8px] px-[12px] py-[8px] rounded-[10px] bg-primary/10 border border-[#C7D2FE]">
-                  <Sparkles size={13} className="text-[#4F6BFF]"/>
-                  <span className="text-[12px] font-semibold text-[#4F6BFF]">OCR Extraction Complete · 98% accuracy</span>
+                <div className="flex items-center gap-[8px] px-[12px] py-[8px] rounded-[14px] bg-primary/10 border border-[var(--accent-border)]">
+                  <Sparkles size={13} className="text-[var(--accent)]"/>
+                  <span className="text-[12px] font-semibold text-[var(--accent)]">OCR Extraction Complete · 98% accuracy</span>
                 </div>
                 <Section title="Extracted Fields">
                   {Object.entries(OCR_FIELDS).map(([k,v])=>(
@@ -190,7 +190,7 @@ export default function DocPreviewPanel({ doc, onClose }: { doc: Doc; onClose: (
                 </Section>
               </> : (
                 <div className="flex flex-col items-center justify-center py-[40px] gap-[10px]">
-                  <FileText size={36} className="text-[#D1D5DB]"/>
+                  <FileText size={36} className="text-[var(--border-hover)]"/>
                   <p className="text-[13px] font-medium text-foreground">OCR not available</p>
                   <p className="text-[12px] text-muted-foreground text-center">Document must be verified before OCR extraction is shown.</p>
                 </div>
@@ -206,7 +206,7 @@ export default function DocPreviewPanel({ doc, onClose }: { doc: Doc; onClose: (
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="bg-muted rounded-[12px] p-[14px]">
+    <div className="bg-muted rounded-[18px] p-[14px]">
       <p className="text-[12px] font-semibold text-foreground mb-[10px]">{title}</p>
       {children}
     </div>

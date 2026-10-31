@@ -2,6 +2,7 @@
 'use client'
 
 import { useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { StudentDataProvider } from '@/components/providers/StudentDataProvider'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import StudentSidebar from '@/components/dashboard/StudentSidebar'
@@ -9,6 +10,7 @@ import StudentTopBar from '@/components/dashboard/StudentTopBar'
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const pathname = usePathname()
 
   return (
     <ProtectedRoute allowedRoles={['student']}>
@@ -31,16 +33,16 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
         />
 
         <div
-          className={`flex-1 flex flex-col min-h-screen max-w-full transition-all duration-300 pb-[60px] lg:pb-0 ${isSidebarCollapsed ? 'lg:pl-[64px]' : 'lg:pl-[240px]'
+          className={`flex-1 flex flex-col min-h-screen max-w-full transition-[padding] duration-300 pb-[96px] lg:pb-0 ${isSidebarCollapsed ? 'lg:pl-[92px]' : 'lg:pl-[268px]'
             }`}
         >
           <StudentTopBar />
           <main
             id="main-content"
             tabIndex={-1}
-            className="flex-1 p-4 lg:p-6 overflow-x-hidden outline-none"
+            className="flex-1 px-4 pb-6 pt-2 lg:px-6 overflow-x-hidden outline-none"
           >
-            <div className="max-w-[1600px] mx-auto w-full">
+            <div key={pathname} className="page-in max-w-[1600px] mx-auto w-full">
               {children}
             </div>
           </main>

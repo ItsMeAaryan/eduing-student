@@ -26,7 +26,7 @@ import Image from 'next/image';
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
 function logoColor(name = '') {
-  const palette = ['#6366f1','#8b5cf6','#ec4899','#f59e0b','#10b981','#3b82f6','#ef4444','#14b8a6'];
+  const palette = ['#6366f1','var(--accent-2)','#ec4899','var(--gold)','var(--green)','#3b82f6','var(--red)','#14b8a6'];
   let h = 0;
   for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + (h << 5) - h;
   return palette[Math.abs(h) % palette.length];
@@ -375,8 +375,8 @@ export function CompareWorkspace({ selectedIds, onClose, onRemove, onAdd }: {
                             {/* Logo + name */}
                             <div className="flex items-start gap-3">
                               <div
-                                className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-[15px] font-black shrink-0 mt-0.5"
-                                style={{ background: `linear-gradient(135deg, ${color}, ${color}99)` }}
+                                className="w-10 h-10 rounded-2xl flex items-center justify-center text-white text-[15px] font-black shrink-0 mt-0.5"
+                                style={{ background: `linear-gradient(135deg, ${color}, color-mix(in srgb, ${color} 60%, transparent))` }}
                               >
                                 {(u?.shortName || u?.name || 'U').charAt(0)}
                               </div>
@@ -630,8 +630,8 @@ export function CompareWorkspace({ selectedIds, onClose, onRemove, onAdd }: {
                         {D.map((item, idx) => (
                           <td key={idx} className="p-3" style={{ background: 'var(--bg-card)', borderBottom: '1px solid var(--border)', borderRight: '1px solid var(--border)' }}>
                             {(item.university as any)?.heroImageUrl
-                              ? <div className="relative w-full h-[110px] rounded-xl overflow-hidden"><Image src={(item.university as any)?.heroImageUrl} alt={(item.university as any)?.name || ''} fill className="object-cover" unoptimized /></div>
-                              : <div className="w-full h-[110px] rounded-xl flex items-center justify-center" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}><span className="text-[12px]" style={{ color: 'var(--text-muted)' }}>No image</span></div>}
+                              ? <div className="relative w-full h-[110px] rounded-2xl overflow-hidden"><Image src={(item.university as any)?.heroImageUrl} alt={(item.university as any)?.name || ''} fill className="object-cover" unoptimized /></div>
+                              : <div className="w-full h-[110px] rounded-2xl flex items-center justify-center" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}><span className="text-[12px]" style={{ color: 'var(--text-muted)' }}>No image</span></div>}
                           </td>
                         ))}
                         {D.length < 3 && <td style={{ background: 'var(--bg-card)', borderBottom: '1px solid var(--border)' }} />}

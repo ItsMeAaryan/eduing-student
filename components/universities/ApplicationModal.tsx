@@ -109,7 +109,7 @@ export default function ApplicationModal({ program, universityId, onClose }: Pro
               {/* Form Body */}
               <div className="p-6 overflow-y-auto custom-scrollbar">
                 {error && (
-                  <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
+                  <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-400 text-sm">
                     {error}
                   </div>
                 )}
@@ -128,7 +128,7 @@ export default function ApplicationModal({ program, universityId, onClose }: Pro
 
                   {/* Document Checklist */}
                   <div>
-                    <label htmlFor="documents-confirmed" aria-label="I confirm that my profile documents are up to date." className="flex items-start space-x-3 cursor-pointer group bg-card/[0.02] border border-white/10 p-4 rounded-xl hover:bg-card/5 transition-colors">
+                    <label htmlFor="documents-confirmed" aria-label="I confirm that my profile documents are up to date." className="flex items-start space-x-3 cursor-pointer group bg-card/[0.02] border border-white/10 p-4 rounded-2xl hover:bg-card/5 transition-colors">
                       <div className="pt-0.5">
                         <input 
                           id="documents-confirmed"
@@ -158,7 +158,7 @@ export default function ApplicationModal({ program, universityId, onClose }: Pro
                       onChange={(e) => setMessage(e.target.value)}
                       rows={3}
                       placeholder="Why are you a great fit for this program?"
-                      className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all resize-none text-sm"
+                      className="w-full bg-background border border-white/10 rounded-2xl px-4 py-3 text-white focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all resize-none text-sm"
                     ></textarea>
                   </div>
                 </form>
@@ -170,7 +170,7 @@ export default function ApplicationModal({ program, universityId, onClose }: Pro
                   type="button" 
                   onClick={onClose}
                   disabled={submitting}
-                  className="px-6 py-2.5 rounded-xl font-medium text-white bg-card/5 hover:bg-card/10 border border-white/10 transition-colors"
+                  className="px-6 py-2.5 rounded-2xl font-medium text-white bg-card/5 hover:bg-card/10 border border-white/10 transition-colors"
                 >
                   Cancel
                 </button>
@@ -178,7 +178,7 @@ export default function ApplicationModal({ program, universityId, onClose }: Pro
                   type="submit" 
                   form="applicationForm"
                   disabled={submitting}
-                  className="px-8 py-2.5 rounded-xl font-semibold bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white shadow-lg shadow-primary/20 transition-all active:scale-95 flex items-center justify-center min-w-[160px]"
+                  className="px-8 py-2.5 rounded-2xl font-semibold bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white shadow-lg shadow-primary/20 transition-all active:scale-95 flex items-center justify-center min-w-[160px]"
                 >
                   {submitting ? <Loader2 className="animate-spin" size={20} /> : "Submit Application"}
                 </button>

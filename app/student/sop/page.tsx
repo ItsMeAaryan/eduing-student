@@ -18,10 +18,10 @@ import {
 
 /* ══ Constants ═══════════════════════════════════════════════════════════ */
 const TONES = [
-  { id: 'Formal Tone',      icon: FileText,      color: '#7C3AED', desc: 'Structured academic prose'    },
-  { id: 'Academic Focus',   icon: BookOpen,      color: '#7C3AED', desc: 'Research & theory emphasis'   },
-  { id: 'Research Focus',   icon: Target,        color: '#7C3AED', desc: 'Analytical depth & rigor'     },
-  { id: 'Leadership Focus', icon: GraduationCap, color: '#7C3AED', desc: 'Impact-driven narrative'       },
+  { id: 'Formal Tone',      icon: FileText,      color: 'var(--accent)', desc: 'Structured academic prose'    },
+  { id: 'Academic Focus',   icon: BookOpen,      color: 'var(--accent)', desc: 'Research & theory emphasis'   },
+  { id: 'Research Focus',   icon: Target,        color: 'var(--accent)', desc: 'Analytical depth & rigor'     },
+  { id: 'Leadership Focus', icon: GraduationCap, color: 'var(--accent)', desc: 'Impact-driven narrative'       },
 ];
 
 const WORD_LIMITS = ['500 words', '800 words', '1000 words', '1200 words'];
@@ -51,7 +51,7 @@ const TONE_TIPS: Record<string, string[]> = {
 
 /* ══ Sub-components ══════════════════════════════════════════════════════ */
 function ScoreBar({ label, score }: { label: string; score: number }) {
-  const color = score >= 8 ? '#10B981' : score >= 6 ? '#F59E0B' : '#EF4444';
+  const color = score >= 8 ? 'var(--green)' : score >= 6 ? 'var(--gold)' : 'var(--red)';
   return (
     <div style={{ marginBottom: 12 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
@@ -74,12 +74,12 @@ function ProfileRow({ icon: Icon, label, value }: { icon: React.ElementType; lab
   const ok = !!value;
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0', borderBottom: '1px solid #F0F0F0' }}>
-      <Icon size={12} style={{ color: ok ? '#10B981' : '#9CA3AF', flexShrink: 0 }} />
-      <span style={{ fontSize: 12, color: '#4B5563', flex: 1 }}>{label}</span>
+      <Icon size={12} style={{ color: ok ? 'var(--green)' : 'var(--text-faint)', flexShrink: 0 }} />
+      <span style={{ fontSize: 12, color: 'var(--text-secondary)', flex: 1 }}>{label}</span>
       {ok
-        ? <span style={{ fontSize: 12, color: '#10B981', fontWeight: 600 }}>{value!.length > 18 ? value!.slice(0, 16) + '…' : value}</span>
-        : <a href="/student/profile" style={{ fontSize: 11, color: '#7C3AED', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 2 }}>
-            <span style={{ color: '#9CA3AF' }}>—</span> <span style={{ padding: '1px 5px', borderRadius: 4, background: '#F5F3FF' }}>+ Add</span>
+        ? <span style={{ fontSize: 12, color: 'var(--green)', fontWeight: 600 }}>{value!.length > 18 ? value!.slice(0, 16) + '…' : value}</span>
+        : <a href="/student/profile" style={{ fontSize: 11, color: 'var(--accent)', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 2 }}>
+            <span style={{ color: 'var(--text-faint)' }}>—</span> <span style={{ padding: '1px 5px', borderRadius: 4, background: 'var(--accent-bg)' }}>+ Add</span>
           </a>
       }
     </div>
@@ -250,36 +250,36 @@ function SOPBuilderContent() {
   ───────────────────────────────────────────────────────────────────── */
   if (phase === 'setup') {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh', background: '#FAFAFA', paddingBottom: 80, fontFamily: 'Inter, system-ui, sans-serif' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh', background: 'var(--bg-subtle)', paddingBottom: 80, fontFamily: 'Inter, system-ui, sans-serif' }}>
         
         {/* Step Indicator Header */}
         <div style={{ width: '100%', maxWidth: 860, margin: '24px 0 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: '#7C3AED' }}>Step 1 of 2</span>
-            <span style={{ fontSize: 13, color: '#9CA3AF' }}>— Setup</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent)' }}>Step 1 of 2</span>
+            <span style={{ fontSize: 13, color: 'var(--text-faint)' }}>— Setup</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 140, height: 6, borderRadius: 3, background: '#E5E7EB', overflow: 'hidden' }}>
-              <div style={{ width: '50%', height: '100%', background: '#7C3AED', borderRadius: 3 }} />
+            <div style={{ width: 140, height: 6, borderRadius: 3, background: 'var(--border-hover)', overflow: 'hidden' }}>
+              <div style={{ width: '50%', height: '100%', background: 'var(--accent)', borderRadius: 3 }} />
             </div>
-            <span style={{ fontSize: 13, color: '#9CA3AF', fontWeight: 500 }}>Step 2 — Editor</span>
+            <span style={{ fontSize: 13, color: 'var(--text-faint)', fontWeight: 500 }}>Step 2 — Editor</span>
           </div>
         </div>
 
         <div style={{ width: '100%', maxWidth: 860, display: 'flex', gap: 24, alignItems: 'flex-start' }}>
 
           {/* ── Main form continuous card ── */}
-          <div style={{ flex: 1, minWidth: 0, background: '#FFFFFF', borderRadius: 16, border: '1px solid #E5E7EB', boxShadow: '0 2px 16px rgba(0,0,0,0.06)', padding: 32, display: 'flex', flexDirection: 'column', gap: 32 }}>
+          <div style={{ flex: 1, minWidth: 0, background: 'var(--bg-card)', borderRadius: 22, border: '1px solid var(--border-hover)', boxShadow: '0 2px 16px rgba(0,0,0,0.06)', padding: 32, display: 'flex', flexDirection: 'column', gap: 32 }}>
 
             {/* Hero header */}
             <div style={{ borderBottom: '1px solid #F0F0F0', paddingBottom: 24 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-                <div style={{ width: 42, height: 42, background: '#F5F3FF', borderLeft: '3px solid #7C3AED', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Sparkles size={20} style={{ color: '#7C3AED' }} />
+                <div style={{ width: 42, height: 42, background: 'var(--accent-bg)', borderLeft: '3px solid var(--accent)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Sparkles size={20} style={{ color: 'var(--accent)' }} />
                 </div>
-                <h1 style={{ fontSize: 28, fontWeight: 700, color: '#111827', margin: 0, letterSpacing: '-0.02em' }}>Build Your SOP</h1>
+                <h1 style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.02em' }}>Build Your SOP</h1>
               </div>
-              <p style={{ fontSize: 15, color: '#6B7280', margin: '4px 0 0', lineHeight: 1.6, maxWidth: 560 }}>
+              <p style={{ fontSize: 15, color: 'var(--text-muted)', margin: '4px 0 0', lineHeight: 1.6, maxWidth: 560 }}>
                 Answer a few questions and EDUING AI will write a compelling Statement of Purpose tailored to your profile.
               </p>
             </div>
@@ -311,19 +311,19 @@ function SOPBuilderContent() {
                     <button key={t.id} onClick={() => setTone(t.id)}
                       className="tone-card-btn"
                       style={{
-                        minWidth: 140, padding: 20, borderRadius: 12, cursor: 'pointer',
-                        border: active ? '2px solid #7C3AED' : '1.5px solid #E5E7EB',
-                        background: active ? '#F5F3FF' : '#FFFFFF',
+                        minWidth: 140, padding: 20, borderRadius: 18, cursor: 'pointer',
+                        border: active ? '2px solid var(--accent)' : '1.5px solid var(--border-hover)',
+                        background: active ? 'var(--accent-bg)' : 'var(--bg-card)',
                         boxShadow: active ? '0 2px 8px rgba(124,58,237,0.15)' : 'none',
                         transition: 'all 0.2s ease', textAlign: 'left',
                         display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 12,
                       }}>
-                      <div style={{ width: 32, height: 32, borderRadius: 8, background: active ? '#EDE9FE' : '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Icon size={18} style={{ color: active ? '#7C3AED' : '#6B7280' }} />
+                      <div style={{ width: 32, height: 32, borderRadius: 12, background: active ? 'var(--accent-bg)' : 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Icon size={18} style={{ color: active ? 'var(--accent)' : 'var(--text-muted)' }} />
                       </div>
                       <div>
-                        <p style={{ fontSize: 14, fontWeight: 600, color: active ? '#7C3AED' : '#111827', margin: '0 0 4px', lineHeight: 1.3 }}>{t.id}</p>
-                        <p style={{ fontSize: 12, color: '#6B7280', margin: 0, lineHeight: 1.4 }}>{t.desc}</p>
+                        <p style={{ fontSize: 14, fontWeight: 600, color: active ? 'var(--accent)' : 'var(--text-primary)', margin: '0 0 4px', lineHeight: 1.3 }}>{t.id}</p>
+                        <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>{t.desc}</p>
                       </div>
                     </button>
                   );
@@ -339,7 +339,7 @@ function SOPBuilderContent() {
                 <textarea id="background" value={background} onChange={e => setBackground(e.target.value)}
                   placeholder="Describe your background, motivations, and what drives your interest in this program…"
                   style={{ ...inputStyle, minHeight: 140, resize: 'vertical', padding: '12px 14px', lineHeight: 1.65 }} />
-                <p style={{ fontSize: 11, color: '#6B7280', marginTop: 4, textAlign: 'right' }}>{background.length} characters</p>
+                <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4, textAlign: 'right' }}>{background.length} characters</p>
               </div>
 
               <div style={{ marginTop: 20 }}>
@@ -347,7 +347,7 @@ function SOPBuilderContent() {
                   <div style={labelStyle}>Key Achievements</div>
                   {achievements.length < 5 && (
                     <button onClick={addAchievement}
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: 4, height: 28, padding: '0 12px', borderRadius: 8, cursor: 'pointer', border: '1px solid #DDD6FE', background: '#F5F3FF', fontSize: 12, fontWeight: 600, color: '#7C3AED', transition: 'all 0.2s ease' }}>
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 4, height: 28, padding: '0 12px', borderRadius: 12, cursor: 'pointer', border: '1px solid var(--accent-border)', background: 'var(--accent-bg)', fontSize: 12, fontWeight: 600, color: 'var(--accent)', transition: 'all 0.2s ease' }}>
                       <Plus size={12} /> Add Achievement
                     </button>
                   )}
@@ -355,20 +355,20 @@ function SOPBuilderContent() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {achievements.map((ach, i) => (
                     <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                      <span style={{ width: 24, height: 24, borderRadius: '50%', background: '#F5F3FF', border: '1px solid #DDD6FE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#7C3AED', flexShrink: 0 }}>{i + 1}</span>
+                      <span style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--accent-bg)', border: '1px solid var(--accent-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: 'var(--accent)', flexShrink: 0 }}>{i + 1}</span>
                       <input value={ach} onChange={e => updateAchievement(i, e.target.value)}
                         placeholder={`Achievement ${i + 1} — e.g. "Won national hackathon 2024"`}
                         style={{ ...inputStyle, flex: 1, height: 42 }} />
                       {achievements.length > 1 && (
                         <button onClick={() => removeAchievement(i)}
-                          style={{ width: 32, height: 32, borderRadius: 8, border: 'none', background: '#FEE2E2', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.2s ease' }}>
-                          <X size={14} style={{ color: '#EF4444' }} />
+                          style={{ width: 32, height: 32, borderRadius: 12, border: 'none', background: '#FEE2E2', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.2s ease' }}>
+                          <X size={14} style={{ color: 'var(--red)' }} />
                         </button>
                       )}
                     </div>
                   ))}
                 </div>
-                <p style={{ fontSize: 12, color: '#6B7280', marginTop: 6 }}>{achievements.filter(a => a.trim()).length} of 5 added</p>
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 6 }}>{achievements.filter(a => a.trim()).length} of 5 added</p>
               </div>
             </div>
 
@@ -378,8 +378,8 @@ function SOPBuilderContent() {
                 className="draft-btn"
                 style={{
                   width: '100%', height: 52, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-                  borderRadius: 12, cursor: canGenerate ? 'pointer' : 'not-allowed', border: 'none',
-                  background: canGenerate ? 'linear-gradient(135deg, #7C3AED, #6D28D9)' : '#D1D5DB',
+                  borderRadius: 18, cursor: canGenerate ? 'pointer' : 'not-allowed', border: 'none',
+                  background: canGenerate ? 'linear-gradient(135deg, var(--accent), #6D28D9)' : 'var(--border-hover)',
                   color: '#FFFFFF', fontSize: 16, fontWeight: 600,
                   boxShadow: canGenerate ? '0 4px 12px rgba(124,58,237,0.25)' : 'none',
                   transition: 'all 0.2s ease',
@@ -389,7 +389,7 @@ function SOPBuilderContent() {
                   : <><Sparkles size={18} /> Draft My SOP →</>
                 }
               </button>
-              <p style={{ textAlign: 'center', fontSize: 12, color: '#6B7280', marginTop: 8 }}>
+              <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-muted)', marginTop: 8 }}>
                 Takes ~15 seconds · Fully editable after generation
               </p>
             </div>
@@ -397,10 +397,10 @@ function SOPBuilderContent() {
 
           {/* ── Right Profile Panel ── */}
           <div style={{ width: 240, flexShrink: 0, position: 'sticky', top: 24 }}>
-            <div style={{ background: '#FAFAFA', border: '1px solid #F0F0F0', borderRadius: 16, padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ background: 'var(--bg-subtle)', border: '1px solid #F0F0F0', borderRadius: 22, padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
-                <p style={{ fontSize: 14, fontWeight: 600, color: '#111827', margin: '0 0 4px' }}>Your Profile Data</p>
-                <p style={{ fontSize: 12, color: '#6B7280', margin: 0, lineHeight: 1.4 }}>Auto-included in SOP:</p>
+                <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 4px' }}>Your Profile Data</p>
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>Auto-included in SOP:</p>
               </div>
 
               <div>
@@ -408,17 +408,17 @@ function SOPBuilderContent() {
               </div>
 
               {/* Progress Indicator */}
-              <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: 14 }}>
+              <div style={{ borderTop: '1px solid var(--border-hover)', paddingTop: 14 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{readyCount}/{profileFields.length} ready</span>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: '#7C3AED' }}>{readyPct}% complete</span>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>{readyCount}/{profileFields.length} ready</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--accent)' }}>{readyPct}% complete</span>
                 </div>
-                <div style={{ height: 6, borderRadius: 3, background: '#E5E7EB', overflow: 'hidden' }}>
-                  <div style={{ height: '100%', borderRadius: 3, background: '#7C3AED', width: `${readyPct}%`, transition: 'width 0.5s ease' }} />
+                <div style={{ height: 6, borderRadius: 3, background: 'var(--border-hover)', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', borderRadius: 3, background: 'var(--accent)', width: `${readyPct}%`, transition: 'width 0.5s ease' }} />
                 </div>
               </div>
 
-              <a href="/student/profile" style={{ fontSize: 12, fontWeight: 600, color: '#7C3AED', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
+              <a href="/student/profile" style={{ fontSize: 12, fontWeight: 600, color: 'var(--accent)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
                 Complete your profile for a better SOP →
               </a>
             </div>
@@ -427,7 +427,7 @@ function SOPBuilderContent() {
 
         <style>{`
           @keyframes spin { to { transform: rotate(360deg); } }
-          .tone-card-btn:hover { background: #FAFAFA !important; border-color: #D1D5DB !important; }
+          .tone-card-btn:hover { background: var(--bg-card-hover) !important; border-color: var(--border-hover) !important; }
           .draft-btn:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.05); }
         `}</style>
       </div>
@@ -450,7 +450,7 @@ function SOPBuilderContent() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <button onClick={() => setPhase('setup')}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 5, height: 32, padding: '0 12px', borderRadius: 8, cursor: 'pointer', border: '1px solid var(--border)', background: 'var(--bg-elevated)', fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', transition: 'all 0.2s ease' }}>
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 5, height: 32, padding: '0 12px', borderRadius: 12, cursor: 'pointer', border: '1px solid var(--border)', background: 'var(--bg-elevated)', fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', transition: 'all 0.2s ease' }}>
               <ArrowLeft size={13} /> Edit Setup
             </button>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-muted)' }}>
@@ -461,7 +461,7 @@ function SOPBuilderContent() {
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 99, background: '#F5F3FF', border: '1px solid #DDD6FE', fontSize: 11, color: '#7C3AED', fontWeight: 600 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 99, background: 'var(--accent-bg)', border: '1px solid var(--accent-border)', fontSize: 11, color: 'var(--accent)', fontWeight: 600 }}>
               <Hash size={10} />
               <span>{wordCount} / {wordTarget} words</span>
             </div>
@@ -472,7 +472,7 @@ function SOPBuilderContent() {
         <div style={{ display: 'flex', gap: 14, flex: 1, overflow: 'hidden' }}>
 
           {/* Editor area */}
-          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', position: 'relative' }}>
+          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 22, overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', position: 'relative' }}>
             {/* Title */}
             <div style={{ padding: '24px 40px 0', flexShrink: 0 }}>
               <input type="text" value={sopTitle} onChange={e => setSopTitle(e.target.value)}
@@ -505,21 +505,21 @@ function SOPBuilderContent() {
                 { label: '✦ Simplify', action: () => toast.success('Select text to simplify.') },
               ].map(btn => (
                 <button key={btn.label} onClick={btn.action}
-                  style={{ height: 28, padding: '0 11px', borderRadius: 99, border: '1px solid #DDD6FE', background: '#F5F3FF', fontSize: 11, fontWeight: 600, color: '#7C3AED', cursor: 'pointer', transition: 'all 0.2s ease' }}>
+                  style={{ height: 28, padding: '0 11px', borderRadius: 99, border: '1px solid var(--accent-border)', background: 'var(--accent-bg)', fontSize: 11, fontWeight: 600, color: 'var(--accent)', cursor: 'pointer', transition: 'all 0.2s ease' }}>
                   {btn.label}
                 </button>
               ))}
               <span style={{ width: 1, height: 20, background: 'var(--border)', margin: '0 4px' }} />
               <button onClick={handleCopy}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 5, height: 28, padding: '0 11px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-elevated)', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', cursor: 'pointer', transition: 'all 0.2s ease' }}>
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 5, height: 28, padding: '0 11px', borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg-elevated)', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', cursor: 'pointer', transition: 'all 0.2s ease' }}>
                 <Copy size={11} /> Copy
               </button>
               <button onClick={handleExport}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 5, height: 28, padding: '0 11px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-elevated)', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', cursor: 'pointer', transition: 'all 0.2s ease' }}>
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 5, height: 28, padding: '0 11px', borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg-elevated)', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', cursor: 'pointer', transition: 'all 0.2s ease' }}>
                 <Download size={11} /> Export .txt
               </button>
               <button onClick={handleSaveDraft}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 5, height: 28, padding: '0 11px', borderRadius: 8, border: 'none', background: '#7C3AED', fontSize: 11, fontWeight: 600, color: '#fff', cursor: 'pointer', transition: 'all 0.2s ease' }}>
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 5, height: 28, padding: '0 11px', borderRadius: 12, border: 'none', background: 'var(--accent)', fontSize: 11, fontWeight: 600, color: '#fff', cursor: 'pointer', transition: 'all 0.2s ease' }}>
                 <Save size={11} /> Save Draft
               </button>
             </div>
@@ -527,12 +527,12 @@ function SOPBuilderContent() {
 
           {/* AI Panel */}
           {panelOpen && (
-            <div style={{ width: 272, flexShrink: 0, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+            <div style={{ width: 272, flexShrink: 0, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 22, display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
               {/* Tabs + collapse */}
               <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
                 {(['review', 'tips'] as const).map(tab => (
                   <button key={tab} onClick={() => setRightTab(tab)}
-                    style={{ flex: 1, padding: '11px 0', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', cursor: 'pointer', border: 'none', background: 'transparent', color: rightTab === tab ? '#7C3AED' : 'var(--text-muted)', borderBottom: rightTab === tab ? '2px solid #7C3AED' : '2px solid transparent', transition: 'all 0.15s' }}>
+                    style={{ flex: 1, padding: '11px 0', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', cursor: 'pointer', border: 'none', background: 'transparent', color: rightTab === tab ? 'var(--accent)' : 'var(--text-muted)', borderBottom: rightTab === tab ? '2px solid var(--accent)' : '2px solid transparent', transition: 'all 0.15s' }}>
                     {tab === 'review' ? 'Review' : 'Tips'}
                   </button>
                 ))}
@@ -548,9 +548,9 @@ function SOPBuilderContent() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                     {/* Run button */}
                     <button onClick={handleReview} disabled={isReviewing}
-                      style={{ width: '100%', height: 38, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, borderRadius: 9, cursor: 'pointer', border: '1px solid #DDD6FE', background: '#F5F3FF', fontSize: 13, fontWeight: 700, color: '#7C3AED', transition: 'all 0.2s ease' }}>
+                      style={{ width: '100%', height: 38, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, borderRadius: 9, cursor: 'pointer', border: '1px solid var(--accent-border)', background: 'var(--accent-bg)', fontSize: 13, fontWeight: 700, color: 'var(--accent)', transition: 'all 0.2s ease' }}>
                       {isReviewing
-                        ? <><div style={{ width: 14, height: 14, border: '2px solid rgba(124,58,237,0.2)', borderTopColor: '#7C3AED', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} /> Analyzing…</>
+                        ? <><div style={{ width: 14, height: 14, border: '2px solid rgba(124,58,237,0.2)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} /> Analyzing…</>
                         : <><MessageSquareText size={13} /> Run AI Review</>
                       }
                     </button>
@@ -566,9 +566,9 @@ function SOPBuilderContent() {
                       <AnimatePresence>
                         <motion.div key="review-results" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
                           {/* Overall */}
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', background: '#F5F3FF', border: '1px solid #DDD6FE', borderRadius: 10, marginBottom: 14 }}>
-                            <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', border: '1px solid #DDD6FE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                              <span style={{ fontSize: 17, fontWeight: 800, color: '#7C3AED' }}>{reviewData.overallScore ?? '—'}</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', background: 'var(--accent-bg)', border: '1px solid var(--accent-border)', borderRadius: 14, marginBottom: 14 }}>
+                            <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'var(--bg-card)', border: '1px solid var(--accent-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              <span style={{ fontSize: 17, fontWeight: 800, color: 'var(--accent)' }}>{reviewData.overallScore ?? '—'}</span>
                             </div>
                             <div>
                               <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>Overall Score</p>
@@ -593,8 +593,8 @@ function SOPBuilderContent() {
                             <div style={{ marginTop: 8 }}>
                               <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-muted)', margin: '0 0 8px' }}>Suggestions</p>
                               {(reviewData.actionableImprovements as string[]).slice(0, 3).map((s, i) => (
-                                <div key={i} style={{ display: 'flex', gap: 8, padding: '8px 10px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, marginBottom: 6 }}>
-                                  <span style={{ width: 16, height: 16, borderRadius: '50%', background: '#F5F3FF', border: '1px solid #DDD6FE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 800, color: '#7C3AED', flexShrink: 0 }}>{i + 1}</span>
+                                <div key={i} style={{ display: 'flex', gap: 8, padding: '8px 10px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 12, marginBottom: 6 }}>
+                                  <span style={{ width: 16, height: 16, borderRadius: '50%', background: 'var(--accent-bg)', border: '1px solid var(--accent-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 800, color: 'var(--accent)', flexShrink: 0 }}>{i + 1}</span>
                                   <p style={{ fontSize: 11, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.55 }}>{s}</p>
                                 </div>
                               ))}
@@ -614,12 +614,12 @@ function SOPBuilderContent() {
                 {rightTab === 'tips' && (
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-                      <Zap size={11} style={{ color: '#F59E0B' }} />
+                      <Zap size={11} style={{ color: 'var(--gold)' }} />
                       <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-muted)', margin: 0 }}>Tips — {tone}</p>
                     </div>
                     {(TONE_TIPS[tone] || []).map((tip, i) => (
-                      <div key={i} style={{ display: 'flex', gap: 8, padding: '8px 10px', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 8, marginBottom: 8 }}>
-                        <span style={{ fontSize: 9, fontWeight: 800, color: '#D97706', flexShrink: 0, marginTop: 1 }}>{i + 1}</span>
+                      <div key={i} style={{ display: 'flex', gap: 8, padding: '8px 10px', background: 'var(--gold-bg)', border: '1px solid color-mix(in srgb, var(--gold-bright) 40%, transparent)', borderRadius: 12, marginBottom: 8 }}>
+                        <span style={{ fontSize: 9, fontWeight: 800, color: 'var(--gold)', flexShrink: 0, marginTop: 1 }}>{i + 1}</span>
                         <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.6 }}>{tip}</p>
                       </div>
                     ))}
@@ -632,7 +632,7 @@ function SOPBuilderContent() {
           {/* Panel re-open button when collapsed */}
           {!panelOpen && (
             <button onClick={() => setPanelOpen(true)}
-              style={{ width: 32, flexShrink: 0, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', transition: 'all 0.2s ease' }}>
+              style={{ width: 32, flexShrink: 0, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', transition: 'all 0.2s ease' }}>
               <ChevronLeft size={14} />
             </button>
           )}
@@ -647,13 +647,13 @@ function SOPBuilderContent() {
 /* ══ Small form helpers ══════════════════════════════════════════════════ */
 const labelStyle: React.CSSProperties = {
   display: 'block', fontSize: 13, fontWeight: 600,
-  color: '#374151', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6,
+  color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6,
 };
 
 const inputStyle: React.CSSProperties = {
   width: '100%', height: 44, padding: '0 14px', boxSizing: 'border-box',
-  background: '#FFFFFF', border: '1.5px solid #E5E7EB',
-  borderRadius: 10, fontSize: 14, color: '#111827', outline: 'none',
+  background: 'var(--bg-card)', border: '1.5px solid var(--border-hover)',
+  borderRadius: 14, fontSize: 14, color: 'var(--text-primary)', outline: 'none',
   transition: 'all 0.2s ease',
 };
 
@@ -664,16 +664,16 @@ function LabeledInput({ label, value, onChange, placeholder, required, optional 
   return (
     <div>
       <label htmlFor={inputId} style={labelStyle}>
-        {label} {required && <span style={{ color: '#7C3AED' }}>*</span>} {optional && <span style={{ fontWeight: 400, fontSize: 11, color: '#9CA3AF', textTransform: 'none' }}>(optional)</span>}
+        {label} {required && <span style={{ color: 'var(--accent)' }}>*</span>} {optional && <span style={{ fontWeight: 400, fontSize: 11, color: 'var(--text-faint)', textTransform: 'none' }}>(optional)</span>}
       </label>
       <input id={inputId} type="text" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
         style={inputStyle}
         onFocus={e => {
-          e.target.style.borderColor = '#7C3AED';
+          e.target.style.borderColor = 'var(--accent)';
           e.target.style.boxShadow = '0 0 0 3px rgba(124,58,237,0.1)';
         }}
         onBlur={e => {
-          e.target.style.borderColor = '#E5E7EB';
+          e.target.style.borderColor = 'var(--border-hover)';
           e.target.style.boxShadow = 'none';
         }}
       />
@@ -684,10 +684,10 @@ function LabeledInput({ label, value, onChange, placeholder, required, optional 
 function SectionHeader({ number, title }: { number: string; title: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, borderBottom: '1px solid #F0F0F0', paddingBottom: 12 }}>
-      <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#7C3AED', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700 }}>
+      <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--accent)', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700 }}>
         {number}
       </div>
-      <h3 style={{ fontSize: 16, fontWeight: 600, color: '#111827', margin: 0 }}>{title}</h3>
+      <h3 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>{title}</h3>
     </div>
   );
 }
@@ -698,7 +698,7 @@ export default function SOPBuilderPage() {
     <ProtectedRoute allowedRoles={['student']}>
       <Suspense fallback={
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 160 }}>
-          <div style={{ width: 32, height: 32, border: '2px solid rgba(124,58,237,0.2)', borderTopColor: '#7C3AED', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+          <div style={{ width: 32, height: 32, border: '2px solid rgba(124,58,237,0.2)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
       }>
