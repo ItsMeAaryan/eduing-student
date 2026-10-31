@@ -39,7 +39,7 @@ const INPUT_STYLE: React.CSSProperties = {
   width: '100%',
   background: 'var(--bg-elevated)',
   border: '1px solid var(--border)',
-  borderRadius: 8,
+  borderRadius: 12,
   padding: '9px 12px',
   fontSize: 14,
   color: 'var(--text-primary)',
@@ -120,7 +120,7 @@ export default function OnboardingPage() {
         <div style={{ marginBottom: 36, display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{
             width: 32, height: 32, background: 'var(--text-primary)',
-            borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
             <span style={{ color: 'var(--bg)', fontWeight: 800, fontSize: 16 }}>E</span>
           </div>
@@ -180,7 +180,7 @@ export default function OnboardingPage() {
               width: '100%', maxWidth: 560,
               background: 'var(--bg-card)',
               border: '1px solid var(--border)',
-              borderRadius: 14,
+              borderRadius: 20,
               padding: '28px 28px 24px',
               boxShadow: 'var(--shadow-card)',
             }}
@@ -239,7 +239,7 @@ export default function OnboardingPage() {
             {step === 1 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                 {/* 10th */}
-                <div style={{ border: '1px solid var(--border)', borderRadius: 10, padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div style={{ border: '1px solid var(--border)', borderRadius: 14, padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>
                     10th Standard
                   </p>
@@ -258,7 +258,7 @@ export default function OnboardingPage() {
                   </div>
                 </div>
                 {/* 12th */}
-                <div style={{ border: '1px solid var(--border)', borderRadius: 10, padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div style={{ border: '1px solid var(--border)', borderRadius: 14, padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>
                     12th Standard
                   </p>
@@ -293,7 +293,7 @@ export default function OnboardingPage() {
                   Enter your scores for any entrance exams you have appeared for.
                 </p>
                 {(['jeeMain', 'cuet', 'neet', 'bitSat'] as const).map(key => (
-                  <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 16px', border: '1px solid var(--border)', borderRadius: 10, background: 'var(--bg)' }}>
+                  <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 16px', border: '1px solid var(--border)', borderRadius: 14, background: 'var(--bg)' }}>
                     <span style={{ flex: 1, fontSize: 14, fontWeight: 500, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                       {key.replace(/([A-Z])/g, ' $1').trim()}
                     </span>
@@ -314,7 +314,7 @@ export default function OnboardingPage() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 {(['photo', 'marksheet10', 'marksheet12', 'idProof'] as const).map(key => (
                   <div key={key} style={{
-                    padding: '20px 16px', borderRadius: 10,
+                    padding: '20px 16px', borderRadius: 14,
                     border: '2px dashed rgba(26,174,57,0.3)',
                     background: 'rgba(26,174,57,0.06)',
                     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, textAlign: 'center',
@@ -343,7 +343,7 @@ export default function OnboardingPage() {
                   <div key={row.label} style={{
                     padding: '12px 16px',
                     border: '1px solid var(--border)',
-                    borderRadius: 10,
+                    borderRadius: 14,
                     background: 'var(--bg)',
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12,
                   }}>
@@ -362,7 +362,7 @@ export default function OnboardingPage() {
                     padding: '10px 14px',
                     background: 'rgba(220,38,38,0.07)',
                     border: '1px solid rgba(220,38,38,0.2)',
-                    borderRadius: 8, fontSize: 13, color: '#DC2626',
+                    borderRadius: 12, fontSize: 13, color: 'var(--red)',
                   }}>
                     <AlertCircle size={14} />
                     {saveError}
@@ -380,7 +380,7 @@ export default function OnboardingPage() {
                   display: 'flex', alignItems: 'center', gap: 6,
                   height: 36, padding: '0 14px',
                   background: 'transparent', border: '1px solid var(--border)',
-                  borderRadius: 8, fontSize: 13, fontWeight: 500,
+                  borderRadius: 12, fontSize: 13, fontWeight: 500,
                   color: 'var(--text-secondary)', cursor: step === 0 ? 'not-allowed' : 'pointer',
                   opacity: step === 0 ? 0 : 1,
                   transition: 'all 0.15s',
@@ -396,7 +396,7 @@ export default function OnboardingPage() {
                   display: 'flex', alignItems: 'center', gap: 8,
                   height: 36, padding: '0 18px',
                   background: 'var(--accent)', color: '#fff',
-                  border: 'none', borderRadius: 8,
+                  border: 'none', borderRadius: 12,
                   fontSize: 13, fontWeight: 600,
                   cursor: saving ? 'wait' : 'pointer',
                   opacity: saving ? 0.7 : 1,

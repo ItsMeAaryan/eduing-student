@@ -4,109 +4,123 @@
 @tailwind utilities;
 
 /* ─── Notion-Inspired Design Tokens ─────────────────────────────────── */
+/* ─── EDUING design tokens ───────────────────────────────────────────
+   Shared with the marketing site: warm paper canvas, logo purple accent,
+   tassel gold highlights, deep-ink "night" cards. Light is the default. */
 :root {
   /* Surfaces */
-  --bg: #F7F6F3;
+  --bg: #F5F3EE;
   --bg-elevated: #FFFFFF;
   --bg-card: #FFFFFF;
-  --bg-card-hover: #F1F0ED;
+  --bg-card-hover: #F7F5F0;
+  --bg-subtle: #F9F8F4;
+  --night: #161326;
 
   /* Borders */
-  --border: rgba(0, 0, 0, 0.08);
-  --border-hover: rgba(0, 0, 0, 0.18);
+  --border: rgba(23, 20, 43, 0.08);
+  --border-hover: rgba(23, 20, 43, 0.18);
 
   /* Text */
-  --text-primary: #1A1A18;
-  --text-secondary: #4A4A45;
-  --text-muted: #8C8C85;
-  --text-faint: #AEADA6;
+  --text-primary: #17142B;
+  --text-secondary: #4A4760;
+  --text-muted: #817E96;
+  --text-faint: #AEABBF;
 
-  /* Accent — ONLY structural color */
-  --accent: #0075DE;
-  --accent-bg: rgba(0, 117, 222, 0.07);
-  --accent-border: rgba(0, 117, 222, 0.18);
+  /* Accent (logo purple) */
+  --accent: #4B2FC9;
+  --accent-rgb: 75 47 201;
+  --accent-2: #745CF5;
+  --accent-bg: rgba(75, 47, 201, 0.08);
+  --accent-border: rgba(75, 47, 201, 0.22);
 
   /* Semantic */
-  --green: #1AAE39;
-  --gold: #D97706;
-  --red: #DC2626;
+  --green: #16A373;
+  --gold: #D49100;         /* text-safe gold */
+  --gold-bright: #F5B829;  /* fills, badges */
+  --gold-bg: rgba(245, 184, 41, 0.16);
+  --red: #E5484D;
 
-  /* Shadows (layered, no glow) */
-  --shadow-card: 0 0.175px 1px rgba(0, 0, 0, 0.015),
-    0 0.8px 2.9px rgba(0, 0, 0, 0.022),
-    0 2px 7.8px rgba(0, 0, 0, 0.027),
-    0 4px 18px rgba(0, 0, 0, 0.035);
-  --shadow-card-hover: 0 0.35px 2px rgba(0, 0, 0, 0.02),
-    0 1.6px 5.8px rgba(0, 0, 0, 0.03),
-    0 4px 15.6px rgba(0, 0, 0, 0.036),
-    0 8px 36px rgba(0, 0, 0, 0.044);
+  /* Shadows */
+  --shadow-card: 0 1px 0 rgba(23, 20, 43, 0.03), 0 10px 30px -14px rgba(23, 20, 43, 0.14);
+  --shadow-card-hover: 0 1px 0 rgba(23, 20, 43, 0.04), 0 22px 46px -18px rgba(23, 20, 43, 0.24);
+  --shadow-glow: 0 14px 34px -12px rgba(75, 47, 201, 0.55);
 
-  /* Tailwind CSS variable bridge */
-  --background: 60 4.8% 95.9%;
-  --foreground: 60 4% 10%;
+  /* Tailwind HSL bridge (kept separate from the hex tokens above) */
+  --background: 43 26% 95%;
+  --foreground: 248 37% 12%;
   --card: 0 0% 100%;
-  --card-foreground: 60 4% 10%;
+  --card-foreground: 248 37% 12%;
   --popover: 0 0% 100%;
-  --popover-foreground: 60 4% 10%;
-  --primary: 208 100% 43%;
+  --popover-foreground: 248 37% 12%;
+  --primary: 252 62% 49%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 60 4% 94%;
-  --secondary-foreground: 60 4% 20%;
-  --muted: 60 4% 94%;
-  --muted-foreground: 60 3% 46%;
-  --accent-tw: 60 4% 94%;
-  --accent-foreground: 60 4% 10%;
-  --destructive: 0 84% 60%;
+  --secondary: 43 20% 93%;
+  --secondary-foreground: 248 20% 22%;
+  --muted: 43 20% 93%;
+  --muted-foreground: 248 9% 55%;
+  --accent-tw: 43 20% 93%;
+  --accent-foreground: 248 37% 12%;
+  --destructive: 358 75% 59%;
   --destructive-foreground: 0 0% 100%;
-  --border: 0 0% 0% / 0.08;
-  --input: 0 0% 0% / 0.08;
-  --ring: 208 100% 43%;
-  --radius: 0.625rem;
+  --border-hsl: 248 37% 12% / 0.08;
+  --input: 248 37% 12% / 0.1;
+  --ring: 252 62% 49%;
+  --radius: 1rem;
 }
 
 .dark {
-  --bg: #191918;
-  --bg-elevated: #211F1E;
-  --bg-card: #252422;
-  --bg-card-hover: #2D2B29;
-  --border: rgba(255, 255, 255, 0.07);
-  --border-hover: rgba(255, 255, 255, 0.14);
-  --text-primary: #EEECEA;
-  --text-secondary: #9B9892;
-  --text-muted: #706D68;
-  --text-faint: #5A5754;
-  --accent: #2D8FE8;
+  --bg: #0C0A15;
+  --bg-elevated: #171425;
+  --bg-card: #1B182C;
+  --bg-card-hover: #231F38;
+  --bg-subtle: #14111F;
+  --night: #241F40;
+  --border: rgba(242, 240, 255, 0.08);
+  --border-hover: rgba(242, 240, 255, 0.16);
+  --text-primary: #F2F0FF;
+  --text-secondary: #BBB7D1;
+  --text-muted: #8A86A3;
+  --text-faint: #5F5B78;
+  --accent: #927CFF;
+  --accent-rgb: 146 124 255;
+  --accent-2: #B2A2FF;
+  --accent-bg: rgba(146, 124, 255, 0.13);
+  --accent-border: rgba(146, 124, 255, 0.32);
+  --green: #34D399;
+  --gold: #F7C242;
+  --gold-bright: #F7C242;
+  --gold-bg: rgba(247, 194, 66, 0.14);
+  --red: #F87171;
+  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 12px 30px -14px rgba(0, 0, 0, 0.6);
+  --shadow-card-hover: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 22px 46px -18px rgba(0, 0, 0, 0.75);
+  --shadow-glow: 0 14px 34px -12px rgba(146, 124, 255, 0.55);
 
-  --background: 20 5% 10%;
-  --foreground: 40 5% 93%;
-  --card: 20 5% 14%;
-  --card-foreground: 40 5% 93%;
-  --popover: 20 5% 14%;
-  --popover-foreground: 40 5% 93%;
-  --primary: 210 78% 56%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 20 5% 18%;
-  --secondary-foreground: 40 5% 80%;
-  --muted: 20 5% 18%;
-  --muted-foreground: 40 5% 56%;
-  --accent-tw: 20 5% 18%;
-  --accent-foreground: 40 5% 93%;
-  --destructive: 0 62% 40%;
-  --destructive-foreground: 0 0% 100%;
-  --border: 255 255% 255% / 0.07;
-  --input: 255 255% 255% / 0.07;
-  --ring: 210 78% 56%;
+  --background: 252 36% 6%;
+  --foreground: 250 100% 97%;
+  --card: 250 30% 14%;
+  --card-foreground: 250 100% 97%;
+  --popover: 250 30% 14%;
+  --popover-foreground: 250 100% 97%;
+  --primary: 250 100% 74%;
+  --primary-foreground: 252 36% 8%;
+  --secondary: 250 25% 18%;
+  --secondary-foreground: 250 30% 85%;
+  --muted: 250 25% 18%;
+  --muted-foreground: 250 12% 59%;
+  --accent-tw: 250 25% 18%;
+  --accent-foreground: 250 100% 97%;
+  --destructive: 0 91% 71%;
+  --destructive-foreground: 252 36% 8%;
+  --border-hsl: 250 100% 97% / 0.08;
+  --input: 250 100% 97% / 0.1;
+  --ring: 250 100% 74%;
 }
 
 /* ─── Base ───────────────────────────────────────────────────────────── */
 @layer base {
   * {
-    border-color: rgba(0, 0, 0, 0.08);
+    border-color: var(--border);
     box-sizing: border-box;
-  }
-
-  .dark * {
-    border-color: rgba(255, 255, 255, 0.07);
   }
 
   html {
@@ -118,7 +132,7 @@
   body {
     background-color: var(--bg);
     color: var(--text-primary);
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: var(--font-jakarta), system-ui, -apple-system, sans-serif;
     font-size: 15px;
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
@@ -128,17 +142,21 @@
   }
 
   /* Typography scale */
+  h1, h2 {
+    font-family: var(--font-bricolage), var(--font-jakarta), system-ui, sans-serif;
+  }
+
   h1 {
-    font-size: 26px;
+    font-size: 28px;
     font-weight: 700;
-    letter-spacing: -0.5px;
-    line-height: 1.15;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
   }
 
   h2 {
     font-size: 20px;
     font-weight: 600;
-    letter-spacing: -0.25px;
+    letter-spacing: -0.02em;
     line-height: 1.2;
   }
 
@@ -155,7 +173,7 @@
   }
 
   ::selection {
-    background: rgba(0, 117, 222, 0.15);
+    background: rgba(75, 47, 201, 0.18);
     color: var(--text-primary);
   }
 }
@@ -171,7 +189,7 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.12);
+  background: rgba(23, 20, 43, 0.14);
   border-radius: 3px;
 }
 
@@ -234,4 +252,40 @@
 
 .dark .custom-scrollbar::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.08);
+}
+/* ─── EDUING helpers ─────────────────────────────────────────────────── */
+.font-display { font-family: var(--font-bricolage), var(--font-jakarta), system-ui, sans-serif; }
+
+.text-gradient {
+  background: linear-gradient(100deg, var(--accent) 0%, var(--accent-2) 45%, var(--gold-bright) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.bg-dots {
+  background-image: radial-gradient(var(--border-hover) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+/* Page enter animation used by StudentLayout */
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(10px); filter: blur(4px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+.page-in { animation: page-in .55s cubic-bezier(.16, 1, .3, 1) both; }
+
+@keyframes float-y { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+.animate-float-y { animation: float-y 6s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+
+/* Card surface used by the admin console */
+.glass-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 26px;
+  box-shadow: var(--shadow-card);
 }

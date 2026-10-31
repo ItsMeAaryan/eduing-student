@@ -20,7 +20,7 @@ const CAT_COLORS: Record<string, string> = {
   Application: 'var(--accent)',
   Scholarship: 'var(--green)',
   Entrance: 'var(--gold)',
-  Interview: '#8B5CF6',
+  Interview: 'var(--accent-2)',
   Document: 'var(--red)',
   Verification: '#2a9d99',
 }
@@ -28,7 +28,7 @@ const CAT_COLORS: Record<string, string> = {
 const CARD: React.CSSProperties = {
   background: 'var(--bg-card)',
   border: '1px solid var(--border)',
-  borderRadius: 10,
+  borderRadius: 14,
   boxShadow: '0 0.175px 1px rgba(0,0,0,0.015), 0 0.8px 2.9px rgba(0,0,0,0.022), 0 2px 7.8px rgba(0,0,0,0.027)',
   overflow: 'hidden',
 }
@@ -73,7 +73,7 @@ function MiniCalendar({ insights }: { insights: DeadlineInsight[] }) {
               onClick={onClick}
               aria-label={label}
               style={{
-                width: 26, height: 26, borderRadius: 6,
+                width: 26, height: 26, borderRadius: 10,
                 border: '1px solid var(--border)',
                 background: 'var(--bg)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -248,7 +248,7 @@ export default function AdmissionPlannerPage() {
     width: '100%', height: 34,
     background: 'var(--bg-elevated)',
     border: '1px solid var(--border)',
-    borderRadius: 6, padding: '7px 11px',
+    borderRadius: 10, padding: '7px 11px',
     fontSize: 13, color: 'var(--text-primary)', outline: 'none',
   }
 
@@ -269,12 +269,12 @@ export default function AdmissionPlannerPage() {
           <div style={{
             gridColumn: 'span 2',
             background: 'var(--accent)',
-            borderRadius: 10, padding: '16px',
+            borderRadius: 14, padding: '16px',
             display: 'flex', alignItems: 'center', gap: 12,
             boxShadow: '0 2px 7.8px rgba(0,0,0,0.027)',
           }}>
             <div style={{
-              width: 40, height: 40, borderRadius: 10,
+              width: 40, height: 40, borderRadius: 14,
               background: 'rgba(255,255,255,0.15)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
             }}>
@@ -301,8 +301,8 @@ export default function AdmissionPlannerPage() {
               display: 'flex', alignItems: 'flex-start', gap: 10,
             }}>
               <div style={{
-                width: 32, height: 32, borderRadius: 8,
-                background: `${color}12`, flexShrink: 0,
+                width: 32, height: 32, borderRadius: 12,
+                background: `color-mix(in srgb, ${color} 7%, transparent)`, flexShrink: 0,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
                 <Icon size={14} style={{ color }} strokeWidth={1.8} />
@@ -333,7 +333,7 @@ export default function AdmissionPlannerPage() {
                 display: 'flex', alignItems: 'center', gap: 5,
                 height: 28, padding: '0 10px',
                 background: 'var(--text-primary)', color: 'var(--bg)',
-                border: 'none', borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                border: 'none', borderRadius: 10, fontSize: 11, fontWeight: 600, cursor: 'pointer',
               }}>
                 <Plus size={11} />Add Event
               </button>
@@ -378,7 +378,7 @@ export default function AdmissionPlannerPage() {
                             </p>
                             <span style={{
                               fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 999, flexShrink: 0,
-                              color: badgeColor, background: `${badgeColor}18`,
+                              color: badgeColor, background: `color-mix(in srgb, ${badgeColor} 9%, transparent)`,
                             }}>
                               {badgeLabel}
                             </span>
@@ -436,7 +436,7 @@ export default function AdmissionPlannerPage() {
                   >
                     <div style={{
                       width: 28, height: 28, borderRadius: 7,
-                      background: `${urgentColor}10`,
+                      background: `color-mix(in srgb, ${urgentColor} 6%, transparent)`,
                       display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                     }}>
                       <TrendingUp size={13} style={{ color: urgentColor }} strokeWidth={1.8} />
@@ -447,7 +447,7 @@ export default function AdmissionPlannerPage() {
                     </div>
                     <span style={{
                       fontSize: 10, fontWeight: 600, color: urgentColor, flexShrink: 0,
-                      padding: '2px 6px', borderRadius: 999, background: `${urgentColor}10`,
+                      padding: '2px 6px', borderRadius: 999, background: `color-mix(in srgb, ${urgentColor} 6%, transparent)`,
                     }}>
                       {ins.priority}
                     </span>
@@ -491,7 +491,7 @@ export default function AdmissionPlannerPage() {
                   style={{
                     width: '100%', height: 30, paddingLeft: 28, paddingRight: 10,
                     background: 'var(--bg)', border: '1px solid var(--border)',
-                    borderRadius: 6, fontSize: 12,
+                    borderRadius: 10, fontSize: 12,
                     color: 'var(--text-primary)', outline: 'none',
                   }}
                   onFocus={(e) => { e.target.style.borderColor = 'var(--accent)' }}
@@ -586,7 +586,7 @@ export default function AdmissionPlannerPage() {
                   position: 'relative',
                   background: 'var(--bg-elevated)',
                   border: '1px solid var(--border)',
-                  borderRadius: 12,
+                  borderRadius: 18,
                   padding: '22px 22px 18px',
                   width: '100%', maxWidth: 380,
                   boxShadow: '0 4px 18px rgba(0,0,0,0.12)',
@@ -642,7 +642,7 @@ export default function AdmissionPlannerPage() {
                         height: 32, padding: '0 12px',
                         background: 'var(--bg-elevated)',
                         border: '1px solid var(--border)',
-                        borderRadius: 6, fontSize: 12, fontWeight: 500,
+                        borderRadius: 10, fontSize: 12, fontWeight: 500,
                         color: 'var(--text-secondary)', cursor: 'pointer',
                       }}
                     >
@@ -653,7 +653,7 @@ export default function AdmissionPlannerPage() {
                       style={{
                         height: 32, padding: '0 14px',
                         background: 'var(--accent)', color: '#fff',
-                        border: 'none', borderRadius: 6,
+                        border: 'none', borderRadius: 10,
                         fontSize: 12, fontWeight: 600, cursor: 'pointer',
                       }}
                     >

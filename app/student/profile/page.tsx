@@ -22,7 +22,7 @@ const TABS = ['Identity', 'Academic', 'Entrance Exams', 'Preferences']
 const CARD: React.CSSProperties = {
   background: 'var(--bg-card)',
   border: '1px solid var(--border)',
-  borderRadius: 10,
+  borderRadius: 14,
   boxShadow: '0 0.175px 1px rgba(0,0,0,0.015), 0 0.8px 2.9px rgba(0,0,0,0.022), 0 2px 7.8px rgba(0,0,0,0.027)',
   overflow: 'hidden',
 }
@@ -38,7 +38,7 @@ function StatCard({ label, value, sub, color = 'var(--text-primary)' }: {
 }) {
   return (
     <div style={{
-      background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10,
+      background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14,
       padding: '18px 20px',
       boxShadow: '0 0.175px 1px rgba(0,0,0,0.015), 0 0.8px 2.9px rgba(0,0,0,0.022)',
     }}>
@@ -420,7 +420,7 @@ export default function ProfilePage() {
                         style={{
                           flex: 1, height: 30, padding: '0 8px',
                           background: 'var(--bg-elevated)', border: '1px solid var(--accent)',
-                          borderRadius: 6, fontSize: 13, color: 'var(--text-primary)', outline: 'none',
+                          borderRadius: 10, fontSize: 13, color: 'var(--text-primary)', outline: 'none',
                           boxShadow: '0 0 0 2px var(--accent-bg)',
                         }}
                       />
@@ -428,14 +428,14 @@ export default function ProfilePage() {
                         onClick={() => handleSave(field.key)}
                         disabled={saving}
                         aria-label="Save field"
-                        style={{ width: 28, height: 28, borderRadius: 6, background: 'var(--green)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                        style={{ width: 28, height: 28, borderRadius: 10, background: 'var(--green)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                       >
                         <Check size={13} style={{ color: '#fff' }} strokeWidth={2.5} />
                       </button>
                       <button
                         onClick={() => setEditingKey(null)}
                         aria-label="Cancel editing"
-                        style={{ width: 28, height: 28, borderRadius: 6, background: 'var(--bg)', border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                        style={{ width: 28, height: 28, borderRadius: 10, background: 'var(--bg)', border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                       >
                         <X size={13} style={{ color: 'var(--text-muted)' }} strokeWidth={2} />
                       </button>
@@ -493,7 +493,7 @@ export default function ProfilePage() {
             padding: '14px 18px',
             background: 'rgba(217,119,6,0.06)',
             border: '1px solid rgba(217,119,6,0.2)',
-            borderRadius: 10, fontSize: 13, color: 'var(--gold)',
+            borderRadius: 14, fontSize: 13, color: 'var(--gold)',
           }}>
             <AlertCircle size={16} style={{ flexShrink: 0, marginTop: 1 }} strokeWidth={1.8} />
             <div>

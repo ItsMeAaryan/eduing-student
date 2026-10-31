@@ -30,7 +30,7 @@ export default function LoginForm() {
     }
   }
 
-  const inputClasses = "w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.1)] rounded-[12px] px-4 h-[56px] text-[14px] text-[var(--text-primary)] focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-border)] outline-none transition-all duration-200 placeholder:text-[var(--text-faint)]"
+  const inputClasses = "w-full bg-[var(--bg-elevated)] border border-[var(--border-hover)] shadow-[var(--shadow-card)] rounded-[18px] px-4 h-[56px] text-[14px] text-[var(--text-primary)] focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-border)] outline-none transition-all duration-200 placeholder:text-[var(--text-faint)]"
   const labelClasses = "block text-[13px] font-medium text-[var(--text-secondary)] mb-2"
 
   return (
@@ -46,7 +46,7 @@ export default function LoginForm() {
 
       <form onSubmit={handleLogin} className="space-y-5">
         {error && (
-          <div className="rounded-[12px] p-4 flex gap-3 items-center" style={{ background: 'rgba(220,38,38,0.08)', border: '1px solid rgba(220,38,38,0.2)' }}>
+          <div className="rounded-[18px] p-4 flex gap-3 items-center" style={{ background: 'rgba(220,38,38,0.08)', border: '1px solid rgba(220,38,38,0.2)' }}>
             <AlertCircle className="shrink-0" size={18} style={{ color: 'var(--red)' }} />
             <p className="text-[13px] font-medium" style={{ color: 'var(--red)' }}>{error}</p>
           </div>
@@ -81,7 +81,7 @@ export default function LoginForm() {
         </div>
 
         <button type="submit" disabled={loading}
-          className="w-full font-display font-bold text-[15px] h-[56px] rounded-[14px] transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-3"
+          className="w-full font-display font-bold text-[15px] h-[56px] rounded-full transition-all duration-300 hover:-translate-y-0.5 shadow-[var(--shadow-glow)] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-3"
           style={{ background: 'var(--accent)', color: '#fff' }}>
           {loading ? <Loader2 className="animate-spin" size={18} /> : <span>Sign In</span>}
         </button>

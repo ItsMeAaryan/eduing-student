@@ -26,7 +26,7 @@ import { useToast } from '@/hooks/useToast'
 
 /* ── Deterministic color from name ─────────────────────────────────── */
 function logoColor(name = '') {
-  const p = ['#6366f1','#8b5cf6','#ec4899','#f59e0b','#10b981','#3b82f6','#ef4444','#14b8a6']
+  const p = ['#6366f1','var(--accent-2)','#ec4899','var(--gold)','var(--green)','#3b82f6','var(--red)','#14b8a6']
   let h = 0
   for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + (h << 5) - h
   return p[Math.abs(h) % p.length]
@@ -51,7 +51,7 @@ function AnimatedNumber({ value, suffix = '' }: { value: number; suffix?: string
 }
 
 /* ── Radial Progress ────────────────────────────────────────────────── */
-function RadialProgress({ value, size = 80, stroke = 7, color = '#0075DE', label }: {
+function RadialProgress({ value, size = 80, stroke = 7, color = 'var(--accent)', label }: {
   value: number; size?: number; stroke?: number; color?: string; label?: string
 }) {
   const r = (size - stroke * 2) / 2
@@ -109,7 +109,7 @@ function StatChip({ icon, label, value, sub, color = 'var(--accent)', trend, ind
       style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-card)' }}
     >
       <div className="flex items-center justify-between">
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: `${color}18` }}>
+        <div className="w-9 h-9 rounded-2xl flex items-center justify-center" style={{ background: `color-mix(in srgb, ${color} 9%, transparent)` }}>
           <span style={{ color }}>{icon}</span>
         </div>
         {trend !== undefined && (
@@ -388,7 +388,7 @@ export default function UniversityDetailPage() {
                 className="object-cover object-center"
               />
             ) : (
-              <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${uniColor}55 0%, #0f172a 100%)` }}>
+              <div className="w-full h-full" style={{ background: `linear-gradient(135deg, color-mix(in srgb, ${uniColor} 33%, transparent) 0%, #0f172a 100%)` }}>
                 <div className="absolute inset-0 flex items-center justify-center">
                   <span className="font-black opacity-10 select-none" style={{ fontSize: 'clamp(120px, 20vw, 240px)', color: uniColor }}>
                     {university.name?.charAt(0)}
@@ -410,7 +410,7 @@ export default function UniversityDetailPage() {
           <div className="absolute top-0 left-0 right-0 px-6 pt-4 flex items-center justify-between z-20">
             <button
               onClick={() => router.back()}
-              className="flex items-center gap-2 text-[13px] font-semibold h-9 px-3.5 rounded-xl transition-all backdrop-blur-md"
+              className="flex items-center gap-2 text-[13px] font-semibold h-9 px-3.5 rounded-2xl transition-all backdrop-blur-md"
               style={{ background: 'rgba(0,0,0,0.35)', border: '1px solid rgba(255,255,255,0.18)', color: 'rgba(255,255,255,0.9)' }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.55)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.35)' }}
@@ -428,10 +428,10 @@ export default function UniversityDetailPage() {
                   key={label}
                   onClick={onClick}
                   aria-label={label}
-                  className="w-9 h-9 rounded-xl flex items-center justify-center transition-all backdrop-blur-md"
+                  className="w-9 h-9 rounded-2xl flex items-center justify-center transition-all backdrop-blur-md"
                   style={{
-                    background: active ? 'rgba(0,117,222,0.7)' : 'rgba(0,0,0,0.35)',
-                    border: `1px solid ${active ? 'rgba(0,117,222,0.5)' : 'rgba(255,255,255,0.18)'}`,
+                    background: active ? 'rgb(var(--accent-rgb) / 0.7)' : 'rgba(0,0,0,0.35)',
+                    border: `1px solid ${active ? 'rgb(var(--accent-rgb) / 0.5)' : 'rgba(255,255,255,0.18)'}`,
                     color: 'rgba(255,255,255,0.9)',
                     cursor: 'pointer',
                   }}
@@ -443,7 +443,7 @@ export default function UniversityDetailPage() {
               <button
                 onClick={() => handleApply({ name: 'General Admission' })}
                 disabled={applying}
-                className="flex items-center gap-2 h-9 px-4 rounded-xl text-[13px] font-bold transition-all backdrop-blur-md"
+                className="flex items-center gap-2 h-9 px-4 rounded-2xl text-[13px] font-bold transition-all backdrop-blur-md"
                 style={{
                   background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
                   color: '#fff',
@@ -477,7 +477,7 @@ export default function UniversityDetailPage() {
                   )}
                   {(university.nirfRanking || university.rankings?.nirfOverall) && (
                     <span className="inline-flex items-center gap-1 text-[10.5px] font-bold px-2.5 py-1 rounded-full backdrop-blur-md"
-                      style={{ background: 'rgba(0,117,222,0.3)', border: '1px solid rgba(0,117,222,0.45)', color: '#93c5fd' }}>
+                      style={{ background: 'rgb(var(--accent-rgb) / 0.3)', border: '1px solid rgb(var(--accent-rgb) / 0.45)', color: '#93c5fd' }}>
                       <Award size={11} /> NIRF #{university.nirfRanking || university.rankings?.nirfOverall}
                     </span>
                   )}
@@ -552,7 +552,7 @@ export default function UniversityDetailPage() {
                     </div>
                     <div className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.12)' }}>
                       <motion.div className="h-full rounded-full"
-                        style={{ background: 'linear-gradient(90deg, #3b82f6, #8b5cf6)' }}
+                        style={{ background: 'linear-gradient(90deg, #3b82f6, var(--accent-2))' }}
                         initial={{ width: 0 }}
                         animate={{ width: `${val}%` }}
                         transition={{ duration: 1.2, delay: 0.5 }}
@@ -606,14 +606,14 @@ export default function UniversityDetailPage() {
         >
           <div className="flex flex-wrap items-center gap-0 divide-x" style={{}}>
             {[
-              { icon: <Star size={13} fill="currentColor" />, color: '#f59e0b', text: 'Highly Recommended', sub: 'AI Verdict' },
+              { icon: <Star size={13} fill="currentColor" />, color: 'var(--gold)', text: 'Highly Recommended', sub: 'AI Verdict' },
               { icon: <TrendingUp size={13} />, color: 'var(--green)', text: 'Strong Placements', sub: `${placementRate || '94%'} rate` },
               { icon: <Target size={13} />, color: 'var(--accent)', text: `${overallProb}% Match`, sub: 'Profile fit' },
-              { icon: <Award size={13} />, color: '#8b5cf6', text: 'Scholarship Eligible', sub: 'Merit waivers available' },
+              { icon: <Award size={13} />, color: 'var(--accent-2)', text: 'Scholarship Eligible', sub: 'Merit waivers available' },
               { icon: <ShieldCheck size={13} />, color: 'var(--green)', text: 'NAAC Accredited', sub: university.naacGrade || 'A+ Grade' },
             ].map(({ icon, color, text, sub }, i) => (
               <div key={i} className="flex-1 min-w-[140px] flex items-center gap-2.5 px-4 py-3">
-                <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${color}18`, color }}>
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: `color-mix(in srgb, ${color} 9%, transparent)`, color }}>
                   {icon}
                 </div>
                 <div>
@@ -644,7 +644,7 @@ export default function UniversityDetailPage() {
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
                 {[
                   {
-                    icon: <Trophy size={16} />, color: '#f59e0b',
+                    icon: <Trophy size={16} />, color: 'var(--gold)',
                     label: 'Highest Package', value: highestPkg ? (typeof highestPkg === 'number' ? `₹${highestPkg}L` : String(highestPkg)) : '₹44.5L',
                     sub: 'Placement 2024', trend: 12, index: 0
                   },
@@ -659,7 +659,7 @@ export default function UniversityDetailPage() {
                     sub: 'Student-to-faculty', index: 2
                   },
                   {
-                    icon: <Globe size={16} />, color: '#8b5cf6',
+                    icon: <Globe size={16} />, color: 'var(--accent-2)',
                     label: 'Int\'l Partners', value: university.internationalPartners || '120+',
                     sub: 'Across 40+ countries', index: 3
                   },
@@ -691,13 +691,13 @@ export default function UniversityDetailPage() {
                   {[
                     { icon: <BadgeCheck size={14} />, text: `NAAC Grade ${university.naacGrade || 'A+'}`, color: 'var(--green)' },
                     { icon: <Award size={14} />, text: `NIRF Ranked #${university.nirfRanking || university.rankings?.nirfOverall || 'Top 100'}`, color: 'var(--accent)' },
-                    { icon: <GraduationCap size={14} />, text: `${programs.length || '50+'} Academic Programs`, color: '#8b5cf6' },
-                    { icon: <Globe size={14} />, text: `${university.internationalPartners || '120+'} Global University Partners`, color: '#f59e0b' },
+                    { icon: <GraduationCap size={14} />, text: `${programs.length || '50+'} Academic Programs`, color: 'var(--accent-2)' },
+                    { icon: <Globe size={14} />, text: `${university.internationalPartners || '120+'} Global University Partners`, color: 'var(--gold)' },
                     { icon: <FlaskConical size={14} />, text: '40+ Research Laboratories', color: '#ec4899' },
                     { icon: <Heart size={14} />, text: 'Active Student Council & 100+ Clubs', color: 'var(--red)' },
                   ].map(({ icon, text, color }, i) => (
                     <div key={i} className="flex items-center gap-3">
-                      <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${color}15`, color }}>
+                      <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: `color-mix(in srgb, ${color} 8%, transparent)`, color }}>
                         {icon}
                       </div>
                       <span className="text-[13px] font-medium" style={{ color: 'var(--text-secondary)' }}>{text}</span>
@@ -787,7 +787,7 @@ export default function UniversityDetailPage() {
                         { label: 'Admission Mode', value: university.admissionMode || 'Merit + Entrance' },
                         { label: 'Deadline', value: university.applicationDeadline || 'June 2025' },
                       ].map(({ label, value }) => (
-                        <div key={label} className="p-3 rounded-xl" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
+                        <div key={label} className="p-3 rounded-2xl" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
                           <p className="text-[10.5px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: 'var(--text-muted)' }}>{label}</p>
                           <p className="text-[13px] font-bold" style={{ color: 'var(--text-primary)' }}>{value}</p>
                         </div>
@@ -813,14 +813,14 @@ export default function UniversityDetailPage() {
                   </div>
                   {[
                     { label: 'Tuition Fee (per annum)', value: university.tuitionRange || university.feesPerYear ? `₹${(university.feesPerYear / 100000).toFixed(1)}L` : '₹2.4L', icon: <GraduationCap size={14} />, color: 'var(--accent)' },
-                    { label: 'Hostel & Dining (optional)', value: university.hostelFees || '₹95,000', icon: <Home size={14} />, color: '#8b5cf6' },
-                    { label: 'Books & Materials', value: '₹25,000', icon: <BookOpen size={14} />, color: '#f59e0b' },
+                    { label: 'Hostel & Dining (optional)', value: university.hostelFees || '₹95,000', icon: <Home size={14} />, color: 'var(--accent-2)' },
+                    { label: 'Books & Materials', value: '₹25,000', icon: <BookOpen size={14} />, color: 'var(--gold)' },
                     { label: 'One-time Caution Deposit', value: '₹15,000', icon: <ShieldCheck size={14} />, color: 'var(--green)' },
                   ].map(({ label, value, icon, color }, i) => (
                     <div key={i} className="flex items-center justify-between px-5 py-3.5"
                       style={{ borderBottom: i < 3 ? '1px solid var(--border)' : 'none', background: i % 2 === 0 ? 'var(--bg-card)' : 'var(--bg-elevated)' }}>
                       <div className="flex items-center gap-3">
-                        <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: `${color}15`, color }}>
+                        <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: `color-mix(in srgb, ${color} 8%, transparent)`, color }}>
                           {icon}
                         </div>
                         <span className="text-[13px]" style={{ color: 'var(--text-secondary)' }}>{label}</span>
@@ -850,12 +850,12 @@ export default function UniversityDetailPage() {
                       value={customScore}
                       onChange={(e) => setCustomScore(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && calculateScholarship()}
-                      className="flex-1 h-11 px-4 rounded-xl text-[14px] outline-none transition-all"
+                      className="flex-1 h-11 px-4 rounded-2xl text-[14px] outline-none transition-all"
                       style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
                     />
                     <button
                       onClick={calculateScholarship}
-                      className="h-11 px-5 rounded-xl text-[13px] font-bold transition-all flex-shrink-0"
+                      className="h-11 px-5 rounded-2xl text-[13px] font-bold transition-all flex-shrink-0"
                       style={{ background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer' }}
                     >
                       Calculate
@@ -866,7 +866,7 @@ export default function UniversityDetailPage() {
                     {[
                       { range: '95%+', waiver: '75% Waiver', color: 'var(--green)' },
                       { range: '88–94%', waiver: '50% Waiver', color: 'var(--accent)' },
-                      { range: '80–87%', waiver: '25% Waiver', color: '#8b5cf6' },
+                      { range: '80–87%', waiver: '25% Waiver', color: 'var(--accent-2)' },
                       { range: 'Below 80%', waiver: '10% Waiver', color: 'var(--text-muted)' },
                     ].map(({ range, waiver, color }) => (
                       <div key={range} className="flex items-center justify-between text-[12px]">
@@ -881,7 +881,7 @@ export default function UniversityDetailPage() {
                         initial={{ opacity: 0, y: 8, scale: 0.96 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 8 }}
-                        className="p-4 rounded-xl text-center"
+                        className="p-4 rounded-2xl text-center"
                         style={{ background: 'rgba(26,174,57,0.1)', border: '1px solid rgba(26,174,57,0.25)' }}
                       >
                         <p className="text-[28px] font-black" style={{ color: 'var(--green)' }}>{estimatedWaiver}% Waiver</p>
@@ -903,7 +903,7 @@ export default function UniversityDetailPage() {
                     { label: 'Avg Starting Salary', value: avgPkg ? (typeof avgPkg === 'number' ? `₹${avgPkg}L/yr` : String(avgPkg)) : '₹8.6L/yr', color: 'var(--green)' },
                     { label: 'Investment Recovery', value: '~2 Years', color: 'var(--accent)' },
                   ].map(({ label, value, color }) => (
-                    <div key={label} className="text-center p-3 rounded-xl" style={{ background: 'var(--bg-elevated)' }}>
+                    <div key={label} className="text-center p-3 rounded-2xl" style={{ background: 'var(--bg-elevated)' }}>
                       <p className="text-[10.5px] uppercase tracking-wider font-semibold mb-1" style={{ color: 'var(--text-muted)' }}>{label}</p>
                       <p className="text-[18px] font-black" style={{ color }}>{value}</p>
                     </div>
@@ -922,7 +922,7 @@ export default function UniversityDetailPage() {
               {/* Placement KPIs */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
                 {[
-                  { icon: <Trophy size={18} />, label: 'Highest Package', value: highestPkg ? (typeof highestPkg === 'number' ? `₹${highestPkg}L` : String(highestPkg)) : '₹44.5L', sub: 'Annual CTC 2024', color: '#f59e0b' },
+                  { icon: <Trophy size={18} />, label: 'Highest Package', value: highestPkg ? (typeof highestPkg === 'number' ? `₹${highestPkg}L` : String(highestPkg)) : '₹44.5L', sub: 'Annual CTC 2024', color: 'var(--gold)' },
                   { icon: <BarChart3 size={18} />, label: 'Average Package', value: avgPkg ? (typeof avgPkg === 'number' ? `₹${avgPkg}L` : String(avgPkg)) : '₹8.6L', sub: 'Median ₹7.2L', color: 'var(--green)' },
                   { icon: <Zap size={18} />, label: 'Placement Rate', value: placementRate ? `${placementRate}%` : '94.2%', sub: 'National avg 78%', color: 'var(--accent)' },
                 ].map((s, i) => <StatChip key={s.label} {...s} index={i} />)}
@@ -951,10 +951,10 @@ export default function UniversityDetailPage() {
                 <p className="text-[13px] font-bold mb-4" style={{ color: 'var(--text-primary)' }}>Salary Distribution</p>
                 <div className="flex flex-col gap-3">
                   {[
-                    { range: '₹20L+', pct: 8, label: 'Top offers', color: '#f59e0b' },
+                    { range: '₹20L+', pct: 8, label: 'Top offers', color: 'var(--gold)' },
                     { range: '₹12–20L', pct: 22, label: 'Senior roles', color: 'var(--accent)' },
                     { range: '₹8–12L', pct: 42, label: 'Most placed', color: 'var(--green)' },
-                    { range: '₹5–8L', pct: 28, label: 'Entry level', color: '#8b5cf6' },
+                    { range: '₹5–8L', pct: 28, label: 'Entry level', color: 'var(--accent-2)' },
                   ].map(({ range, pct, label, color }) => (
                     <div key={range}>
                       <div className="flex items-center justify-between mb-1">
@@ -987,14 +987,14 @@ export default function UniversityDetailPage() {
                         placeholder="Search programs..."
                         value={programSearch}
                         onChange={(e) => setProgramSearch(e.target.value)}
-                        className="w-full h-9 pl-9 pr-3 rounded-xl text-[13px] outline-none"
+                        className="w-full h-9 pl-9 pr-3 rounded-2xl text-[13px] outline-none"
                         style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
                       />
                     </div>
                     <select
                       value={programLevelFilter}
                       onChange={e => setProgramLevelFilter(e.target.value)}
-                      className="h-9 px-3 rounded-xl text-[12.5px] font-medium outline-none cursor-pointer"
+                      className="h-9 px-3 rounded-2xl text-[12.5px] font-medium outline-none cursor-pointer"
                       style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}
                     >
                       {['All', 'UG', 'PG', 'PhD', 'Diploma'].map(l => <option key={l}>{l}</option>)}
@@ -1095,7 +1095,7 @@ export default function UniversityDetailPage() {
 
                       <button
                         onClick={() => setSelectedProgram(selectedProgramDetail)}
-                        className="w-full h-10 rounded-xl text-[13px] font-bold flex items-center justify-center gap-2 transition-all"
+                        className="w-full h-10 rounded-2xl text-[13px] font-bold flex items-center justify-center gap-2 transition-all"
                         style={{ background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer' }}
                       >
                         Apply for this Program <ArrowRight size={14} strokeWidth={2.5} />
@@ -1128,15 +1128,15 @@ export default function UniversityDetailPage() {
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-5">
                 {[
-                  { icon: <Home size={16} />, label: 'Hostel', value: university.hostelAvailable !== false ? 'Available' : 'Off-campus', color: '#8b5cf6' },
+                  { icon: <Home size={16} />, label: 'Hostel', value: university.hostelAvailable !== false ? 'Available' : 'Off-campus', color: 'var(--accent-2)' },
                   { icon: <Wifi size={16} />, label: 'Wi-Fi Campus', value: 'High Speed', color: 'var(--accent)' },
                   { icon: <FlaskConical size={16} />, label: 'Research Labs', value: '40+ Labs', color: '#ec4899' },
-                  { icon: <BookOpen size={16} />, label: 'Library', value: '5L+ Books', color: '#f59e0b' },
+                  { icon: <BookOpen size={16} />, label: 'Library', value: '5L+ Books', color: 'var(--gold)' },
                   { icon: <TreePine size={16} />, label: 'Campus Area', value: university.campusSize ? `${university.campusSize} Acres` : '220+ Acres', color: 'var(--green)' },
                   { icon: <Globe size={16} />, label: 'Student Clubs', value: '100+ Clubs', color: 'var(--red)' },
                 ].map(({ icon, label, value, color }) => (
-                  <div key={label} className="rounded-xl p-4 flex items-center gap-3" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-                    <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${color}15`, color }}>
+                  <div key={label} className="rounded-2xl p-4 flex items-center gap-3" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                    <div className="w-8 h-8 rounded-2xl flex items-center justify-center shrink-0" style={{ background: `color-mix(in srgb, ${color} 8%, transparent)`, color }}>
                       {icon}
                     </div>
                     <div>
@@ -1205,7 +1205,7 @@ export default function UniversityDetailPage() {
                   <button
                     onClick={() => handleApply({ name: 'General Admission' })}
                     disabled={applying || applicationSubmitted}
-                    className="flex items-center gap-2 h-12 px-8 rounded-xl text-[14px] font-bold transition-all"
+                    className="flex items-center gap-2 h-12 px-8 rounded-2xl text-[14px] font-bold transition-all"
                     style={{
                       background: applicationSubmitted ? 'rgba(26,174,57,0.8)' : '#fff',
                       color: applicationSubmitted ? '#fff' : '#1e3a8a',
@@ -1222,7 +1222,7 @@ export default function UniversityDetailPage() {
                   </button>
                   <button
                     onClick={() => toggleBookmark()}
-                    className="flex items-center gap-2 h-12 px-6 rounded-xl text-[14px] font-semibold transition-all"
+                    className="flex items-center gap-2 h-12 px-6 rounded-2xl text-[14px] font-semibold transition-all"
                     style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', cursor: 'pointer' }}
                   >
                     <Bookmark size={16} style={{ fill: isBookmarked ? '#fff' : 'none' }} /> {isBookmarked ? 'Saved' : 'Save'}
@@ -1280,14 +1280,14 @@ export default function UniversityDetailPage() {
               <button
                 onClick={() => handleApply({ name: 'General Admission' })}
                 disabled={applying || applicationSubmitted}
-                className="w-full h-10 rounded-xl text-[13px] font-bold flex items-center justify-center gap-1.5 transition-all"
-                style={{ background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,117,222,0.4)' }}
+                className="w-full h-10 rounded-2xl text-[13px] font-bold flex items-center justify-center gap-1.5 transition-all"
+                style={{ background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', boxShadow: '0 4px 12px rgb(var(--accent-rgb) / 0.4)' }}
               >
                 {applicationSubmitted ? <><CheckCircle2 size={14} /> Applied!</> : <>Apply Now <ArrowRight size={13} strokeWidth={2.5} /></>}
               </button>
               <button
                 onClick={() => toggleBookmark()}
-                className="w-full h-9 rounded-xl text-[12.5px] font-semibold flex items-center justify-center gap-1.5 transition-all"
+                className="w-full h-9 rounded-2xl text-[12.5px] font-semibold flex items-center justify-center gap-1.5 transition-all"
                 style={{
                   background: isBookmarked ? 'var(--accent-bg)' : 'var(--bg-elevated)',
                   color: isBookmarked ? 'var(--accent)' : 'var(--text-secondary)',
@@ -1300,7 +1300,7 @@ export default function UniversityDetailPage() {
               </button>
               <button
                 onClick={handleShare}
-                className="w-full h-9 rounded-xl text-[12.5px] font-semibold flex items-center justify-center gap-1.5 transition-all"
+                className="w-full h-9 rounded-2xl text-[12.5px] font-semibold flex items-center justify-center gap-1.5 transition-all"
                 style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)', border: '1px solid var(--border)', cursor: 'pointer' }}
               >
                 {copiedLink ? <><CheckCircle2 size={13} /> Copied!</> : <><Share2 size={13} /> Share</>}
@@ -1350,7 +1350,7 @@ export default function UniversityDetailPage() {
                 </h3>
                 <p className="text-[13px] mb-6" style={{ color: 'var(--text-muted)' }}>{university.name}</p>
 
-                <div className="rounded-xl overflow-hidden mb-5" style={{ border: '1px solid var(--border)' }}>
+                <div className="rounded-2xl overflow-hidden mb-5" style={{ border: '1px solid var(--border)' }}>
                   {[
                     { label: 'Duration', value: selectedProgram.duration || '4 Years' },
                     { label: 'Annual Fee', value: selectedProgram.annualFee ? `₹${(selectedProgram.annualFee / 100000).toFixed(1)}L / yr` : selectedProgram.fees || '₹2.2L / yr' },
@@ -1367,12 +1367,12 @@ export default function UniversityDetailPage() {
                 <button
                   onClick={() => handleApply(selectedProgram)}
                   disabled={applying || applicationSubmitted}
-                  className="w-full h-12 rounded-xl text-[14px] font-bold flex items-center justify-center gap-2 transition-all"
+                  className="w-full h-12 rounded-2xl text-[14px] font-bold flex items-center justify-center gap-2 transition-all"
                   style={{
                     background: applicationSubmitted ? 'var(--green)' : 'var(--accent)',
                     color: '#fff', border: 'none',
                     cursor: applying || applicationSubmitted ? 'not-allowed' : 'pointer',
-                    boxShadow: '0 4px 16px rgba(0,117,222,0.4)',
+                    boxShadow: '0 4px 16px rgb(var(--accent-rgb) / 0.4)',
                   }}
                 >
                   {applicationSubmitted ? <><CheckCircle2 size={17} /> Application Submitted!</> : applying ? 'Submitting…' : <><span>Apply for {selectedProgram.name}</span><ArrowRight size={15} strokeWidth={2.5} /></>}

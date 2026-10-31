@@ -62,7 +62,7 @@ export default function OverviewTab({ university }: Props) {
           <h3 className="text-xl font-bold text-white mb-4">Campus Facilities</h3>
           <div className="flex flex-wrap gap-3">
             {university.facilities.map((facility, index) => (
-              <span key={index} className="px-4 py-2 bg-primary/10 text-primary border border-primary/20 rounded-xl text-sm font-medium">
+              <span key={index} className="px-4 py-2 bg-primary/10 text-primary border border-primary/20 rounded-2xl text-sm font-medium">
                 {facility}
               </span>
             ))}

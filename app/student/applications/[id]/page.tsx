@@ -74,7 +74,7 @@ export default function ApplicationDetailsPage() {
       <h2 style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Application not found</h2>
       <button
         onClick={() => router.back()}
-        style={{ display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 14px', background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontSize: 13, fontWeight: 500, borderRadius: 8, cursor: 'pointer' }}
+        style={{ display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 14px', background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontSize: 13, fontWeight: 500, borderRadius: 12, cursor: 'pointer' }}
       >
         <ChevronLeft size={15} /> Go Back
       </button>
@@ -132,9 +132,9 @@ export default function ApplicationDetailsPage() {
             </div>
             <div style={{
               display: 'flex', alignItems: 'center', gap: 8,
-              padding: '10px 16px', borderRadius: 10,
-              border: `1px solid ${config.color}22`,
-              background: `${config.color}10`,
+              padding: '10px 16px', borderRadius: 14,
+              border: `1px solid color-mix(in srgb, ${config.color} 13%, transparent)`,
+              background: `color-mix(in srgb, ${config.color} 6%, transparent)`,
               color: config.color,
             }}>
               <StatusIcon size={18} strokeWidth={1.8} />
@@ -148,7 +148,7 @@ export default function ApplicationDetailsPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
             {/* Timeline */}
-            <section style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '24px' }}>
+            <section style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 18, padding: '24px' }}>
               <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 20px', display: 'flex', alignItems: 'center', gap: 8 }}>
                 <History size={14} strokeWidth={1.8} /> Application Journey
               </p>
@@ -177,7 +177,7 @@ export default function ApplicationDetailsPage() {
             </section>
 
             {/* Documents */}
-            <section style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '24px' }}>
+            <section style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 18, padding: '24px' }}>
               <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
                 <ShieldCheck size={14} strokeWidth={1.8} style={{ color: 'var(--accent)' }} /> Linked Documents
               </p>
@@ -185,9 +185,9 @@ export default function ApplicationDetailsPage() {
                 {docTypes.map(dt => {
                   const doc = documents[dt.id]
                   return (
-                    <div key={dt.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', border: '1px solid var(--border)', borderRadius: 10, background: 'var(--bg)' }}>
+                    <div key={dt.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', border: '1px solid var(--border)', borderRadius: 14, background: 'var(--bg)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <div style={{ width: 34, height: 34, borderRadius: 8, background: doc ? 'rgba(26,174,57,0.08)' : 'var(--bg-elevated)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div style={{ width: 34, height: 34, borderRadius: 12, background: doc ? 'rgba(26,174,57,0.08)' : 'var(--bg-elevated)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           <FileText size={15} style={{ color: doc ? 'var(--green)' : 'var(--text-muted)' }} strokeWidth={1.8} />
                         </div>
                         <div>
@@ -198,7 +198,7 @@ export default function ApplicationDetailsPage() {
                         </div>
                       </div>
                       {doc?.fileUrl && (
-                        <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 6, color: 'var(--text-muted)' }}>
+                        <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 10, color: 'var(--text-muted)' }}>
                           <ExternalLink size={12} strokeWidth={1.8} />
                         </a>
                       )}
@@ -224,7 +224,7 @@ export default function ApplicationDetailsPage() {
                   color: application.paymentStatus === 'paid' ? 'var(--green)' : 'var(--gold)',
                 },
               ].map(({ icon: Icon, label, value, color }) => (
-                <div key={label} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '20px' }}>
+                <div key={label} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 18, padding: '20px' }}>
                   <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 6 }}>
                     <Icon size={13} strokeWidth={1.8} style={{ color: 'var(--accent)' }} /> {label}
                   </p>
@@ -236,7 +236,7 @@ export default function ApplicationDetailsPage() {
 
           {/* Sidebar */}
           <aside style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 18, padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
                 <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Calendar size={12} strokeWidth={1.8} /> Applied On
@@ -259,14 +259,14 @@ export default function ApplicationDetailsPage() {
                   width: '100%', height: 36,
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                   background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.3)',
-                  borderRadius: 8, fontSize: 13, fontWeight: 600,
-                  color: '#8B5CF6', cursor: 'pointer',
+                  borderRadius: 12, fontSize: 13, fontWeight: 600,
+                  color: 'var(--accent-2)', cursor: 'pointer',
                   textDecoration: 'none',
                   transition: 'background 0.15s, border-color 0.15s',
                 }}
                 onMouseEnter={(e) => {
                   (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(139,92,246,0.18)'
-                  ;(e.currentTarget as HTMLAnchorElement).style.borderColor = '#8B5CF6'
+                  ;(e.currentTarget as HTMLAnchorElement).style.borderColor = 'var(--accent-2)'
                 }}
                 onMouseLeave={(e) => {
                   (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(139,92,246,0.1)'
@@ -285,7 +285,7 @@ export default function ApplicationDetailsPage() {
                 width: '100%', height: 36,
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                 background: 'var(--accent)', border: 'none',
-                borderRadius: 8, fontSize: 13, fontWeight: 600,
+                borderRadius: 12, fontSize: 13, fontWeight: 600,
                 color: '#fff', cursor: 'pointer',
                 textDecoration: 'none',
               }}
@@ -296,7 +296,7 @@ export default function ApplicationDetailsPage() {
 
             <button
               onClick={() => router.push('/student/applications')}
-              style={{ width: '100%', height: 36, background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+              style={{ width: '100%', height: 36, background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 12, fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
             >
               <ChevronLeft size={14} /> Back to All Applications
             </button>

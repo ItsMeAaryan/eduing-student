@@ -18,12 +18,12 @@ interface AIWorkspaceLayoutProps {
 }
 
 const THEME_COLORS: Record<AIThemeColor, { hex: string; bg: string; text: string; border: string }> = {
-  indigo: { hex: '#4F6BFF', bg: 'bg-primary/10', text: 'text-[#4F6BFF]', border: 'border-[#C7D2FE]' },
-  emerald: { hex: '#10B981', bg: 'bg-[#ECFDF5]', text: 'text-[#10B981]', border: 'border-[#A7F3D0]' },
-  amber: { hex: '#F59E0B', bg: 'bg-[#FFFBEB]', text: 'text-[#F59E0B]', border: 'border-[#FDE68A]' },
-  rose: { hex: '#F43F5E', bg: 'bg-[#FFF1F2]', text: 'text-[#F43F5E]', border: 'border-[#FECDD3]' },
+  indigo: { hex: 'var(--accent)', bg: 'bg-primary/10', text: 'text-[var(--accent)]', border: 'border-[var(--accent-border)]' },
+  emerald: { hex: 'var(--green)', bg: 'bg-[#ECFDF5]', text: 'text-[var(--green)]', border: 'border-[#A7F3D0]' },
+  amber: { hex: 'var(--gold)', bg: 'bg-[var(--gold-bg)]', text: 'text-[var(--gold)]', border: 'border-[color-mix(in_srgb,_var(--gold-bright)_40%,_transparent)]' },
+  rose: { hex: 'var(--red)', bg: 'bg-[color-mix(in_srgb,_var(--red)_8%,_transparent)]', text: 'text-[var(--red)]', border: 'border-[color-mix(in_srgb,_var(--red)_25%,_transparent)]' },
   cyan: { hex: '#06B6D4', bg: 'bg-[#ECFEFF]', text: 'text-[#06B6D4]', border: 'border-[#A5F3FC]' },
-  purple: { hex: '#8B5CF6', bg: 'bg-[#F5F3FF]', text: 'text-[#8B5CF6]', border: 'border-[#DDD6FE]' },
+  purple: { hex: 'var(--accent-2)', bg: 'bg-[var(--accent-bg)]', text: 'text-[var(--accent-2)]', border: 'border-[var(--accent-border)]' },
 };
 
 /**
@@ -47,7 +47,7 @@ export function AIWorkspaceLayout({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {/* Icon */}
-          <div className={`w-10 h-10 ${theme.bg} ${theme.border} border rounded-[12px] flex items-center justify-center ${theme.text} shrink-0`}>
+          <div className={`w-10 h-10 ${theme.bg} ${theme.border} border rounded-[18px] flex items-center justify-center ${theme.text} shrink-0`}>
             {icon}
           </div>
 

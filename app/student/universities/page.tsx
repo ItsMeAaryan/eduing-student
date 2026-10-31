@@ -60,7 +60,7 @@ function DiscoveryHeader({ uniCount, progCount, viewMode, setViewMode }: {
   uniCount: number; progCount: number; viewMode: 'universities' | 'programs'; setViewMode: (v: 'universities' | 'programs') => void
 }) {
   return (
-    <div className="bg-card border border-border rounded-[12px] p-[16px] md:p-[20px] shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex flex-col md:flex-row md:items-center justify-between gap-[16px]">
+    <div className="bg-card border border-border rounded-[18px] p-[16px] md:p-[20px] shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex flex-col md:flex-row md:items-center justify-between gap-[16px]">
       <div>
         <div className="flex items-center gap-[8px] mb-[2px]">
           <span className="text-[11px] font-bold text-primary uppercase tracking-wider">EDUING Marketplace Discovery</span>
@@ -74,10 +74,10 @@ function DiscoveryHeader({ uniCount, progCount, viewMode, setViewMode }: {
 
       <div className="flex items-center gap-[12px] shrink-0">
         {/* Toggle View Mode */}
-        <div className="bg-muted border border-border p-[3px] rounded-[10px] flex items-center gap-[2px]">
+        <div className="bg-muted border border-border p-[3px] rounded-[14px] flex items-center gap-[2px]">
           <button
             onClick={() => setViewMode('universities')}
-            className={`flex items-center gap-[6px] px-[12px] py-[6px] rounded-[8px] text-[12px] font-semibold transition-all ${
+            className={`flex items-center gap-[6px] px-[12px] py-[6px] rounded-[12px] text-[12px] font-semibold transition-all ${
               viewMode === 'universities' ? 'bg-card text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -86,7 +86,7 @@ function DiscoveryHeader({ uniCount, progCount, viewMode, setViewMode }: {
           </button>
           <button
             onClick={() => setViewMode('programs')}
-            className={`flex items-center gap-[6px] px-[12px] py-[6px] rounded-[8px] text-[12px] font-semibold transition-all ${
+            className={`flex items-center gap-[6px] px-[12px] py-[6px] rounded-[12px] text-[12px] font-semibold transition-all ${
               viewMode === 'programs' ? 'bg-card text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -101,7 +101,7 @@ function DiscoveryHeader({ uniCount, progCount, viewMode, setViewMode }: {
 
 /** Deterministic color from name */
 function logoColorFromName(name: string) {
-  const palette = ['#0075de','#1aae39','#dd5b00','#8B5CF6','#2a9d99','#62aef0','#EC4899','#F97316']
+  const palette = ['var(--accent)','#1aae39','#dd5b00','var(--accent-2)','#2a9d99','#62aef0','#EC4899','#F97316']
   let hash = 0
   for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
   return palette[Math.abs(hash) % palette.length]
@@ -142,7 +142,7 @@ const UniCard = React.memo(function UniCard({ uni, onShortlist, shortlisted, onC
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: Math.min(index * 0.03, 0.25), duration: 0.25 }}
-        className={`bg-[#0F172A] rounded-[14px] border overflow-hidden flex flex-col h-full w-full transition-all duration-300 relative ${
+        className={`bg-[#0F172A] rounded-[20px] border overflow-hidden flex flex-col h-full w-full transition-all duration-300 relative ${
           isCompared ? 'border-primary ring-2 ring-primary/30' : 'border-border'
         }`}
         style={{
@@ -248,7 +248,7 @@ const UniCard = React.memo(function UniCard({ uni, onShortlist, shortlisted, onC
                 <Link
                   href={`/student/universities/${uni.id}`}
                   onClick={(e) => e.stopPropagation()}
-                  className="bg-primary hover:bg-primary/90 text-white text-[12px] font-semibold h-[34px] flex-1 rounded-[8px] inline-flex items-center justify-center gap-[4px] transition-all active:scale-[0.98] shadow-md"
+                  className="bg-primary hover:bg-primary/90 text-white text-[12px] font-semibold h-[34px] flex-1 rounded-[12px] inline-flex items-center justify-center gap-[4px] transition-all active:scale-[0.98] shadow-md"
                 >
                   View Details
                   <ArrowUpRight size={13} />
@@ -256,7 +256,7 @@ const UniCard = React.memo(function UniCard({ uni, onShortlist, shortlisted, onC
 
                 <button
                   onClick={(e) => { e.stopPropagation(); onCompare(uni.id) }}
-                  className={`h-[34px] px-[12px] rounded-[8px] border text-[12px] font-medium backdrop-blur-md transition-all ${
+                  className={`h-[34px] px-[12px] rounded-[12px] border text-[12px] font-medium backdrop-blur-md transition-all ${
                     isCompared
                       ? 'bg-primary/30 border-primary text-white'
                       : 'bg-card/15 border-white/30 text-white hover:bg-card/25'
@@ -286,7 +286,7 @@ function ProgramCard({ item, index }: { item: { program: any; university: Univer
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: Math.min(index * 0.03, 0.25), duration: 0.25 }}
       onClick={() => router.push(`/student/universities/${university.id}`)}
-      className="bg-card border border-border rounded-[14px] p-[18px] flex flex-col justify-between gap-[14px] hover:border-primary/50 hover:shadow-md transition-all cursor-pointer group"
+      className="bg-card border border-border rounded-[20px] p-[18px] flex flex-col justify-between gap-[14px] hover:border-primary/50 hover:shadow-md transition-all cursor-pointer group"
     >
       <div>
         {/* Level badge + Stream */}
@@ -329,7 +329,7 @@ function ProgramCard({ item, index }: { item: { program: any; university: Univer
             {program.annualFee ? `₹${(program.annualFee / 100000).toFixed(1)}L/yr` : program.fees || 'Check Details'}
           </span>
         </div>
-        <button className="px-[12px] h-[32px] rounded-[8px] bg-secondary hover:bg-primary hover:text-white text-foreground text-[12px] font-semibold transition-all flex items-center gap-[4px]">
+        <button className="px-[12px] h-[32px] rounded-[12px] bg-secondary hover:bg-primary hover:text-white text-foreground text-[12px] font-semibold transition-all flex items-center gap-[4px]">
           Explore
           <ArrowUpRight size={13} />
         </button>
@@ -417,7 +417,7 @@ function CompareTray({ ids, unis, onRemove, onClear, onOpenCompare }: {
                         className="group flex items-center gap-2 pl-1 pr-2.5 shrink-0"
                         style={{
                           height: '36px',
-                          borderRadius: '18px',
+                          borderRadius: '24px',
                           background: 'rgba(255,255,255,0.04)',
                           border: '1px solid rgba(255,255,255,0.09)',
                           cursor: 'default',
@@ -425,7 +425,7 @@ function CompareTray({ ids, unis, onRemove, onClear, onOpenCompare }: {
                       >
                         <div
                           className="w-[26px] h-[26px] rounded-full flex items-center justify-center text-white text-[10px] font-black shrink-0"
-                          style={{ background: `linear-gradient(135deg, ${color}, ${color}99)` }}
+                          style={{ background: `linear-gradient(135deg, ${color}, color-mix(in srgb, ${color} 60%, transparent))` }}
                         >
                           {(u.shortName || u.name).charAt(0)}
                         </div>
@@ -473,7 +473,7 @@ function CompareTray({ ids, unis, onRemove, onClear, onOpenCompare }: {
                           transition={{ type: 'spring', stiffness: 520, damping: 28 }}
                           className="absolute bottom-full mb-3 left-0 min-w-[240px] max-h-[280px] overflow-y-auto hide-scrollbar z-50"
                           style={{
-                            borderRadius: '20px',
+                            borderRadius: '26px',
                             background: 'rgba(18,22,30,0.97)',
                             border: '1px solid rgba(255,255,255,0.1)',
                             boxShadow: '0 20px 60px rgba(0,0,0,0.5), 0 4px 16px rgba(0,0,0,0.3)',
@@ -492,12 +492,12 @@ function CompareTray({ ids, unis, onRemove, onClear, onOpenCompare }: {
                             return (
                               <div
                                 key={u.id}
-                                className="flex items-center justify-between p-2.5 rounded-[14px] hover:bg-white/10 transition-colors group cursor-default"
+                                className="flex items-center justify-between p-2.5 rounded-[20px] hover:bg-white/10 transition-colors group cursor-default"
                               >
                                 <div className="flex items-center gap-3 min-w-0">
                                   <div
                                     className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-black shrink-0"
-                                    style={{ background: `linear-gradient(135deg, ${color}, ${color}99)` }}
+                                    style={{ background: `linear-gradient(135deg, ${color}, color-mix(in srgb, ${color} 60%, transparent))` }}
                                   >
                                     {(u.shortName || u.name).charAt(0)}
                                   </div>
@@ -607,7 +607,7 @@ export default function UniversitiesPage() {
   const [viewMode, setViewMode] = useState<'universities' | 'programs'>('universities')
   const [activeTab, setActiveTab] = useState('All')
   const [degreeLevel, setDegreeLevel] = useState('All Levels')
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(() => searchParams.get('q') ?? '')
   const [sortBy, setSortBy] = useState('NIRF Rank')
   const [shortlisted, setShortlisted] = useState<Set<string>>(new Set())
   const [compareList, setCompareList] = useState<string[]>([])
@@ -623,6 +623,8 @@ export default function UniversitiesPage() {
   // Sync if param changes (e.g. browser back/forward)
   useEffect(() => {
     setCareerFilter(searchParams.get('career'))
+    const q = searchParams.get('q')
+    if (q !== null) setSearch(q)
   }, [searchParams])
 
   const toggleShortlist = (id: string) => setShortlisted(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
@@ -736,7 +738,7 @@ export default function UniversitiesPage() {
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="flex items-center justify-between gap-[12px] px-[16px] py-[10px] rounded-[10px] bg-amber-50 border border-amber-200"
+            className="flex items-center justify-between gap-[12px] px-[16px] py-[10px] rounded-[14px] bg-amber-50 border border-amber-200"
           >
             <div className="flex items-center gap-[8px]">
               <span className="w-[7px] h-[7px] rounded-full bg-amber-400 animate-pulse shrink-0" />
@@ -765,7 +767,7 @@ export default function UniversitiesPage() {
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder={viewMode === 'universities' ? "Search universities, locations..." : "Search programs, degrees, universities..."}
-                className="w-full h-[40px] pl-[40px] pr-[40px] bg-card border border-border rounded-[10px] text-[13.5px] placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
+                className="w-full h-[40px] pl-[40px] pr-[40px] bg-card border border-border rounded-[14px] text-[13.5px] placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
               />
               <button className="absolute right-[12px] top-1/2 -translate-y-1/2 text-muted-foreground hover:text-muted-foreground">
                 <Mic size={14} />
@@ -775,7 +777,7 @@ export default function UniversitiesPage() {
             {/* Filter toggle */}
             <button
               onClick={() => setShowFilters(v => !v)}
-              className={`flex items-center gap-[6px] px-[14px] h-[40px] rounded-[10px] border text-[13px] font-medium transition-colors ${
+              className={`flex items-center gap-[6px] px-[14px] h-[40px] rounded-[14px] border text-[13px] font-medium transition-colors ${
                 showFilters ? 'bg-foreground text-white border-foreground' : 'bg-card text-foreground border-border hover:bg-muted'
               }`}
             >
@@ -790,7 +792,7 @@ export default function UniversitiesPage() {
                 <select
                   value={sortBy}
                   onChange={e => setSortBy(e.target.value)}
-                  className="appearance-none h-[40px] pl-[14px] pr-[32px] bg-card border border-border rounded-[10px] text-[13px] font-medium text-foreground focus:outline-none focus:border-primary cursor-pointer"
+                  className="appearance-none h-[40px] pl-[14px] pr-[32px] bg-card border border-border rounded-[14px] text-[13px] font-medium text-foreground focus:outline-none focus:border-primary cursor-pointer"
                 >
                   {SORT_OPTIONS_LOCAL.map(s => <option key={s}>{s}</option>)}
                 </select>
@@ -808,7 +810,7 @@ export default function UniversitiesPage() {
                 exit={{ opacity: 0, height: 0 }}
                 className="overflow-hidden"
               >
-                <div className="bg-card border border-border rounded-[12px] p-[16px] flex flex-wrap gap-[12px] items-center">
+                <div className="bg-card border border-border rounded-[18px] p-[16px] flex flex-wrap gap-[12px] items-center">
                   <div className="flex items-center gap-[6px]">
                     <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Type:</span>
                     {(['All Types','Public','Private','Deemed'] as const).map(t => (
@@ -892,7 +894,7 @@ export default function UniversitiesPage() {
               animate={{ opacity: 1 }}
               className="flex flex-col items-center justify-center py-[60px] gap-[16px]"
             >
-              <div className="w-[64px] h-[64px] rounded-[20px] bg-primary/10 flex items-center justify-center">
+              <div className="w-[64px] h-[64px] rounded-[26px] bg-primary/10 flex items-center justify-center">
                 <Building2 size={28} className="text-primary" />
               </div>
               <div className="text-center">
@@ -901,7 +903,7 @@ export default function UniversitiesPage() {
               </div>
               <button
                 onClick={() => { setSearch(''); setActiveTab('All'); setTypeFilter('All Types') }}
-                className="px-[16px] h-[36px] rounded-[8px] bg-primary text-white text-[13px] font-semibold hover:bg-primary/90 transition-colors"
+                className="px-[16px] h-[36px] rounded-[12px] bg-primary text-white text-[13px] font-semibold hover:bg-primary/90 transition-colors"
               >
                 Clear Filters
               </button>
@@ -931,7 +933,7 @@ export default function UniversitiesPage() {
               animate={{ opacity: 1 }}
               className="flex flex-col items-center justify-center py-[60px] gap-[16px]"
             >
-              <div className="w-[64px] h-[64px] rounded-[20px] bg-primary/10 flex items-center justify-center">
+              <div className="w-[64px] h-[64px] rounded-[26px] bg-primary/10 flex items-center justify-center">
                 <GraduationCap size={28} className="text-primary" />
               </div>
               <div className="text-center">
@@ -940,7 +942,7 @@ export default function UniversitiesPage() {
               </div>
               <button
                 onClick={() => { setSearch(''); setActiveTab('All'); setDegreeLevel('All Levels'); setTypeFilter('All Types') }}
-                className="px-[16px] h-[36px] rounded-[8px] bg-primary text-white text-[13px] font-semibold hover:bg-primary/90 transition-colors"
+                className="px-[16px] h-[36px] rounded-[12px] bg-primary text-white text-[13px] font-semibold hover:bg-primary/90 transition-colors"
               >
                 Clear Filters
               </button>

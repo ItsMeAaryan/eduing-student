@@ -32,14 +32,14 @@ const TABS = ['General', 'Appearance', 'Notifications', 'Security', 'AI Preferen
 const CARD: React.CSSProperties = {
   background: 'var(--bg-card)',
   border: '1px solid var(--border)',
-  borderRadius: 10,
+  borderRadius: 14,
   boxShadow: '0 0.175px 1px rgba(0,0,0,0.015), 0 0.8px 2.9px rgba(0,0,0,0.022), 0 2px 7.8px rgba(0,0,0,0.027)',
   overflow: 'hidden',
 }
 
 const DANGER_CARD: React.CSSProperties = {
   border: '1px solid rgba(220,38,38,0.25)',
-  borderRadius: 10,
+  borderRadius: 14,
   overflow: 'hidden',
   background: 'var(--bg-card)',
 }
@@ -81,11 +81,11 @@ function Row({
             border: `1px solid ${danger ? 'rgba(220,38,38,0.2)' : 'var(--accent-border)'}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
           }}>
-            <Icon size={14} style={{ color: danger ? 'var(--red,#ef4444)' : 'var(--accent)' }} strokeWidth={1.8} />
+            <Icon size={14} style={{ color: danger ? 'var(--red,var(--red))' : 'var(--accent)' }} strokeWidth={1.8} />
           </div>
         )}
         <div>
-          <p style={{ fontSize: 14, fontWeight: 500, color: danger ? 'var(--red,#ef4444)' : 'var(--text-primary)', margin: 0 }}>{title}</p>
+          <p style={{ fontSize: 14, fontWeight: 500, color: danger ? 'var(--red,var(--red))' : 'var(--text-primary)', margin: 0 }}>{title}</p>
           <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '2px 0 0' }}>{sub}</p>
         </div>
       </div>
@@ -94,10 +94,10 @@ function Row({
           onClick={onClick}
           style={{
             height: 30, padding: '0 12px',
-            fontSize: 12, fontWeight: 500, borderRadius: 6, cursor: 'pointer',
+            fontSize: 12, fontWeight: 500, borderRadius: 10, cursor: 'pointer',
             border: danger ? '1px solid rgba(220,38,38,0.3)' : '1px solid var(--border)',
             background: danger ? 'rgba(220,38,38,0.07)' : 'var(--bg-elevated)',
-            color: danger ? 'var(--red,#ef4444)' : 'var(--text-secondary)',
+            color: danger ? 'var(--red,var(--red))' : 'var(--text-secondary)',
             transition: 'border-color 0.15s',
           }}
         >
@@ -134,7 +134,7 @@ function Toggle({ title, sub, defaultOn = false }: { title: string; sub: string;
       >
         <div style={{
           width: 18, height: 18, borderRadius: '50%',
-          background: 'white',
+          background: 'var(--bg-card)',
           transform: on ? 'translateX(18px)' : 'translateX(0)',
           transition: 'transform 0.2s',
           boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
@@ -184,7 +184,7 @@ function EditableRow({
             onClick={() => { setDraft(value); setEditing(true) }}
             style={{
               height: 30, padding: '0 12px', fontSize: 12, fontWeight: 500,
-              borderRadius: 6, cursor: 'pointer', border: '1px solid var(--border)',
+              borderRadius: 10, cursor: 'pointer', border: '1px solid var(--border)',
               background: 'var(--bg-elevated)', color: 'var(--text-secondary)',
             }}
           >Edit</button>
@@ -253,7 +253,7 @@ function SelectRow({ title, sub, icon: Icon, value, options, onChange }: {
         onChange={e => onChange(e.target.value)}
         style={{
           height: 30, padding: '0 8px', fontSize: 12, fontWeight: 500,
-          borderRadius: 6, cursor: 'pointer', border: '1px solid var(--border)',
+          borderRadius: 10, cursor: 'pointer', border: '1px solid var(--border)',
           background: 'var(--bg-elevated)', color: 'var(--text-secondary)',
           outline: 'none',
         }}
@@ -332,13 +332,13 @@ function PasswordSection() {
         </div>
         <button
           onClick={() => setOpen(v => !v)}
-          style={{ height: 30, padding: '0 12px', fontSize: 12, fontWeight: 500, borderRadius: 6, cursor: 'pointer', border: '1px solid var(--border)', background: 'var(--bg-elevated)', color: 'var(--text-secondary)' }}
+          style={{ height: 30, padding: '0 12px', fontSize: 12, fontWeight: 500, borderRadius: 10, cursor: 'pointer', border: '1px solid var(--border)', background: 'var(--bg-elevated)', color: 'var(--text-secondary)' }}
         >
           {open ? 'Cancel' : 'Update'}
         </button>
       </div>
       {open && (
-        <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 10, padding: 16, background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8 }}>
+        <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 10, padding: 16, background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 12 }}>
           {pwInput('Current Password', currentPw, setCurrentPw, showCurrent, () => setShowCurrent(v => !v))}
           {pwInput('New Password', newPw, setNewPw, showNew, () => setShowNew(v => !v))}
           <div>
@@ -403,13 +403,13 @@ function ChangeEmailSection({ currentEmail }: { currentEmail: string }) {
         </div>
         <button
           onClick={() => setOpen(v => !v)}
-          style={{ height: 30, padding: '0 12px', fontSize: 12, fontWeight: 500, borderRadius: 6, cursor: 'pointer', border: '1px solid var(--border)', background: 'var(--bg-elevated)', color: 'var(--text-secondary)' }}
+          style={{ height: 30, padding: '0 12px', fontSize: 12, fontWeight: 500, borderRadius: 10, cursor: 'pointer', border: '1px solid var(--border)', background: 'var(--bg-elevated)', color: 'var(--text-secondary)' }}
         >
           {open ? 'Cancel' : 'Change'}
         </button>
       </div>
       {open && (
-        <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 10, padding: 16, background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8 }}>
+        <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 10, padding: 16, background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 12 }}>
           <div>
             <label htmlFor="newEmail" style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>New Email Address</label>
             <input id="newEmail" type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="your@email.com" style={inputStyle} />
@@ -439,9 +439,9 @@ function DeleteModal({ onClose, onConfirm }: { onClose: () => void; onConfirm: (
   const handle = async () => { setWorking(true); try { await onConfirm(pw) } finally { setWorking(false) } }
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, width: '100%', maxWidth: 400, padding: 28, boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 20, width: '100%', maxWidth: 400, padding: 28, boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-          <AlertCircle size={20} style={{ color: '#ef4444', flexShrink: 0 }} />
+          <AlertCircle size={20} style={{ color: 'var(--red)', flexShrink: 0 }} />
           <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>Delete Account</p>
           <button onClick={onClose} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex' }}><X size={16} /></button>
         </div>
@@ -453,11 +453,11 @@ function DeleteModal({ onClose, onConfirm }: { onClose: () => void; onConfirm: (
           <button
             onClick={handle}
             disabled={working || !pw}
-            style={{ flex: 1, height: 38, fontSize: 13, fontWeight: 700, borderRadius: 8, border: 'none', cursor: working || !pw ? 'not-allowed' : 'pointer', background: '#ef4444', color: '#fff', opacity: working || !pw ? 0.5 : 1 }}
+            style={{ flex: 1, height: 38, fontSize: 13, fontWeight: 700, borderRadius: 12, border: 'none', cursor: working || !pw ? 'not-allowed' : 'pointer', background: 'var(--red)', color: '#fff', opacity: working || !pw ? 0.5 : 1 }}
           >
             {working ? 'Deleting…' : 'Delete My Account'}
           </button>
-          <button onClick={onClose} style={{ flex: 1, height: 38, fontSize: 13, fontWeight: 500, borderRadius: 8, border: '1px solid var(--border)', cursor: 'pointer', background: 'var(--bg-elevated)', color: 'var(--text-secondary)' }}>Cancel</button>
+          <button onClick={onClose} style={{ flex: 1, height: 38, fontSize: 13, fontWeight: 500, borderRadius: 12, border: '1px solid var(--border)', cursor: 'pointer', background: 'var(--bg-elevated)', color: 'var(--text-secondary)' }}>Cancel</button>
         </div>
       </div>
     </div>
@@ -625,14 +625,14 @@ export default function SettingsPage() {
                       key={opt.key}
                       onClick={() => setTheme(opt.key)}
                       style={{
-                        padding: '14px 12px', borderRadius: 10,
+                        padding: '14px 12px', borderRadius: 14,
                         border: active ? '1px solid var(--accent-border)' : '1px solid var(--border)',
                         background: active ? 'var(--accent-bg)' : 'var(--bg)',
                         cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s', outline: 'none',
                       }}
                     >
                       <div style={{
-                        width: 30, height: 30, borderRadius: 8, marginBottom: 10,
+                        width: 30, height: 30, borderRadius: 12, marginBottom: 10,
                         background: active ? 'var(--accent-bg)' : 'var(--bg-elevated)',
                         border: active ? '1px solid var(--accent-border)' : '1px solid var(--border)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -652,7 +652,7 @@ export default function SettingsPage() {
               <SectionHeader title="Accent Color" />
               <div style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 16 }}>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  {['#0075DE', '#1AAE39', '#D97706', '#8B5CF6', '#2a9d99'].map((c, i) => (
+                  {['var(--accent)', '#1AAE39', 'var(--gold)', 'var(--accent-2)', '#2a9d99'].map((c, i) => (
                     <div key={i} style={{
                       width: 26, height: 26, borderRadius: '50%', background: c,
                       border: i === 0 ? '2px solid var(--text-primary)' : '2px solid transparent',
@@ -710,7 +710,7 @@ export default function SettingsPage() {
               <SectionHeader title="Active Sessions" sub="Devices currently signed in to your account." />
               <div style={{ padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ width: 34, height: 34, borderRadius: 8, background: 'var(--bg)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: 34, height: 34, borderRadius: 12, background: 'var(--bg)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {session.deviceType === 'Mobile' ? <Smartphone size={16} style={{ color: 'var(--text-muted)' }} strokeWidth={1.5} /> : <Monitor size={16} style={{ color: 'var(--text-muted)' }} strokeWidth={1.5} />}
                   </div>
                   <div>
@@ -734,8 +734,8 @@ export default function SettingsPage() {
             {/* Danger Zone */}
             <div style={DANGER_CARD}>
               <div style={{ padding: '12px 20px', background: 'rgba(239,68,68,0.04)', borderBottom: '1px solid rgba(239,68,68,0.2)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <AlertCircle size={14} style={{ color: '#ef4444' }} strokeWidth={2} />
-                <span style={{ fontSize: 13, fontWeight: 600, color: '#ef4444' }}>Danger Zone</span>
+                <AlertCircle size={14} style={{ color: 'var(--red)' }} strokeWidth={2} />
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--red)' }}>Danger Zone</span>
               </div>
 
               {/* Logout */}
@@ -747,7 +747,7 @@ export default function SettingsPage() {
                 <button
                   id="settings-logout-btn"
                   onClick={handleLogout}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 7, background: '#ef4444', color: '#fff', border: 'none', cursor: 'pointer' }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 7, background: 'var(--red)', color: '#fff', border: 'none', cursor: 'pointer' }}
                 >
                   <LogOut size={14} /> Logout
                 </button>
@@ -762,7 +762,7 @@ export default function SettingsPage() {
                 <button
                   id="settings-delete-account-btn"
                   onClick={() => setShowDeleteModal(true)}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 7, background: 'transparent', border: '1px solid rgba(239,68,68,0.4)', color: '#ef4444', cursor: 'pointer' }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 7, background: 'transparent', border: '1px solid rgba(239,68,68,0.4)', color: 'var(--red)', cursor: 'pointer' }}
                 >
                   <Trash2 size={14} /> Delete Account
                 </button>
@@ -782,7 +782,7 @@ export default function SettingsPage() {
             <Toggle title="Interview Coaching" sub="Personalised question sets from your academic profile." defaultOn />
             <div style={{ padding: '14px 20px' }}>
               <button style={{
-                height: 34, padding: '0 14px', fontSize: 13, fontWeight: 500, borderRadius: 8, cursor: 'pointer',
+                height: 34, padding: '0 14px', fontSize: 13, fontWeight: 500, borderRadius: 12, cursor: 'pointer',
                 border: '1px solid rgba(220,38,38,0.3)', background: 'rgba(220,38,38,0.07)', color: 'var(--red)',
               }}>
                 Clear AI Cache &amp; Recommendations

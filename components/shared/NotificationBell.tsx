@@ -139,7 +139,7 @@ export default function NotificationBell() {
                       role="button"
                       tabIndex={0}
                       onKeyDown={(e) => { if (!notif.isRead && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); handleMarkAsRead(notif.id); } }}
-                      className={`mb-2 p-4 rounded-xl border transition-colors cursor-pointer relative overflow-hidden group ${
+                      className={`mb-2 p-4 rounded-2xl border transition-colors cursor-pointer relative overflow-hidden group ${
                         notif.isRead 
                           ? "bg-transparent border-transparent hover:bg-card/5" 
                           : "bg-card/[0.04] border-white/10 hover:border-white/20"

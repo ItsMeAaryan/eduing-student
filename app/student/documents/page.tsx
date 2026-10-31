@@ -18,10 +18,10 @@ import { EmptyState } from '@/components/ui/EmptyState'
 /* =========================================================================
    STYLING CONSTANTS (STRICTLY FROM DESIGN.md)
    ========================================================================= */
-const CARD_STYLE = "bg-card border border-border rounded-[12px] p-[20px] md:p-[24px] shadow-[0_1px_3px_rgba(0,0,0,0.03)] transition-all duration-200"
-const BUTTON_PRIMARY = "bg-primary hover:bg-primary/90 text-white font-medium px-[16px] h-[36px] rounded-[8px] text-[13px] inline-flex items-center gap-[6px] transition-all active:scale-[0.98] shadow-sm cursor-pointer select-none"
-const BUTTON_SECONDARY = "bg-card hover:bg-muted text-foreground border border-border font-medium px-[14px] h-[36px] rounded-[8px] text-[13px] inline-flex items-center gap-[6px] transition-all active:scale-[0.98] cursor-pointer select-none"
-const BUTTON_UTILITY = "bg-card hover:bg-muted text-muted-foreground border border-border font-medium px-[12px] h-[30px] rounded-[8px] text-[12px] inline-flex items-center gap-[4px] transition-colors cursor-pointer"
+const CARD_STYLE = "bg-card border border-border rounded-[18px] p-[20px] md:p-[24px] shadow-[0_1px_3px_rgba(0,0,0,0.03)] transition-all duration-200"
+const BUTTON_PRIMARY = "bg-primary hover:bg-primary/90 text-white font-medium px-[16px] h-[36px] rounded-[12px] text-[13px] inline-flex items-center gap-[6px] transition-all active:scale-[0.98] shadow-sm cursor-pointer select-none"
+const BUTTON_SECONDARY = "bg-card hover:bg-muted text-foreground border border-border font-medium px-[14px] h-[36px] rounded-[12px] text-[13px] inline-flex items-center gap-[6px] transition-all active:scale-[0.98] cursor-pointer select-none"
+const BUTTON_UTILITY = "bg-card hover:bg-muted text-muted-foreground border border-border font-medium px-[12px] h-[30px] rounded-[12px] text-[12px] inline-flex items-center gap-[4px] transition-colors cursor-pointer"
 
 const STICKER_TEAL = "bg-[#2a9d99]/10 text-[#1e6b68] border border-[#2a9d99]/20"
 const STICKER_PURPLE = "bg-[#d6b6f6]/20 text-[#391c57] border border-[#d6b6f6]/40"
@@ -111,7 +111,7 @@ function DocumentHealthOverview({ verified, pending, missing, total, uploadedCou
             <svg className="w-full h-full transform -rotate-90">
               <circle cx="48" cy="48" r="40" stroke="#F3F4F6" strokeWidth="8" fill="transparent" />
               <circle
-                cx="48" cy="48" r="40" stroke="#0075de" strokeWidth="8" fill="transparent"
+                cx="48" cy="48" r="40" stroke="var(--accent)" strokeWidth="8" fill="transparent"
                 strokeDasharray="251.2"
                 strokeDashoffset={251.2 - (251.2 * readiness) / 100}
                 strokeLinecap="round"
@@ -149,15 +149,15 @@ function DocumentHealthOverview({ verified, pending, missing, total, uploadedCou
         {/* Right Stats Breakdown & Primary CTA */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-[16px] shrink-0 border-t lg:border-t-0 lg:border-l border-border pt-[16px] lg:pt-0 lg:pl-[24px]">
           <div className="grid grid-cols-3 gap-[16px] text-center">
-            <div className="bg-muted border border-border p-[10px] rounded-[10px] min-w-[80px]">
+            <div className="bg-muted border border-border p-[10px] rounded-[14px] min-w-[80px]">
               <p className="text-[18px] font-extrabold text-success leading-none">{verified}</p>
               <p className="text-[10px] font-semibold text-muted-foreground mt-[2px]">Verified</p>
             </div>
-            <div className="bg-muted border border-border p-[10px] rounded-[10px] min-w-[80px]">
+            <div className="bg-muted border border-border p-[10px] rounded-[14px] min-w-[80px]">
               <p className="text-[18px] font-extrabold text-[#dd5b00] leading-none">{pending}</p>
               <p className="text-[10px] font-semibold text-muted-foreground mt-[2px]">Pending</p>
             </div>
-            <div className="bg-muted border border-border p-[10px] rounded-[10px] min-w-[80px]">
+            <div className="bg-muted border border-border p-[10px] rounded-[14px] min-w-[80px]">
               <p className="text-[18px] font-extrabold text-destructive leading-none">{missing}</p>
               <p className="text-[10px] font-semibold text-muted-foreground mt-[2px]">Missing</p>
             </div>
@@ -235,7 +235,7 @@ function DocumentActionCenter({ docs, onUploadClick }: { docs: Doc[]; onUploadCl
         {actions.slice(0, 3).map((act, i) => {
           const IconComp = act.icon
           return (
-            <div key={i} className="p-[14px] bg-card border border-border rounded-[10px] flex flex-col justify-between gap-[12px] hover:border-primary/30 transition-all">
+            <div key={i} className="p-[14px] bg-card border border-border rounded-[14px] flex flex-col justify-between gap-[12px] hover:border-primary/30 transition-all">
               <div>
                 <div className="flex items-center justify-between mb-[6px]">
                   <span className={`text-[10px] font-bold px-[8px] py-[2px] rounded-full ${act.tagColor}`}>
@@ -338,14 +338,14 @@ function PremiumUploadWorkspace({ onFileSelect }: { onFileSelect: (files: FileLi
         onDragOver={handleDrag}
         onDrop={handleDrop}
         onClick={() => uploadInputRef.current?.click()}
-        className={`border-2 border-dashed rounded-[12px] p-[28px] flex flex-col items-center justify-center text-center cursor-pointer transition-all ${dragActive
+        className={`border-2 border-dashed rounded-[18px] p-[28px] flex flex-col items-center justify-center text-center cursor-pointer transition-all ${dragActive
           ? 'border-primary bg-[#62aef0]/10 scale-[0.99]'
           : 'border-border bg-muted hover:border-primary hover:bg-primary/10/40'
           }`}
       >
         <motion.div
           whileHover={{ scale: 1.08 }}
-          className="w-[52px] h-[52px] rounded-[14px] bg-primary/10 border border-border flex items-center justify-center text-primary mb-[12px] shadow-xs"
+          className="w-[52px] h-[52px] rounded-[20px] bg-primary/10 border border-border flex items-center justify-center text-primary mb-[12px] shadow-xs"
         >
           <Upload size={24} strokeWidth={2} />
         </motion.div>
@@ -367,7 +367,7 @@ function PremiumUploadWorkspace({ onFileSelect }: { onFileSelect: (files: FileLi
         </div>
 
         {uploading && (
-          <div className="w-full max-w-[360px] mt-[16px] p-[10px] bg-card border border-border rounded-[8px]">
+          <div className="w-full max-w-[360px] mt-[16px] p-[10px] bg-card border border-border rounded-[12px]">
             <div className="flex items-center justify-between text-[11px] font-semibold mb-[4px]">
               <span className="text-foreground">Uploading document...</span>
               <span className="text-primary">{progress}%</span>
@@ -413,7 +413,7 @@ function RecentDocumentsVault({ docs, onSelectDoc }: { docs: Doc[]; onSelectDoc:
               placeholder="Search files..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full h-[32px] pl-[30px] pr-[10px] bg-muted border border-border rounded-[8px] text-[12.5px] focus:outline-none focus:border-primary"
+              className="w-full h-[32px] pl-[30px] pr-[10px] bg-muted border border-border rounded-[12px] text-[12.5px] focus:outline-none focus:border-primary"
             />
           </div>
         </div>
@@ -425,7 +425,7 @@ function RecentDocumentsVault({ docs, onSelectDoc }: { docs: Doc[]; onSelectDoc:
       </div>
 
       {/* File Table */}
-      <div className="overflow-x-auto border border-border rounded-[10px]">
+      <div className="overflow-x-auto border border-border rounded-[14px]">
         <table className="w-full text-left">
           <thead>
             <tr className="bg-muted border-b border-border">
@@ -457,7 +457,7 @@ function RecentDocumentsVault({ docs, onSelectDoc }: { docs: Doc[]; onSelectDoc:
                 >
                   <td className="px-[16px] py-[12px]">
                     <div className="flex items-center gap-[10px]">
-                      <div className="w-[30px] h-[30px] rounded-[6px] bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                      <div className="w-[30px] h-[30px] rounded-[10px] bg-primary/10 flex items-center justify-center text-primary shrink-0">
                         <FileText size={14} />
                       </div>
                       <div>
@@ -542,7 +542,7 @@ function DocumentCategoryFolders({ docs }: { docs: Doc[] }) {
         {folderStats.map((folder, i) => {
           const completion = folder.count > 0 ? Math.round((folder.verified / folder.count) * 100) : 0
           return (
-            <div key={i} className="p-[14px] bg-card border border-border rounded-[10px] flex flex-col justify-between gap-[10px] hover:border-primary/30 hover:shadow-xs transition-all cursor-pointer">
+            <div key={i} className="p-[14px] bg-card border border-border rounded-[14px] flex flex-col justify-between gap-[10px] hover:border-primary/30 hover:shadow-xs transition-all cursor-pointer">
               <div className="flex items-center justify-between">
                 <span className="text-[24px]">{folder.icon}</span>
                 <span className={`text-[10px] font-bold px-[6px] py-[1px] rounded-full ${folder.tagColor}`}>
@@ -589,8 +589,8 @@ function VerificationTimeline() {
         {VERIFICATION_FLOW.map((flow, i) => (
           <div
             key={i}
-            className={`p-[12px] rounded-[10px] border flex flex-col justify-between gap-[6px] ${flow.status === 'completed'
-              ? 'bg-[#F0FDF4] border-success/30 text-success'
+            className={`p-[12px] rounded-[14px] border flex flex-col justify-between gap-[6px] ${flow.status === 'completed'
+              ? 'bg-[color-mix(in_srgb,_var(--green)_9%,_transparent)] border-success/30 text-success'
               : flow.status === 'active'
                 ? 'bg-primary/10 border-primary/30 text-primary'
                 : 'bg-muted border-border text-muted-foreground'
@@ -615,9 +615,9 @@ function VerificationTimeline() {
    ========================================================================= */
 function AIDocumentAssistantCard({ onUploadClick }: { onUploadClick: () => void }) {
   return (
-    <div className="bg-gradient-to-r from-[#EEF2FF] via-[#F5F3FF] to-[#FFF7ED] border border-border rounded-[12px] p-[20px] flex flex-col md:flex-row items-start md:items-center justify-between gap-[16px]">
+    <div className="bg-gradient-to-r from-[#EEF2FF] via-[var(--accent-bg)] to-[#FFF7ED] border border-border rounded-[18px] p-[20px] flex flex-col md:flex-row items-start md:items-center justify-between gap-[16px]">
       <div className="flex items-start gap-[14px]">
-        <div className="w-[38px] h-[38px] rounded-[10px] bg-card border border-border flex items-center justify-center shrink-0 text-primary">
+        <div className="w-[38px] h-[38px] rounded-[14px] bg-card border border-border flex items-center justify-center shrink-0 text-primary">
           <Sparkles size={20} strokeWidth={2} />
         </div>
         <div>

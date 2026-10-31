@@ -46,10 +46,10 @@ import { generateDeadlineInsights } from '@/lib/utils/deadlineEngine'
 /* =========================================================================
    STYLING CONSTANTS (STRICTLY FROM DESIGN.md)
    ========================================================================= */
-const CARD_STYLE = "bg-card text-card-foreground border border-border rounded-[12px] p-[20px] md:p-[24px] shadow-sm transition-all duration-200"
-const BUTTON_PRIMARY = "bg-primary hover:opacity-90 text-primary-foreground font-medium px-[16px] h-[36px] rounded-[8px] text-[13px] inline-flex items-center gap-[6px] transition-all active:scale-[0.98] shadow-sm cursor-pointer select-none"
-const BUTTON_SECONDARY = "bg-secondary hover:bg-secondary/80 text-secondary-foreground border border-border font-medium px-[14px] h-[36px] rounded-[8px] text-[13px] inline-flex items-center gap-[6px] transition-all active:scale-[0.98] cursor-pointer select-none"
-const BUTTON_UTILITY = "bg-background hover:bg-muted text-muted-foreground border border-border font-medium px-[12px] h-[32px] rounded-[8px] text-[12px] inline-flex items-center gap-[4px] transition-colors cursor-pointer"
+const CARD_STYLE = "bg-card text-card-foreground border border-border rounded-[28px] p-[20px] md:p-[26px] shadow-[var(--shadow-card)] transition-all duration-300 hover:shadow-[var(--shadow-card-hover)]"
+const BUTTON_PRIMARY = "bg-primary hover:opacity-90 text-primary-foreground font-medium px-[16px] h-[38px] rounded-full text-[13px] inline-flex items-center gap-[6px] transition-all active:scale-[0.98] shadow-sm cursor-pointer select-none"
+const BUTTON_SECONDARY = "bg-secondary hover:bg-secondary/80 text-secondary-foreground border border-border font-medium px-[14px] h-[38px] rounded-full text-[13px] inline-flex items-center gap-[6px] transition-all active:scale-[0.98] cursor-pointer select-none"
+const BUTTON_UTILITY = "bg-background hover:bg-muted text-muted-foreground border border-border font-medium px-[12px] h-[32px] rounded-full text-[12px] inline-flex items-center gap-[4px] transition-colors cursor-pointer"
 const STICKER_TEAL = "bg-[#2a9d99]/10 text-[#1e6b68] border border-[#2a9d99]/20"
 const STICKER_PURPLE = "bg-[#d6b6f6]/10 text-[#d6b6f6] border border-[#d6b6f6]/20"
 const STICKER_ORANGE = "bg-[#dd5b00]/10 text-[#dd5b00] border border-[#dd5b00]/20"
@@ -92,7 +92,7 @@ function VerificationStatusBanner({ status }: { status: string }) {
   const Icon = c.icon
 
   return (
-    <div className={`flex items-center justify-between gap-[12px] px-[16px] py-[10px] rounded-[10px] border ${c.color} text-[13px]`}>
+    <div className={`flex items-center justify-between gap-[12px] px-[16px] py-[10px] rounded-[14px] border ${c.color} text-[13px]`}>
       <div className="flex items-center gap-[8px]">
         <Icon size={15} className="shrink-0" />
         <span className="font-medium">{status}</span>
@@ -110,27 +110,87 @@ function VerificationStatusBanner({ status }: { status: string }) {
 /* =========================================================================
    SECTION 1: WELCOME AREA & QUICK AI SUMMARY
    ========================================================================= */
+const STREAMS: { label: string; sub: string; q: string; shapes: React.ReactNode }[] = [
+  { label: 'Engineering', sub: 'B.Tech · BE', q: 'Engineering', shapes: <g><circle cx="30" cy="34" r="18" fill="#F5B829" /><rect x="46" y="18" width="30" height="30" rx="8" fill="#4B2FC9" transform="rotate(12 61 33)" /><circle cx="64" cy="60" r="6" fill="#17142B" /></g> },
+  { label: 'Design', sub: 'B.Des · UX', q: 'Design', shapes: <g><path d="M12 62 L40 14 L68 62Z" fill="#7C66F6" /><circle cx="66" cy="32" r="14" fill="#F5B829" /><rect x="20" y="42" width="20" height="20" rx="6" fill="#17142B" /></g> },
+  { label: 'Medicine', sub: 'MBBS · BDS', q: 'Medical', shapes: <g><rect x="14" y="14" width="38" height="38" rx="19" fill="#4B2FC9" /><rect x="42" y="32" width="32" height="24" rx="6" fill="#F5B829" /><circle cx="26" cy="64" r="6" fill="#F46846" /></g> },
+  { label: 'Management', sub: 'BBA · MBA', q: 'Management', shapes: <g><path d="M16 58 Q 42 4 72 44" stroke="currentColor" strokeWidth="8" fill="none" strokeLinecap="round" /><circle cx="22" cy="26" r="11" fill="#F5B829" /><rect x="50" y="50" width="22" height="16" rx="5" fill="#7C66F6" /></g> },
+]
+
+function MiniRing({ value, label, sub, color }: { value: number; label: string; sub: string; color: string }) {
+  const c = 2 * Math.PI * 22
+  return (
+    <div className="flex items-center gap-3 rounded-[22px] bg-card px-4 py-3 shadow-[var(--shadow-card)] border border-border">
+      <svg viewBox="0 0 56 56" className="h-[48px] w-[48px] -rotate-90 shrink-0" aria-hidden>
+        <circle cx="28" cy="28" r="22" fill="none" strokeWidth="6" style={{ stroke: 'var(--border)' }} />
+        <motion.circle cx="28" cy="28" r="22" fill="none" strokeWidth="6" strokeLinecap="round" style={{ stroke: color }}
+          strokeDasharray={c} initial={{ strokeDashoffset: c }} animate={{ strokeDashoffset: c * (1 - Math.min(100, value) / 100) }}
+          transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }} />
+      </svg>
+      <div className="min-w-0">
+        <div className="text-[10.5px] font-bold uppercase tracking-wider text-[var(--text-faint)]">{sub}</div>
+        <div className="text-[14px] font-bold text-foreground truncate">{label}</div>
+      </div>
+    </div>
+  )
+}
+
 function WelcomeArea({ profile, profileScore, appsCount }: { profile: any; profileScore: number; appsCount: number }) {
   const name = profile?.fullName ? profile.fullName.split(' ')[0] : 'Student'
 
   const getGreeting = () => {
     const hour = new Date().getHours()
-    if (hour < 12) return 'Good Morning'
-    if (hour < 18) return 'Good Afternoon'
-    return 'Good Evening'
+    if (hour < 12) return 'Good morning'
+    if (hour < 18) return 'Good afternoon'
+    return 'Good evening'
   }
 
   return (
-    <div className="flex flex-col gap-[16px]">
-      {/* Top Banner Row */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-[16px] pb-[4px]">
+    <section aria-label="Welcome" className="relative overflow-hidden rounded-[30px] border border-border bg-card p-5 shadow-[var(--shadow-card)] md:p-7">
+      <div aria-hidden className="pointer-events-none absolute -right-[96px] -top-[96px] h-72 w-72 rounded-full opacity-40 blur-3xl" style={{ background: 'var(--accent)' }} />
+      <div aria-hidden className="pointer-events-none absolute -bottom-28 left-1/3 h-60 w-60 rounded-full opacity-30 blur-3xl" style={{ background: 'var(--gold-bright)' }} />
+      <div className="relative grid gap-6 xl:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] xl:items-center">
         <div>
-          <h1 className="text-[26px] md:text-[32px] font-bold text-foreground tracking-[-0.02em] leading-tight">
-            {getGreeting()}, {name} 👋
-          </h1>
+          <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mb-2 inline-flex items-center gap-2 rounded-full border border-border bg-[var(--bg-subtle)] px-3 py-1 text-[12px] font-semibold text-[var(--text-secondary)]">
+            <span className="h-1.5 w-1.5 rounded-full bg-[var(--gold-bright)]" />{getGreeting()}
+          </motion.p>
+          <motion.h1
+            initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="text-[30px] font-bold leading-[1.04] tracking-[-0.035em] text-foreground md:text-[42px]"
+          >
+            Hi, {name}! 👋<br />Where do you want to <span className="text-[var(--gold-bright)]">study</span> next?
+          </motion.h1>
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="mt-3 max-w-[46ch] text-[14px] text-[var(--text-muted)]">
+            Your profile is {profileScore}% complete{appsCount > 0 ? ` and you have ${appsCount} application${appsCount === 1 ? '' : 's'} in motion` : ' — finish it to unlock AI matches'}.
+          </motion.p>
+          <div className="mt-5 grid max-w-[420px] grid-cols-2 gap-3">
+            <MiniRing value={profileScore} label={`Profile ${profileScore}%`} sub="Readiness" color="var(--accent)" />
+            <MiniRing value={Math.min(100, appsCount * 20)} label={`${appsCount} applied`} sub="Applications" color="var(--gold-bright)" />
+          </div>
+        </div>
+        <div className="flex gap-3 overflow-x-auto pb-1 no-scrollbar">
+          <Link href="/student/universities" aria-label="Explore all universities" className="flex w-14 shrink-0 items-center justify-center rounded-[24px] border-2 border-dashed border-border text-[var(--text-faint)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]">
+            <Plus size={20} />
+          </Link>
+          {STREAMS.map((st, i) => {
+            const dark = i === STREAMS.length - 1
+            return (
+              <motion.div key={st.label} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.07, duration: 0.6, ease: [0.16, 1, 0.3, 1] }} className="min-w-[116px] flex-1">
+                <Link
+                  href={`/student/universities?q=${encodeURIComponent(st.q)}`}
+                  className={`group flex h-full flex-col items-center justify-end rounded-[24px] p-4 text-center transition-all duration-300 hover:-translate-y-1 ${dark ? 'text-white' : 'border border-border bg-[var(--bg-subtle)] text-foreground'}`}
+                  style={dark ? { background: 'var(--night)', boxShadow: 'var(--shadow-card-hover)' } : undefined}
+                >
+                  <svg viewBox="0 0 86 76" className={`h-[70px] w-[80px] transition-transform duration-500 group-hover:rotate-[-6deg] group-hover:scale-110 ${dark ? 'text-white' : 'text-[#17142B] dark:text-white'}`} aria-hidden>{st.shapes}</svg>
+                  <span className="mt-3 text-[14px] font-bold">{st.label}</span>
+                  <span className={`text-[11.5px] ${dark ? 'text-white/55' : 'text-[var(--text-muted)]'}`}>{st.sub}</span>
+                </Link>
+              </motion.div>
+            )
+          })}
         </div>
       </div>
-    </div>
+    </section>
   )
 }
 
@@ -199,7 +259,7 @@ function TodaysFocus({
     return (
       <div className={CARD_STYLE}>
         <div className="flex items-center gap-[10px] mb-[16px]">
-          <div className="w-[28px] h-[28px] rounded-[8px] bg-primary/10 flex items-center justify-center text-primary">
+          <div className="w-[28px] h-[28px] rounded-[12px] bg-primary/10 flex items-center justify-center text-primary">
             <Target size={16} strokeWidth={2} />
           </div>
           <h2 className="text-[16px] font-bold text-foreground tracking-tight">Today&apos;s Focus</h2>
@@ -219,7 +279,7 @@ function TodaysFocus({
     <div className={CARD_STYLE}>
       <div className="flex items-center justify-between pb-[16px] mb-[16px] border-b border-border">
         <div className="flex items-center gap-[10px]">
-          <div className="w-[28px] h-[28px] rounded-[8px] bg-primary/10 flex items-center justify-center text-primary">
+          <div className="w-[28px] h-[28px] rounded-[12px] bg-primary/10 flex items-center justify-center text-primary">
             <Target size={16} strokeWidth={2} />
           </div>
           <div>
@@ -243,7 +303,7 @@ function TodaysFocus({
           return (
             <div
               key={task.id}
-              className={`p-[14px] rounded-[10px] border transition-all flex items-center justify-between gap-[12px] ${
+              className={`p-[14px] rounded-[14px] border transition-all flex items-center justify-between gap-[12px] ${
                 isChecked
                   ? 'bg-muted border-border opacity-60'
                   : 'bg-card border-border hover:border-primary/30 hover:shadow-xs'
@@ -252,7 +312,7 @@ function TodaysFocus({
               <div className="flex items-center gap-[12px] min-w-0">
                 <button
                   onClick={() => toggle(task.id)}
-                  className={`w-[20px] h-[20px] rounded-[6px] border flex items-center justify-center transition-colors cursor-pointer shrink-0 ${
+                  className={`w-[20px] h-[20px] rounded-[10px] border flex items-center justify-center transition-colors cursor-pointer shrink-0 ${
                     isChecked ? 'bg-success border-success text-white' : 'border-border hover:border-primary'
                   }`}
                   aria-label={`Mark ${task.title} as completed`}
@@ -312,12 +372,12 @@ function ApplicationPipeline({ apps }: { apps: any[] }) {
 
   const STAGES = [
     { label: 'Draft',       count: apps.filter(a => a.status === 'draft' || !a.status).length,                           color: '#615d59' },
-    { label: 'Submitted',   count: apps.filter(a => a.status === 'submitted' || a.status === 'active').length,            color: '#0075de' },
+    { label: 'Submitted',   count: apps.filter(a => a.status === 'submitted' || a.status === 'active').length,            color: 'var(--accent)' },
     { label: 'Under Review',count: apps.filter(a => a.status === 'under_review' || a.status === 'review').length,         color: '#d6b6f6' },
     { label: 'Interview',   count: apps.filter(a => a.status === 'interview').length,                                     color: '#2a9d99' },
     { label: 'Offer',       count: apps.filter(a => a.status === 'selected' || a.status === 'offer').length,              color: '#1aae39' },
-    { label: 'Accepted',    count: apps.filter(a => a.status === 'accepted').length,                                      color: '#059669' },
-    { label: 'Rejected',    count: apps.filter(a => a.status === 'rejected').length,                                      color: '#ef4444' },
+    { label: 'Accepted',    count: apps.filter(a => a.status === 'accepted').length,                                      color: 'var(--green)' },
+    { label: 'Rejected',    count: apps.filter(a => a.status === 'rejected').length,                                      color: 'var(--red)' },
   ]
 
   const normalizedApps = apps.map(a => ({
@@ -353,7 +413,7 @@ function ApplicationPipeline({ apps }: { apps: any[] }) {
             <button
               key={s.label}
               onClick={() => setSelectedStage(isSelected ? null : s.label)}
-              className={`p-[10px] rounded-[10px] border text-left transition-all cursor-pointer ${
+              className={`p-[10px] rounded-[14px] border text-left transition-all cursor-pointer ${
                 isSelected
                   ? 'bg-primary/10 border-primary shadow-xs'
                   : 'bg-muted border-border hover:border-border'
@@ -392,9 +452,9 @@ function ApplicationPipeline({ apps }: { apps: any[] }) {
           </div>
         ) : (
           filteredApps.map((app) => (
-            <div key={app.id} className="p-[14px] bg-card text-card-foreground border border-border rounded-[10px] flex flex-col sm:flex-row sm:items-center justify-between gap-[12px] hover:border-primary/30 transition-all">
+            <div key={app.id} className="p-[14px] bg-card text-card-foreground border border-border rounded-[14px] flex flex-col sm:flex-row sm:items-center justify-between gap-[12px] hover:border-primary/30 transition-all">
               <div className="flex items-center gap-[12px]">
-                <div className="w-[36px] h-[36px] rounded-[8px] bg-primary/10 flex items-center justify-center shrink-0">
+                <div className="w-[36px] h-[36px] rounded-[12px] bg-primary/10 flex items-center justify-center shrink-0">
                   <Building2 size={18} className="text-primary" />
                 </div>
                 <div>
@@ -467,12 +527,12 @@ function ProfileStrengthWorkspace({ profileStrength }: { profileStrength: any })
       <div className="flex flex-col gap-[20px]">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-[20px] items-center">
           {/* Circle Gauge */}
-          <div className="flex flex-col items-center justify-center p-[16px] bg-muted border border-border rounded-[10px] h-full">
+          <div className="flex flex-col items-center justify-center p-[16px] bg-muted border border-border rounded-[14px] h-full">
             <div className="relative w-[90px] h-[90px] flex items-center justify-center">
               <svg className="w-full h-full transform -rotate-90">
-                <circle cx="45" cy="45" r="38" stroke="#E5E7EB" strokeWidth="8" fill="transparent" />
+                <circle cx="45" cy="45" r="38" stroke="var(--border-hover)" strokeWidth="8" fill="transparent" />
                 <circle
-                  cx="45" cy="45" r="38" stroke="#0075de" strokeWidth="8" fill="transparent"
+                  cx="45" cy="45" r="38" stroke="var(--accent)" strokeWidth="8" fill="transparent"
                   strokeDasharray="239"
                   strokeDashoffset={239 - (239 * percentage) / 100}
                   strokeLinecap="round"
@@ -493,13 +553,13 @@ function ProfileStrengthWorkspace({ profileStrength }: { profileStrength: any })
           <div className="md:col-span-2 flex flex-col gap-[10px]">
             <p className="text-[12px] font-bold uppercase text-muted-foreground tracking-wider">Recommended Completion Actions</p>
             {topMissing.length === 0 ? (
-              <div className="flex items-center gap-[8px] p-[10px] bg-success/10 border border-success/20 rounded-[8px]">
+              <div className="flex items-center gap-[8px] p-[10px] bg-success/10 border border-success/20 rounded-[12px]">
                 <CheckCircle2 size={14} className="text-success" />
                 <span className="text-[13px] font-medium text-foreground">All key fields completed!</span>
               </div>
             ) : (
               topMissing.map((item: any, idx: number) => (
-                <div key={idx} className="p-[10px] bg-card text-card-foreground border border-border rounded-[8px] flex items-center justify-between gap-[12px]">
+                <div key={idx} className="p-[10px] bg-card text-card-foreground border border-border rounded-[12px] flex items-center justify-between gap-[12px]">
                   <div className="flex items-center gap-[8px]">
                     <AlertCircle size={14} className={item.priority === 'High' ? 'text-[#dd5b00] shrink-0' : 'text-amber-500 shrink-0'} />
                     <span className="text-[13px] font-medium text-foreground">{item.label}</span>
@@ -551,7 +611,7 @@ function AIRecommendationsHub({ profileScore }: { profileScore: number }) {
       <div className={CARD_STYLE}>
         <div className="flex items-center justify-between pb-[16px] mb-[16px] border-b border-border">
           <div className="flex items-center gap-[10px]">
-            <div className="w-[28px] h-[28px] rounded-[8px] bg-primary/10 flex items-center justify-center text-primary">
+            <div className="w-[28px] h-[28px] rounded-[12px] bg-primary/10 flex items-center justify-center text-primary">
               <Sparkles size={16} strokeWidth={2} />
             </div>
             <div>
@@ -621,7 +681,7 @@ function AIRecommendationsHub({ profileScore }: { profileScore: number }) {
     <div className={CARD_STYLE}>
       <div className="flex items-center justify-between pb-[16px] mb-[16px] border-b border-border">
         <div className="flex items-center gap-[10px]">
-          <div className="w-[28px] h-[28px] rounded-[8px] bg-primary/10 flex items-center justify-center text-primary">
+          <div className="w-[28px] h-[28px] rounded-[12px] bg-primary/10 flex items-center justify-center text-primary">
             <Sparkles size={16} strokeWidth={2} />
           </div>
           <div>
@@ -636,7 +696,7 @@ function AIRecommendationsHub({ profileScore }: { profileScore: number }) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-[14px]">
         {recommendations.map((rec, i) => (
-          <div key={i} className="p-[16px] bg-card text-card-foreground border border-border rounded-[10px] flex flex-col justify-between gap-[12px] hover:border-primary/30 hover:shadow-xs transition-all">
+          <div key={i} className="p-[16px] bg-card text-card-foreground border border-border rounded-[14px] flex flex-col justify-between gap-[12px] hover:border-primary/30 hover:shadow-xs transition-all">
             <div>
               <div className="flex items-center justify-between mb-[6px]">
                 <span className={`text-[10px] font-bold px-[8px] py-[2px] rounded-full ${rec.color}`}>
@@ -820,7 +880,7 @@ function GamifiedAchievements({
           return (
             <div
               key={i}
-              className={`p-[14px] rounded-[10px] border flex flex-col items-center text-center gap-[8px] ${
+              className={`p-[14px] rounded-[14px] border flex flex-col items-center text-center gap-[8px] ${
                 ach.unlocked
                   ? 'bg-card border-border shadow-xs'
                   : 'bg-muted border-border opacity-50'
@@ -911,7 +971,7 @@ function StudentInsightsAnalytics({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-[16px]">
-        <div className="p-[14px] bg-muted border border-border rounded-[10px]">
+        <div className="p-[14px] bg-muted border border-border rounded-[14px]">
           <p className="text-[11px] font-semibold text-muted-foreground uppercase">Profile Readiness</p>
           <p className={`text-[24px] font-extrabold leading-tight mt-[4px] ${profileScore >= 80 ? 'text-success' : profileScore >= 60 ? 'text-primary' : 'text-amber-600'}`}>
             {profileScore}%
@@ -919,7 +979,7 @@ function StudentInsightsAnalytics({
           <p className="text-[11px] text-muted-foreground mt-[2px]">{acceptanceChance} readiness level</p>
         </div>
 
-        <div className="p-[14px] bg-muted border border-border rounded-[10px]">
+        <div className="p-[14px] bg-muted border border-border rounded-[14px]">
           <p className="text-[11px] font-semibold text-muted-foreground uppercase">Pipeline Health</p>
           <p className={`text-[24px] font-extrabold leading-tight mt-[4px] ${pipelineHealth === 'Optimal' ? 'text-success' : pipelineHealth === 'Building' ? 'text-primary' : 'text-muted-foreground'}`}>
             {pipelineHealth}
@@ -927,7 +987,7 @@ function StudentInsightsAnalytics({
           <p className="text-[11px] text-muted-foreground mt-[2px]">{activeApps.length} active application{activeApps.length !== 1 ? 's' : ''}</p>
         </div>
 
-        <div className="p-[14px] bg-muted border border-border rounded-[10px]">
+        <div className="p-[14px] bg-muted border border-border rounded-[14px]">
           <p className="text-[11px] font-semibold text-muted-foreground uppercase">Offers Received</p>
           <p className={`text-[24px] font-extrabold leading-tight mt-[4px] ${acceptedApps.length > 0 ? 'text-success' : 'text-foreground'}`}>
             {acceptedApps.length}
@@ -1002,7 +1062,7 @@ function UniversityRecommendationsGrid({
             const scholarship = u.scholarships ? 'Scholarship Available' : null
 
             return (
-              <div key={u.id} className="p-[12px] bg-card text-card-foreground border border-border rounded-[10px] flex items-center justify-between gap-[12px] hover:border-primary/30 transition-all">
+              <div key={u.id} className="p-[12px] bg-card text-card-foreground border border-border rounded-[14px] flex items-center justify-between gap-[12px] hover:border-primary/30 transition-all">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-[8px] mb-[4px]">
                     {matchPct && (
@@ -1049,7 +1109,7 @@ function FloatingAIAssistantWidget() {
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="mb-[12px] w-[320px] sm:w-[360px] bg-card text-card-foreground border border-border rounded-[16px] shadow-2xl p-[18px] flex flex-col gap-[12px]"
+            className="mb-[12px] w-[320px] sm:w-[360px] bg-card text-card-foreground border border-border rounded-[22px] shadow-2xl p-[18px] flex flex-col gap-[12px]"
           >
             <div className="flex items-center justify-between pb-[10px] border-b border-border">
               <div className="flex items-center gap-[8px]">
@@ -1116,7 +1176,7 @@ export default function StudentDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-[36px] h-[36px] border-[3px] border-border border-t-[#0075de] rounded-full animate-spin" />
+        <div className="w-[36px] h-[36px] border-[3px] border-border border-t-[var(--accent)] rounded-full animate-spin" />
       </div>
     )
   }
@@ -1129,14 +1189,14 @@ export default function StudentDashboard() {
   return (
     <div className="flex flex-col gap-[24px] pb-[40px]">
       {error && (
-        <div className="p-[16px] flex items-center justify-between text-[13px] text-[#EF4444] bg-[#FEF2F2] rounded-[12px] border border-[#FECACA]">
+        <div className="p-[16px] flex items-center justify-between text-[13px] text-[var(--red)] bg-[color-mix(in_srgb,var(--red)_8%,transparent)] rounded-[22px] border border-[color-mix(in_srgb,var(--red)_25%,transparent)]">
           <div className="flex items-center gap-[10px]">
             <AlertCircle size={18} />
             <span><strong>Warning:</strong> {error}. Some data may be missing or incomplete.</span>
           </div>
           <button 
             onClick={() => window.location.reload()}
-            className="flex items-center gap-[6px] px-[12px] py-[6px] bg-[#EF4444] text-white rounded-[6px] font-medium transition-all hover:bg-[#DC2626]"
+            className="flex items-center gap-[6px] px-[12px] py-[6px] bg-[var(--red)] text-white rounded-[10px] font-medium transition-all hover:bg-[var(--red)]"
           >
             <RefreshCw size={14} />
             Retry

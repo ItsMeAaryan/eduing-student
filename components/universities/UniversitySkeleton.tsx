@@ -21,8 +21,8 @@ export default function UniversitySkeleton() {
       </div>
 
       <div className="grid grid-cols-2 gap-3 mt-auto pt-4 border-t border-white/5">
-        <div className="h-10 bg-card/5 rounded-xl"></div>
-        <div className="h-10 bg-card/10 rounded-xl"></div>
+        <div className="h-10 bg-card/5 rounded-2xl"></div>
+        <div className="h-10 bg-card/10 rounded-2xl"></div>
       </div>
     </div>
   );

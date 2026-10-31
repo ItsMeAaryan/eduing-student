@@ -70,19 +70,19 @@ export default function SavedPage() {
             onChange={(e) => setSearchQuery(e.target.value)}
             containerClassName="w-full md:w-[280px]"
           />
-          <button className="w-40 h-40 flex items-center justify-center rounded-[8px] bg-card border border-border shadow-sm text-text-secondary hover:text-text-primary hover:bg-[#F5F7FF] transition-colors">
+          <button className="w-40 h-40 flex items-center justify-center rounded-[12px] bg-card border border-border shadow-sm text-text-secondary hover:text-text-primary hover:bg-[var(--accent-bg)] transition-colors">
             <SlidersHorizontal size={18} strokeWidth={1.8} />
           </button>
-          <div className="h-40 flex items-center bg-card border border-border rounded-[8px] p-4 shrink-0 hidden md:flex shadow-sm">
+          <div className="h-40 flex items-center bg-card border border-border rounded-[12px] p-4 shrink-0 hidden md:flex shadow-sm">
             <button 
               onClick={() => setViewMode("grid")}
-              className={`w-[32px] h-[32px] flex items-center justify-center rounded-[6px] transition-all ${viewMode === 'grid' ? 'bg-[#F5F7FF] text-text-primary' : 'text-text-secondary hover:text-text-primary'}`}
+              className={`w-[32px] h-[32px] flex items-center justify-center rounded-[10px] transition-all ${viewMode === 'grid' ? 'bg-[var(--accent-bg)] text-text-primary' : 'text-text-secondary hover:text-text-primary'}`}
             >
               <LayoutGrid size={16} strokeWidth={1.8} />
             </button>
             <button 
               onClick={() => setViewMode("list")}
-              className={`w-[32px] h-[32px] flex items-center justify-center rounded-[6px] transition-all ${viewMode === 'list' ? 'bg-[#F5F7FF] text-text-primary' : 'text-text-secondary hover:text-text-primary'}`}
+              className={`w-[32px] h-[32px] flex items-center justify-center rounded-[10px] transition-all ${viewMode === 'list' ? 'bg-[var(--accent-bg)] text-text-primary' : 'text-text-secondary hover:text-text-primary'}`}
             >
               <List size={16} strokeWidth={1.8} />
             </button>
@@ -122,13 +122,13 @@ export default function SavedPage() {
                 key={prog.id || i}
                 onMouseEnter={() => setIsHovered(prog.id || i.toString())}
                 onMouseLeave={() => setIsHovered(null)}
-                className={`group bg-card border border-border rounded-[12px] p-20 hover:border-primary/50 transition-colors relative overflow-hidden flex ${viewMode === 'list' ? 'flex-col md:flex-row items-start md:items-center gap-20' : 'flex-col gap-20'} cursor-pointer shadow-none`}
+                className={`group bg-card border border-border rounded-[18px] p-20 hover:border-primary/50 transition-colors relative overflow-hidden flex ${viewMode === 'list' ? 'flex-col md:flex-row items-start md:items-center gap-20' : 'flex-col gap-20'} cursor-pointer shadow-none`}
               >
                 <div className="absolute top-0 right-0 w-[160px] h-[160px] bg-gradient-to-br from-primary/10 to-transparent blur-[40px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                 
                 {/* Header (Logo + Title) */}
                 <div className={`flex items-start gap-12 ${viewMode === 'list' ? 'md:w-1/3' : 'w-full'}`}>
-                  <div className="w-40 h-40 rounded-[8px] bg-[#FAFAFC] border border-border flex items-center justify-center shrink-0 shadow-none">
+                  <div className="w-40 h-40 rounded-[12px] bg-[#FAFAFC] border border-border flex items-center justify-center shrink-0 shadow-none">
                      <span className="text-[16px] font-bold text-text-primary">{prog.universityName?.charAt(0) || 'U'}</span>
                   </div>
                   <div>

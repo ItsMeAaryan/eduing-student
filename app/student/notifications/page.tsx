@@ -87,7 +87,7 @@ export default function NotificationsPage() {
         {/* Empty state */}
         {safeNotifs.length === 0 && (
           <div style={{
-            background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12,
+            background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 18,
             padding: '48px 24px', textAlign: 'center',
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12,
           }}>
@@ -132,7 +132,7 @@ export default function NotificationsPage() {
                     style={{
                       background: 'var(--bg-card)',
                       border: '1px solid var(--border)',
-                      borderRadius: 10,
+                      borderRadius: 14,
                       padding: '16px 20px',
                       display: 'flex',
                       gap: 16,
@@ -162,7 +162,7 @@ export default function NotificationsPage() {
 
                     {/* Icon */}
                     <div style={{
-                      width: 40, height: 40, borderRadius: 10,
+                      width: 40, height: 40, borderRadius: 14,
                       background: cfg.bg,
                       border: `1px solid ${cfg.border}`,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',

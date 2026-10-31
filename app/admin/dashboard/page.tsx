@@ -31,10 +31,10 @@ const StatCard = ({ label, value, icon: Icon, trend, index }: any) => (
     initial={{ opacity: 0, scale: 0.95 }}
     animate={{ opacity: 1, scale: 1 }}
     transition={{ delay: index * 0.1 }}
-    className="glass-card p-6 border-white/5"
+    className="glass-card p-6 border-[var(--border)]"
   >
     <div className="flex justify-between items-start mb-4">
-      <div className="p-3 rounded-xl bg-brand-indigo/10 text-brand-indigo">
+      <div className="p-3 rounded-2xl bg-[var(--accent-bg)] text-[var(--accent)]">
         <Icon size={24} />
       </div>
       {trend && (
@@ -44,7 +44,7 @@ const StatCard = ({ label, value, icon: Icon, trend, index }: any) => (
       )}
     </div>
     <div className="text-3xl font-extrabold mb-1">{value}</div>
-    <div className="text-xs text-white/40 font-bold uppercase tracking-widest">{label}</div>
+    <div className="text-xs text-[var(--text-muted)] font-bold uppercase tracking-widest">{label}</div>
   </motion.div>
 )
 
@@ -69,12 +69,12 @@ export default function AdminDashboard() {
 
   return (
     <ProtectedRoute allowedRoles={['super_admin']}>
-      <div className="min-h-screen bg-[#08080F] text-white flex">
+      <div className="min-h-screen bg-[var(--bg)] text-[var(--text-primary)] flex">
         {/* SIDEBAR */}
-        <aside className="w-[280px] h-screen fixed left-0 top-0 bg-[#08080F] border-r border-white/5 flex flex-col p-8">
+        <aside className="w-[280px] h-screen fixed left-0 top-0 bg-[var(--bg)] border-r border-[var(--border)] flex flex-col p-8">
           <div className="mb-12">
             <Logo height={32} />
-            <div className="text-[10px] font-bold text-brand-indigo uppercase tracking-[0.3em] mt-2 px-1">Super Admin</div>
+            <div className="text-[10px] font-bold text-[var(--accent)] uppercase tracking-[0.3em] mt-2 px-1">Super Admin</div>
           </div>
 
           <nav className="flex-1 space-y-2">
@@ -89,7 +89,7 @@ export default function AdminDashboard() {
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
                 className={`w-full flex items-center gap-4 px-5 py-3.5 rounded-2xl transition-all duration-200 ${
-                  activeTab === item.id ? 'bg-brand-indigo/15 text-white font-bold' : 'text-white/46 hover:bg-white/5 hover:text-white'
+                  activeTab === item.id ? 'bg-[var(--accent-bg)] text-[var(--text-primary)] font-bold' : 'text-[var(--text-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--text-primary)]'
                 }`}
               >
                 <item.icon size={20} />
@@ -112,10 +112,10 @@ export default function AdminDashboard() {
           <header className="mb-12 flex justify-between items-end">
             <div>
               <h1 className="text-4xl font-[900] mb-2 uppercase tracking-tighter">Platform Control</h1>
-              <p className="text-white/46 font-medium">Global infrastructure and user oversight</p>
+              <p className="text-[var(--text-muted)] font-medium">Global infrastructure and user oversight</p>
             </div>
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-500/10 text-green-500 text-[10px] font-bold uppercase tracking-widest border border-green-500/20">
+              <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-green-500/10 text-green-500 text-[10px] font-bold uppercase tracking-widest border border-green-500/20">
                 <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
                 Network Online
               </div>
@@ -138,7 +138,7 @@ export default function AdminDashboard() {
                 <h2 className="text-xl font-bold flex items-center gap-3">
                   Pending Approvals <span className="w-6 h-6 rounded-full bg-brand-gold/20 text-brand-gold text-[10px] flex items-center justify-center">{pendingUnis.length}</span>
                 </h2>
-                <button className="text-[10px] font-bold text-white/46 uppercase tracking-widest hover:text-white transition-colors">View All Queue</button>
+                <button className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest hover:text-[var(--text-primary)] transition-colors">View All Queue</button>
               </div>
 
               <div className="space-y-4">
@@ -148,30 +148,30 @@ export default function AdminDashboard() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.1 }}
-                    className="glass-card p-6 md:p-8 border-white/5 hover:border-brand-indigo/30 transition-all group"
+                    className="glass-card p-6 md:p-8 border-[var(--border)] hover:border-brand-indigo/30 transition-all group"
                   >
                     <div className="flex flex-col md:flex-row justify-between gap-6">
                       <div className="space-y-4">
                         <div>
-                          <h3 className="text-xl font-bold text-white group-hover:text-brand-indigo transition-colors">{uni.name}</h3>
-                          <div className="flex items-center gap-2 text-white/40 text-xs font-bold uppercase tracking-wider mt-1">
+                          <h3 className="text-xl font-bold text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors">{uni.name}</h3>
+                          <div className="flex items-center gap-2 text-[var(--text-muted)] text-xs font-bold uppercase tracking-wider mt-1">
                             {uni.city}, {uni.state}
                           </div>
                         </div>
                         <div className="flex flex-wrap gap-6">
-                           <div className="flex items-center gap-2 text-xs text-white/50"><Mail size={14} className="text-brand-indigo" /> {uni.email}</div>
-                           <div className="flex items-center gap-2 text-xs text-white/50"><Phone size={14} className="text-brand-indigo" /> {uni.phone}</div>
-                           <div className="flex items-center gap-2 text-xs text-brand-indigoLight hover:underline cursor-pointer"><Globe size={14} /> Official Website</div>
+                           <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]"><Mail size={14} className="text-[var(--accent)]" /> {uni.email}</div>
+                           <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]"><Phone size={14} className="text-[var(--accent)]" /> {uni.phone}</div>
+                           <div className="flex items-center gap-2 text-xs text-[var(--accent)]Light hover:underline cursor-pointer"><Globe size={14} /> Official Website</div>
                         </div>
                       </div>
                       <div className="flex items-center gap-3 self-end md:self-center">
                         <div className="text-right mr-4 hidden md:block">
-                          <div className="text-[10px] font-bold text-white/40 uppercase mb-1">Registered</div>
-                          <div className="text-xs font-bold text-white/60">{uni.registered} days ago</div>
+                          <div className="text-[10px] font-bold text-[var(--text-muted)] uppercase mb-1">Registered</div>
+                          <div className="text-xs font-bold text-[var(--text-secondary)]">{uni.registered} days ago</div>
                         </div>
-                        <button onClick={() => approveUni(uni.id)} className="p-3 rounded-xl bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white transition-all shadow-lg shadow-green-500/10"><CheckCircle2 size={20} /></button>
-                        <button className="p-3 rounded-xl bg-brand-gold/10 text-brand-gold hover:bg-brand-gold hover:text-[var(--bg-primary)] transition-all shadow-lg shadow-brand-gold/10"><MessageSquare size={20} /></button>
-                        <button className="p-3 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all shadow-lg shadow-red-500/10"><XCircle size={20} /></button>
+                        <button onClick={() => approveUni(uni.id)} className="p-3 rounded-2xl bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white transition-all shadow-lg shadow-green-500/10"><CheckCircle2 size={20} /></button>
+                        <button className="p-3 rounded-2xl bg-brand-gold/10 text-brand-gold hover:bg-brand-gold hover:text-[var(--bg-primary)] transition-all shadow-lg shadow-brand-gold/10"><MessageSquare size={20} /></button>
+                        <button className="p-3 rounded-2xl bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all shadow-lg shadow-red-500/10"><XCircle size={20} /></button>
                       </div>
                     </div>
                   </motion.div>
@@ -190,14 +190,14 @@ export default function AdminDashboard() {
                      { label: 'Pending Audits', value: '2', color: 'yellow' },
                    ].map((item, i) => (
                      <div key={i} className="flex justify-between items-center text-sm">
-                       <span className="text-white/40">{item.label}</span>
+                       <span className="text-[var(--text-muted)]">{item.label}</span>
                        <span className={`font-bold text-${item.color}-500`}>{item.value}</span>
                      </div>
                    ))}
                  </div>
                </div>
 
-               <div className="glass-card p-8 border-white/5">
+               <div className="glass-card p-8 border-[var(--border)]">
                  <h3 className="text-lg font-bold mb-6">Recent Platform Activity</h3>
                  <div className="space-y-6">
                     {[
@@ -208,9 +208,9 @@ export default function AdminDashboard() {
                       <div key={i} className="flex gap-4">
                         <div className="w-2 h-2 rounded-full bg-brand-indigo mt-1.5" />
                         <div>
-                          <div className="text-xs font-bold text-white">{activity.user}</div>
-                          <div className="text-xs text-white/50">{activity.action}</div>
-                          <div className="text-[10px] text-white/40 font-bold uppercase mt-1">{activity.time}</div>
+                          <div className="text-xs font-bold text-[var(--text-primary)]">{activity.user}</div>
+                          <div className="text-xs text-[var(--text-muted)]">{activity.action}</div>
+                          <div className="text-[10px] text-[var(--text-muted)] font-bold uppercase mt-1">{activity.time}</div>
                         </div>
                       </div>
                     ))}

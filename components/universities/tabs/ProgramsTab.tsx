@@ -52,7 +52,7 @@ export default function ProgramsTab({ university }: Props) {
           <button
             key={level}
             onClick={() => setActiveFilter(level)}
-            className={`px-5 py-2 rounded-xl text-sm font-medium transition-colors ${
+            className={`px-5 py-2 rounded-2xl text-sm font-medium transition-colors ${
               activeFilter === level 
                 ? "bg-primary text-white" 
                 : "bg-card/5 text-textSecondary hover:bg-card/10 hover:text-white"
@@ -104,7 +104,7 @@ export default function ProgramsTab({ university }: Props) {
                 </div>
               </div>
 
-              <div className="text-sm bg-card/5 p-3 rounded-xl border border-white/10 flex items-start">
+              <div className="text-sm bg-card/5 p-3 rounded-2xl border border-white/10 flex items-start">
                 <FileText size={16} className="text-primary shrink-0 mr-2 mt-0.5" />
                 <div>
                   <span className="font-semibold text-white mr-1">Eligibility:</span>
@@ -116,7 +116,7 @@ export default function ProgramsTab({ university }: Props) {
             <div className="shrink-0 flex md:flex-col justify-end gap-3 mt-4 md:mt-0">
               <button 
                 onClick={() => setSelectedProgram(program)}
-                className="w-full md:w-40 py-3 rounded-xl font-semibold bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white shadow-lg shadow-primary/20 transition-all active:scale-95"
+                className="w-full md:w-40 py-3 rounded-2xl font-semibold bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white shadow-lg shadow-primary/20 transition-all active:scale-95"
               >
                 Apply Now
               </button>

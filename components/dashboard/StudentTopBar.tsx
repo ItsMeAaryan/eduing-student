@@ -1,8 +1,9 @@
 // components/dashboard/StudentTopBar.tsx
 'use client'
 
-import { usePathname } from 'next/navigation'
-import { Bell, CheckCheck, Inbox } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
+import { Bell, CheckCheck, Inbox, Search, Sun, Moon, Plus } from 'lucide-react'
+import { useTheme } from 'next-themes'
 import Link from 'next/link'
 import { useRef, useState, useEffect } from 'react'
 import { writeBatch, doc } from 'firebase/firestore'
@@ -50,6 +51,12 @@ export default function StudentTopBar() {
     const { user } = useAuth()
 
     const [bellOpen, setBellOpen] = useState(false)
+    const [query, setQuery] = useState('')
+    const router = useRouter()
+    const { resolvedTheme, setTheme } = useTheme()
+    const [mounted, setMounted] = useState(false)
+    useEffect(() => setMounted(true), [])
+    const isDark = mounted && resolvedTheme === 'dark'
     const bellRef = useRef<HTMLDivElement>(null)
 
     const notifList: Notification[] = Array.isArray(notifications) ? notifications : []
@@ -93,22 +100,67 @@ export default function StudentTopBar() {
 
     return (
         <header
-            className="sticky top-0 z-30 h-[56px] flex items-center justify-between px-4 lg:px-6 shrink-0"
+            className="sticky top-0 z-30 flex h-[72px] shrink-0 items-center justify-between gap-3 px-4 backdrop-blur-xl lg:px-6"
             style={{
-                background: 'var(--bg-elevated)',
-                borderBottom: '1px solid var(--border)',
+                background: 'color-mix(in srgb, var(--bg) 82%, transparent)',
             }}
         >
             {/* Page title */}
-            <h1
-                className="text-[15px] font-semibold truncate"
-                style={{ color: 'var(--text-primary)' }}
+            <div className="min-w-0">
+                <h1
+                    className="truncate text-[22px] font-bold leading-tight tracking-tight"
+                    style={{ color: 'var(--text-primary)' }}
+                >
+                    {title}
+                </h1>
+                <p className="hidden text-[12px] sm:block" style={{ color: 'var(--text-muted)' }}>
+                    {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}
+                </p>
+            </div>
+
+            {/* Search */}
+            <form
+                role="search"
+                onSubmit={(e) => { e.preventDefault(); router.push(`/student/universities?q=${encodeURIComponent(query.trim())}`) }}
+                className="mx-auto hidden max-w-[380px] flex-1 items-center gap-2 rounded-full px-4 py-2.5 transition-shadow focus-within:shadow-[var(--shadow-glow)] md:flex"
+                style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-card)' }}
             >
-                {title}
-            </h1>
+                <Search size={15} style={{ color: 'var(--text-muted)' }} />
+                <input
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Search universities or programs…"
+                    aria-label="Search universities or programs"
+                    className="w-full bg-transparent text-[13.5px] outline-none placeholder:text-[var(--text-faint)]"
+                    style={{ color: 'var(--text-primary)' }}
+                />
+            </form>
 
             {/* Right actions */}
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
+                {/* Light / Dark switch */}
+                <div
+                    className="hidden items-center gap-0.5 rounded-full p-1 sm:flex"
+                    style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-card)' }}
+                    role="group"
+                    aria-label="Colour theme"
+                >
+                    {([['light', 'Light', Sun], ['dark', 'Dark', Moon]] as const).map(([key, label, Icon]) => {
+                        const on = key === 'dark' ? isDark : !isDark
+                        return (
+                            <button
+                                key={key}
+                                type="button"
+                                onClick={() => setTheme(key)}
+                                aria-pressed={on}
+                                className="flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[11.5px] font-semibold transition-colors"
+                                style={on ? { background: key === 'dark' ? 'var(--accent)' : 'var(--gold-bright)', color: key === 'dark' ? '#fff' : '#17142B' } : { color: 'var(--text-muted)' }}
+                            >
+                                <Icon size={12} />{label}
+                            </button>
+                        )
+                    })}
+                </div>
 
                 {/* ── Notification Bell ── */}
                 <div ref={bellRef} className="relative">
@@ -118,11 +170,12 @@ export default function StudentTopBar() {
                         aria-haspopup="true"
                         aria-expanded={bellOpen}
                         aria-label={`Notifications${unreadCount > 0 ? ` — ${unreadCount} unread` : ''}`}
-                        className="relative p-2 rounded-[8px] transition-colors"
+                        className="relative flex h-10 w-10 items-center justify-center rounded-full transition-colors"
                         style={{
-                            color: bellOpen ? 'var(--accent)' : 'var(--text-muted)',
-                            background: bellOpen ? 'var(--accent-bg)' : 'transparent',
-                            border: 'none',
+                            color: bellOpen ? 'var(--accent)' : 'var(--text-secondary)',
+                            background: bellOpen ? 'var(--accent-bg)' : 'var(--bg-elevated)',
+                            border: '1px solid var(--border)',
+                            boxShadow: 'var(--shadow-card)',
                             cursor: 'pointer',
                         }}
                     >
@@ -130,7 +183,7 @@ export default function StudentTopBar() {
                         {unreadCount > 0 && (
                             <span
                                 className="absolute top-1 right-1 min-w-[16px] h-[16px] text-[10px] font-bold flex items-center justify-center rounded-full px-0.5"
-                                style={{ background: 'var(--red, #ef4444)', color: '#fff' }}
+                                style={{ background: 'var(--red, var(--red))', color: '#fff' }}
                             >
                                 {unreadCount > 99 ? '99+' : unreadCount}
                             </span>
@@ -148,8 +201,8 @@ export default function StudentTopBar() {
                                 maxWidth: 'calc(100vw - 24px)',
                                 background: 'var(--bg-elevated)',
                                 border: '1px solid var(--border)',
-                                borderRadius: '12px',
-                                boxShadow: '0 12px 32px rgba(0,0,0,0.15)',
+                                borderRadius: '22px',
+                                boxShadow: 'var(--shadow-card-hover)',
                                 zIndex: 50,
                                 overflow: 'hidden',
                             }}
@@ -276,20 +329,18 @@ export default function StudentTopBar() {
                     id="profile-chip-btn"
                     href="/student/profile"
                     aria-label="Go to profile"
-                    className="flex items-center gap-2 px-2 py-1 transition-all hover:opacity-80"
+                    className="flex h-10 items-center gap-2 rounded-full py-1 pl-1 pr-1 transition-all hover:opacity-80 sm:pr-3.5"
                     style={{
-                        borderRadius: '12px',
                         background: 'var(--bg-elevated)',
                         border: '1px solid var(--border)',
+                        boxShadow: 'var(--shadow-card)',
                     }}
                 >
                     {/* Avatar circle */}
                     <span
-                        className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0"
+                        className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full text-[12px] font-bold text-white"
                         style={{
-                            background: 'var(--accent-bg)',
-                            color: 'var(--accent)',
-                            border: '1px solid var(--accent-border)',
+                            background: 'linear-gradient(135deg, var(--accent), var(--accent-2))',
                         }}
                         aria-hidden="true"
                     >
@@ -305,6 +356,14 @@ export default function StudentTopBar() {
                             {firstName}
                         </span>
                     )}
+                </Link>
+
+                <Link
+                    href="/student/universities"
+                    className="hidden h-10 items-center gap-1.5 rounded-full px-4 text-[13px] font-semibold text-white transition-transform hover:-translate-y-0.5 xl:flex"
+                    style={{ background: 'var(--accent)', boxShadow: 'var(--shadow-glow)' }}
+                >
+                    <Plus size={15} /> New application
                 </Link>
             </div>
         </header>

@@ -139,14 +139,14 @@ export default function UniversityCard({ university, index }: Props) {
       <div className="grid grid-cols-2 gap-3 mt-auto pt-4 border-t border-white/5">
         <Link
           href={`/student/universities/${uni.uid}`}
-          className="text-center py-2.5 rounded-xl text-sm font-semibold text-white border border-white/20 hover:bg-card/5 transition-colors block"
+          className="text-center py-2.5 rounded-2xl text-sm font-semibold text-white border border-white/20 hover:bg-card/5 transition-colors block"
         >
           View Details
         </Link>
 
         <Link
           href={`/student/universities/${uni.uid}?apply=true`}
-          className="text-center py-2.5 rounded-xl text-sm font-semibold bg-primary hover:bg-blue-600 text-white transition-colors flex items-center justify-center"
+          className="text-center py-2.5 rounded-2xl text-sm font-semibold bg-primary hover:bg-blue-600 text-white transition-colors flex items-center justify-center"
         >
           Quick Apply
         </Link>

@@ -8,14 +8,9 @@ export default function Logo({ height = 32, href = "/", onClick, iconOnly = fals
     <Link
       href={href}
       onClick={onClick}
-      style={{
-        textDecoration: 'none',
-        display: 'flex',
-        alignItems: 'center',
-        gap: `${8 * scale}px`,
-      }}
+      aria-label="EDUING home"
+      style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: `${8 * scale}px` }}
     >
-      {/* Logo Image */}
       <Image
         src="/eduing-logo.png"
         alt="EDUING Logo"
@@ -25,32 +20,11 @@ export default function Logo({ height = 32, href = "/", onClick, iconOnly = fals
         style={{ height: `${height}px` }}
         priority
       />
-      {/* Text */}
       {!iconOnly && (
-        <span className="flex items-center" style={{ lineHeight: 1 }}>
-          <span style={{
-            fontFamily: 'var(--font-inter), sans-serif',
-            fontSize: `${19 * scale}px`,
-            fontWeight: '900',
-            letterSpacing: '-0.03em',
-            color: 'var(--text-primary)',
-          }}>EDU</span>
-          <span style={{
-            fontFamily: 'var(--font-inter), sans-serif',
-            fontSize: `${19 * scale}px`,
-            fontWeight: '900',
-            letterSpacing: '-0.03em',
-            color: '#6366F1',
-          }}>ING</span>
-          <span style={{
-            fontFamily: 'var(--font-inter), sans-serif',
-            fontSize: `${13 * scale}px`,
-            fontWeight: '700',
-            color: '#6366F1',
-            letterSpacing: '0',
-            alignSelf: 'flex-end',
-            paddingBottom: `${3 * scale}px`
-          }}>.in</span>
+        <span className="font-display flex items-baseline" style={{ lineHeight: 1, fontSize: `${20 * scale}px`, fontWeight: 700, letterSpacing: '-0.03em' }}>
+          <span style={{ color: 'var(--text-primary)' }}>EDU</span>
+          <span style={{ color: 'var(--accent)' }}>ING</span>
+          <span style={{ color: 'var(--gold-bright)', fontSize: `${13 * scale}px`, fontWeight: 600, marginLeft: 1 }}>.in</span>
         </span>
       )}
     </Link>

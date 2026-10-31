@@ -27,8 +27,8 @@ export function EmptyState({
   className = '',
 }: EmptyStateProps) {
   return (
-    <div className={`flex flex-col items-center justify-center p-[40px] text-center bg-card border border-border rounded-[16px] ${className}`}>
-      <div className="w-[56px] h-[56px] rounded-[16px] bg-primary/10 flex items-center justify-center mb-[16px]">
+    <div className={`flex flex-col items-center justify-center p-[40px] text-center bg-card border border-border rounded-[22px] ${className}`}>
+      <div className="w-[56px] h-[56px] rounded-[22px] bg-primary/10 flex items-center justify-center mb-[16px]">
         <Icon size={26} className="text-primary" strokeWidth={1.8} />
       </div>
       <h3 className="text-[16px] font-semibold text-foreground mb-[6px]">{title}</h3>
@@ -39,14 +39,14 @@ export function EmptyState({
           primaryCtaHref ? (
             <a
               href={primaryCtaHref}
-              className="px-[16px] h-[36px] bg-primary text-primary-foreground text-[13px] font-semibold rounded-[8px] hover:opacity-90 transition-colors flex items-center justify-center"
+              className="px-[16px] h-[36px] bg-primary text-primary-foreground text-[13px] font-semibold rounded-[12px] hover:opacity-90 transition-colors flex items-center justify-center"
             >
               {primaryCtaLabel}
             </a>
           ) : (
             <button
               onClick={onPrimaryClick}
-              className="px-[16px] h-[36px] bg-primary text-primary-foreground text-[13px] font-semibold rounded-[8px] hover:opacity-90 transition-colors flex items-center justify-center"
+              className="px-[16px] h-[36px] bg-primary text-primary-foreground text-[13px] font-semibold rounded-[12px] hover:opacity-90 transition-colors flex items-center justify-center"
             >
               {primaryCtaLabel}
             </button>
@@ -57,14 +57,14 @@ export function EmptyState({
           secondaryCtaHref ? (
             <a
               href={secondaryCtaHref}
-              className="px-[16px] h-[36px] border border-border bg-secondary text-secondary-foreground text-[13px] font-medium rounded-[8px] hover:bg-secondary/80 transition-colors flex items-center justify-center"
+              className="px-[16px] h-[36px] border border-border bg-secondary text-secondary-foreground text-[13px] font-medium rounded-[12px] hover:bg-secondary/80 transition-colors flex items-center justify-center"
             >
               {secondaryCtaLabel}
             </a>
           ) : (
             <button
               onClick={onSecondaryClick}
-              className="px-[16px] h-[36px] border border-border bg-secondary text-secondary-foreground text-[13px] font-medium rounded-[8px] hover:bg-secondary/80 transition-colors flex items-center justify-center"
+              className="px-[16px] h-[36px] border border-border bg-secondary text-secondary-foreground text-[13px] font-medium rounded-[12px] hover:bg-secondary/80 transition-colors flex items-center justify-center"
             >
               {secondaryCtaLabel}
             </button>

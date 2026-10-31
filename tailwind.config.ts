@@ -19,7 +19,8 @@ const config = {
     },
     extend: {
       fontFamily: {
-        sans: ['var(--font-poppins)', 'sans-serif'],
+        sans: ['var(--font-jakarta)', 'system-ui', 'sans-serif'],
+        display: ['var(--font-bricolage)', 'var(--font-jakarta)', 'system-ui', 'sans-serif'],
       },
       fontWeight: {
         light: "300",
@@ -39,7 +40,7 @@ const config = {
         'caption': ['12px', { lineHeight: '1.5' }],
       },
       colors: {
-        border: "hsl(var(--border))",
+        border: "hsl(var(--border-hsl))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
@@ -61,7 +62,7 @@ const config = {
           foreground: "hsl(var(--muted-foreground))",
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
+          DEFAULT: "rgb(var(--accent-rgb) / <alpha-value>)",
           foreground: "hsl(var(--accent-foreground))",
         },
         popover: {
@@ -71,6 +72,11 @@ const config = {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
+        },
+        brand: {
+          indigo: "rgb(var(--accent-rgb) / <alpha-value>)",
+          indigoLight: "var(--accent-2)",
+          gold: "#F5B829",
         },
         // Kept for backward compatibility while we refactor
         success: { DEFAULT: '#0ABE52' },
@@ -82,7 +88,7 @@ const config = {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
-        card: "18px",
+        card: "24px",
         button: "14px",
         input: "14px",
         badge: "999px",

@@ -50,11 +50,11 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
   const baseStyle = "inline-flex items-center justify-center font-semibold transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none select-none";
   
   const variants: Record<ButtonVariant, string> = {
-    primary: "bg-primary text-primary-foreground hover:opacity-90 active:scale-[0.98] border border-transparent rounded-[8px] shadow-sm",
-    secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 active:scale-[0.98] rounded-[8px]",
-    outline: "bg-transparent text-primary border border-primary hover:bg-primary/10 rounded-[8px]",
-    ghost: "bg-transparent text-muted-foreground hover:text-foreground hover:bg-muted border border-transparent rounded-[8px]",
-    danger: "bg-destructive text-destructive-foreground hover:opacity-90 active:scale-[0.98] border border-transparent rounded-[8px]",
+    primary: "bg-primary text-primary-foreground hover:opacity-90 active:scale-[0.98] border border-transparent rounded-[12px] shadow-sm",
+    secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 active:scale-[0.98] rounded-[12px]",
+    outline: "bg-transparent text-primary border border-primary hover:bg-primary/10 rounded-[12px]",
+    ghost: "bg-transparent text-muted-foreground hover:text-foreground hover:bg-muted border border-transparent rounded-[12px]",
+    danger: "bg-destructive text-destructive-foreground hover:opacity-90 active:scale-[0.98] border border-transparent rounded-[12px]",
     icon: "bg-transparent text-muted-foreground hover:text-foreground hover:bg-muted border border-transparent rounded-full p-[8px]",
   };
 
@@ -88,7 +88,7 @@ Button.displayName = 'Button';
 // ==========================================
 export const Card = ({ children, className = '', onClick, hoverable = false }: { children: React.ReactNode, className?: string, onClick?: () => void, hoverable?: boolean }) => (
   <div 
-    className={`bg-card text-card-foreground border border-border rounded-[14px] p-[20px] md:p-[24px] ${hoverable ? 'hover:border-primary/40 hover:shadow-md transition-all duration-200 cursor-pointer' : ''} ${className}`} 
+    className={`bg-card text-card-foreground border border-border rounded-[20px] p-[20px] md:p-[24px] ${hoverable ? 'hover:border-primary/40 hover:shadow-md transition-all duration-200 cursor-pointer' : ''} ${className}`} 
     onClick={onClick} 
     role={onClick ? "button" : undefined} 
     tabIndex={onClick ? 0 : undefined} 
@@ -133,7 +133,7 @@ export const TextInput = React.forwardRef<HTMLInputElement, TextInputProps>(
         <input
           id={inputId}
           ref={ref}
-          className={`w-full h-[40px] px-[14px] bg-background border ${error ? 'border-destructive' : 'border-border'} rounded-[8px] text-[13.5px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all ${className}`}
+          className={`w-full h-[40px] px-[14px] bg-background border ${error ? 'border-destructive' : 'border-border'} rounded-[12px] text-[13.5px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all ${className}`}
           {...props}
         />
         {error ? (
@@ -196,7 +196,7 @@ export const TextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
         <textarea
           id={textareaId}
           ref={ref}
-          className={`w-full p-[14px] bg-background border ${error ? 'border-destructive' : 'border-border'} rounded-[8px] text-[13.5px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-y min-h-[90px] ${className}`}
+          className={`w-full p-[14px] bg-background border ${error ? 'border-destructive' : 'border-border'} rounded-[12px] text-[13.5px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-y min-h-[90px] ${className}`}
           {...props}
         />
         {error ? (
@@ -232,7 +232,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           <select
             id={selectId}
             ref={ref}
-            className={`w-full h-[40px] pl-[14px] pr-[36px] bg-background border ${error ? 'border-destructive' : 'border-border'} rounded-[8px] text-[13.5px] text-foreground focus:outline-none focus:border-primary appearance-none cursor-pointer ${className}`}
+            className={`w-full h-[40px] pl-[14px] pr-[36px] bg-background border ${error ? 'border-destructive' : 'border-border'} rounded-[12px] text-[13.5px] text-foreground focus:outline-none focus:border-primary appearance-none cursor-pointer ${className}`}
             {...props}
           >
             {options.map(opt => (
@@ -261,7 +261,7 @@ export const PageHeader = ({ title, subtitle, action }: { title: string; subtitl
 );
 
 export const FilterBar = ({ children }: { children: React.ReactNode }) => (
-  <div className="flex items-center gap-[12px] flex-wrap bg-card border border-border rounded-[12px] p-[12px]">
+  <div className="flex items-center gap-[12px] flex-wrap bg-card border border-border rounded-[18px] p-[12px]">
     {children}
   </div>
 );
@@ -292,7 +292,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
-          className={`relative bg-card border border-border rounded-[16px] p-[24px] w-full ${maxWidth} shadow-2xl z-10`}
+          className={`relative bg-card border border-border rounded-[22px] p-[24px] w-full ${maxWidth} shadow-2xl z-10`}
         >
           <div className="flex items-center justify-between mb-[16px] pb-[12px] border-b border-border">
             <h3 className="text-[16px] font-semibold text-foreground">{title}</h3>
@@ -312,7 +312,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
 export const Badge = ({ children, variant = 'default', className = '' }: { children: React.ReactNode, variant?: 'default' | 'success' | 'warning' | 'danger' | 'purple', className?: string }) => {
   const variants = {
     default: "bg-secondary text-secondary-foreground border border-border",
-    success: "bg-[#0ABE52]/10 text-[#0ABE52] border border-[#0ABE52]/20",
+    success: "bg-[var(--green)]/10 text-[var(--green)] border border-[var(--green)]/20",
     warning: "bg-[#EE8248]/10 text-[#EE8248] border border-[#EE8248]/20",
     danger: "bg-destructive/10 text-destructive border border-destructive/20",
     purple: "bg-[#B57AF1]/10 text-[#B57AF1] border border-[#B57AF1]/20",
@@ -328,11 +328,11 @@ export const Badge = ({ children, variant = 'default', className = '' }: { child
 // METRIC CARDS
 // ==========================================
 export const StatCard = ({ title, value, icon: Icon, trend }: { title: string, value: string | number, icon?: LucideIcon, trend?: React.ReactNode }) => (
-  <div className="flex flex-col justify-between p-[24px] border border-border rounded-[14px] bg-card shadow-sm transition-shadow hover:shadow-md group">
+  <div className="flex flex-col justify-between p-[24px] border border-border rounded-[20px] bg-card shadow-sm transition-shadow hover:shadow-md group">
     <div className="flex justify-between items-start">
       <div className="text-[14px] font-medium text-muted-foreground group-hover:text-foreground transition-colors">{title}</div>
       {Icon && (
-        <div className="w-[36px] h-[36px] rounded-[10px] flex items-center justify-center border border-primary/20 bg-primary/10">
+        <div className="w-[36px] h-[36px] rounded-[14px] flex items-center justify-center border border-primary/20 bg-primary/10">
           <Icon size={18} strokeWidth={1.8} className="text-primary" />
         </div>
       )}
@@ -347,16 +347,16 @@ export const StatCard = ({ title, value, icon: Icon, trend }: { title: string, v
 export const MetricCard = ({ label, value, icon: Icon, color = 'primary', description }: { label: string, value: string | number, icon: LucideIcon, color?: 'primary' | 'success' | 'warning' | 'purple', description?: string }) => {
   const colorMap = {
     primary: "text-primary bg-primary/10 border-primary/20",
-    success: "text-[#0ABE52] bg-[#0ABE52]/10 border-[#0ABE52]/20",
+    success: "text-[var(--green)] bg-[var(--green)]/10 border-[var(--green)]/20",
     warning: "text-[#EE8248] bg-[#EE8248]/10 border-[#EE8248]/20",
     purple: "text-[#B57AF1] bg-[#B57AF1]/10 border-[#B57AF1]/20",
   };
   
   return (
-    <div className="flex flex-col justify-between p-[20px] border border-border rounded-[14px] bg-card shadow-sm transition-shadow hover:shadow-md group">
+    <div className="flex flex-col justify-between p-[20px] border border-border rounded-[20px] bg-card shadow-sm transition-shadow hover:shadow-md group">
       <div className="flex justify-between items-start">
         <div className="text-[14px] font-medium text-muted-foreground group-hover:text-foreground transition-colors">{label}</div>
-        <div className={`w-[36px] h-[36px] rounded-[10px] flex items-center justify-center border ${colorMap[color]}`}>
+        <div className={`w-[36px] h-[36px] rounded-[14px] flex items-center justify-center border ${colorMap[color]}`}>
           <Icon size={18} strokeWidth={1.8} />
         </div>
       </div>
