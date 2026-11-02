@@ -13,7 +13,7 @@ import SegmentedTabs from '@/components/ui/SegmentedTabs'
 import { useToast } from '@/hooks/useToast'
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { auth, db } from '@/lib/firebase/config'
-import { uploadProfilePhoto } from '@/lib/firebase/student'
+import { shareDetailsWithActiveApplications } from '@/lib/firebase/admission'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 
@@ -71,7 +71,6 @@ export default function ProfilePage() {
   const [editValue, setEditValue] = useState('')
   const [saving, setSaving] = useState(false)
   const { toast } = useToast()
-  const photoInputRef = useRef<HTMLInputElement>(null)
 
   // Edit-all mode
   const [editMode, setEditMode] = useState(false)
@@ -82,18 +81,6 @@ export default function ProfilePage() {
     if (!profile) return 0
     return calculateProfileStrength(profile, documents || {}).percentage
   }, [profile, documents])
-
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    const uid = (user as any)?.uid
-    if (!file || !uid) return
-    try {
-      await uploadProfilePhoto(uid, file)
-      toast.success('Photo updated successfully.')
-    } catch {
-      toast.error('Photo upload failed. Please try again.')
-    }
-  }
 
   if (!profile) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
@@ -108,42 +95,58 @@ export default function ProfilePage() {
   const docValues = Object.values(documents || {})
   const verifiedDocs = docValues.filter((d: any) => d?.status === 'verified').length
 
+  // Same keys as the mobile app's profile forms and what universities see on an application.
+  // No made-up defaults: an empty field stays empty until the student fills it.
+  const v = (k: string) => (profile[k] ?? '').toString()
   const identityFields = [
     { key: 'fullName', label: 'Full Name', value: profile.fullName || (user as any)?.displayName || '' },
     { key: 'email', label: 'Email', value: (user as any)?.email || '', readonly: true },
-    { key: 'phone', label: 'Phone', value: profile.phone || '' },
-    { key: 'dob', label: 'Date of Birth', value: profile.dob || '' },
-    { key: 'category', label: 'Category', value: profile.category || 'General' },
-    { key: 'nationality', label: 'Nationality', value: profile.nationality || 'Indian' },
-    { key: 'address', label: 'Address', value: profile.address || '' },
-    { key: 'guardianName', label: 'Guardian Name', value: profile.guardianName || '' },
-    { key: 'guardianPhone', label: 'Guardian Phone', value: profile.guardianPhone || '' },
+    { key: 'phone', label: 'Phone', value: v('phone') },
+    { key: 'dob', label: 'Date of Birth', value: v('dob') },
+    { key: 'gender', label: 'Gender', value: v('gender') },
+    { key: 'category', label: 'Category (General / EWS / OBC-NCL / SC / ST)', value: v('category') },
+    { key: 'pwd', label: 'Person with Disability (Yes / No)', value: v('pwd') },
+    { key: 'domicileState', label: 'Domicile State', value: v('domicileState') },
+    { key: 'nationality', label: 'Nationality', value: v('nationality') },
+    { key: 'address', label: 'Address', value: v('address') },
+    { key: 'city', label: 'City', value: v('city') },
+    { key: 'state', label: 'State', value: v('state') },
+    { key: 'pincode', label: 'PIN Code', value: v('pincode') },
+    { key: 'guardianName', label: 'Parent / Guardian Name', value: v('guardianName') },
+    { key: 'guardianRelation', label: 'Relationship', value: v('guardianRelation') },
+    { key: 'guardianPhone', label: 'Parent / Guardian Phone', value: v('guardianPhone') },
+    { key: 'annualIncome', label: 'Annual Family Income', value: v('annualIncome') },
   ]
 
   const academicFields = [
-    { key: 'tenthBoard', label: '10th Board', value: profile.tenthBoard || 'CBSE' },
-    { key: 'tenthYear', label: '10th Year', value: profile.tenthYear || '2020' },
-    { key: 'tenthScore', label: '10th Score', value: profile.tenthScore ? `${profile.tenthScore}%` : '' },
-    { key: 'twelfthBoard', label: '12th Board', value: profile.twelfthBoard || 'CBSE' },
-    { key: 'twelfthYear', label: '12th Year', value: profile.twelfthYear || '2022' },
-    { key: 'twelfthScore', label: '12th Score', value: profile.twelfthScore ? `${profile.twelfthScore}%` : '' },
-    { key: 'bachelorDegree', label: 'Bachelor Degree', value: profile.bachelorDegree || '' },
-    { key: 'bachelorCgpa', label: 'Bachelor CGPA', value: profile.bachelorCgpa || '' },
-    { key: 'bachelorYear', label: 'Bachelor Year', value: profile.bachelorYear || '' },
+    { key: 'tenthBoard', label: '10th Board', value: v('tenthBoard') },
+    { key: 'tenthYear', label: '10th Passing Year', value: v('tenthYear') },
+    { key: 'tenthScore', label: '10th Percentage', value: v('tenthScore') },
+    { key: 'school', label: '12th School', value: v('school') },
+    { key: 'twelfthBoard', label: '12th Board', value: v('twelfthBoard') },
+    { key: 'stream', label: '12th Stream (PCM / PCB / Commerce …)', value: v('stream') },
+    { key: 'twelfthYear', label: '12th Passing Year', value: v('twelfthYear') },
+    { key: 'twelfthScore', label: '12th Percentage', value: v('twelfthScore') },
+    { key: 'bachelorDegree', label: 'Bachelor Degree (PG applicants)', value: v('bachelorDegree') },
+    { key: 'bachelorCgpa', label: 'Bachelor CGPA', value: v('bachelorCgpa') },
+    { key: 'bachelorYear', label: 'Bachelor Year', value: v('bachelorYear') },
   ]
 
   const examFields = [
-    { key: 'jeeScore', label: 'JEE Main Score / Percentile', value: profile.jeeScore || '' },
-    { key: 'cuetScore', label: 'CUET Score', value: profile.cuetScore || '' },
-    { key: 'neetScore', label: 'NEET Score', value: profile.neetScore || '' },
-    { key: 'gateScore', label: 'GATE Score', value: profile.gateScore || '' },
-    { key: 'catPercentile', label: 'CAT Percentile', value: profile.catPercentile || '' },
+    { key: 'jeeScore', label: 'JEE Main Percentile', value: v('jeeScore') },
+    { key: 'neetScore', label: 'NEET Score', value: v('neetScore') },
+    { key: 'cuetScore', label: 'CUET Score', value: v('cuetScore') },
+    { key: 'bitsatScore', label: 'BITSAT Score', value: v('bitsatScore') },
+    { key: 'nataScore', label: 'NATA Score', value: v('nataScore') },
+    { key: 'clatScore', label: 'CLAT Score', value: v('clatScore') },
+    { key: 'catPercentile', label: 'CAT Percentile', value: v('catPercentile') },
+    { key: 'gateScore', label: 'GATE Score', value: v('gateScore') },
   ]
 
   const preferenceFields = [
-    { key: 'targetDegree', label: 'Target Degree', value: profile.targetDegree || 'B.Tech' },
-    { key: 'targetLocation', label: 'Preferred Location', value: profile.targetLocation || 'All India' },
-    { key: 'maxBudget', label: 'Max Annual Budget', value: profile.maxBudget || '₹5.0 Lakhs' },
+    { key: 'targetDegree', label: 'Target Degree', value: v('targetDegree') },
+    { key: 'targetLocation', label: 'Preferred Location', value: v('targetLocation') },
+    { key: 'maxBudget', label: 'Max Annual Budget', value: v('maxBudget') },
   ]
 
   const displayData =
@@ -172,6 +175,7 @@ export default function ProfilePage() {
       })
       toast.success('Profile saved.')
       setEditMode(false)
+      shareDetailsWithActiveApplications(uid).catch(() => {})
     } catch {
       toast.error('Failed to save. Please try again.')
     } finally {
@@ -196,6 +200,7 @@ export default function ProfilePage() {
       })
       toast.success('Field updated.')
       setEditingKey(null)
+      shareDetailsWithActiveApplications(uid).catch(() => {})
     } catch {
       toast.error('Failed to update. Please try again.')
     } finally {
@@ -231,61 +236,14 @@ export default function ProfilePage() {
 
         {/* ── Hero card ── */}
         <div style={{ ...CARD, padding: '20px 24px', display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 20 }}>
-          {/* Hidden file input */}
-          <input
-            ref={photoInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handlePhotoUpload}
-          />
-
-          {/* Clickable avatar with camera overlay */}
-          <div
-            style={{ position: 'relative', flexShrink: 0, cursor: 'pointer' }}
-            onClick={() => photoInputRef.current?.click()}
-            role="button"
-            tabIndex={0}
-            aria-label="Upload profile photo"
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') photoInputRef.current?.click() }}
-            title="Click to change photo"
-          >
-            <div style={{
-              width: 72, height: 72, borderRadius: '50%',
-              border: '2px solid var(--border)', background: 'var(--bg)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              overflow: 'hidden', position: 'relative',
-            }}>
-              {profile.profilePhotoURL ? (
-                <Image src={profile.profilePhotoURL} alt="Profile" fill style={{ objectFit: 'cover' }} />
-              ) : (
-                <User size={28} style={{ color: 'var(--text-muted)' }} strokeWidth={1.5} />
-              )}
-              {/* Camera overlay on hover */}
-              <div
-                className="group-hover-overlay"
-                style={{
-                  position: 'absolute', inset: 0,
-                  background: 'rgba(0,0,0,0.45)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  opacity: 0, transition: 'opacity 0.15s',
-                  borderRadius: '50%',
-                }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '1' }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '0' }}
-              >
-                <Camera size={18} style={{ color: '#fff' }} strokeWidth={1.8} />
-              </div>
-            </div>
-            {/* Small camera badge */}
-            <span style={{
-              position: 'absolute', bottom: 0, right: 0,
-              width: 20, height: 20, borderRadius: '50%',
-              background: 'var(--accent)', border: '2px solid var(--bg-elevated)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <Camera size={10} style={{ color: '#fff' }} strokeWidth={2} />
-            </span>
+          {/* Avatar — initials (EDUING doesn't store photos) */}
+          <div aria-hidden style={{
+            width: 72, height: 72, borderRadius: '50%', flexShrink: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'linear-gradient(135deg, var(--accent), var(--accent-2))',
+            color: '#fff', fontSize: 24, fontWeight: 700,
+          }}>
+            {(profile.fullName || (user as any)?.displayName || 'S').split(/\s+/).map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()}
           </div>
 
           {/* Name + email + edit button */}

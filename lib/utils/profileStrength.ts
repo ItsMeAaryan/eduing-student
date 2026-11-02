@@ -70,12 +70,12 @@ const PREFERENCE_FIELDS: FieldDef[] = [
   { key: 'budget',             label: 'Budget Range',        priority: 'Low',    timeMin: 1, link: '/student/profile' },
 ];
 
-// ── Documents ─────────────────────────────────────────────────────────────────
+// ── Admission details (replace document uploads; DigiLocker will verify later) ──
 const DOCUMENT_FIELDS: FieldDef[] = [
-  { key: 'doc_10th_marksheet', label: '10th Marksheet', priority: 'High',   timeMin: 2, link: '/student/documents' },
-  { key: 'doc_12th_marksheet', label: '12th Marksheet', priority: 'High',   timeMin: 2, link: '/student/documents' },
-  { key: 'doc_id_proof',       label: 'ID Proof',        priority: 'High',   timeMin: 2, link: '/student/documents' },
-  { key: 'doc_passport_photo', label: 'Passport Photo',  priority: 'Medium', timeMin: 2, link: '/student/documents' },
+  { key: 'domicileState', label: 'Domicile State',        priority: 'High',   timeMin: 1, link: '/student/profile' },
+  { key: 'guardianName',  label: 'Parent / Guardian Name', priority: 'Medium', timeMin: 1, link: '/student/profile' },
+  { key: 'guardianPhone', label: 'Parent / Guardian Phone', priority: 'Medium', timeMin: 1, link: '/student/profile' },
+  { key: 'pincode',       label: 'PIN Code',              priority: 'Low',    timeMin: 1, link: '/student/profile' },
 ];
 
 const ALL_FIELDS: FieldDef[] = [

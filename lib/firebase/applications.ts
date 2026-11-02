@@ -5,7 +5,7 @@ import {
 } from 'firebase/firestore'
 import { auth, db } from './config'
 import { Application } from '@/types/firebase'
-import { shareDocumentsWithApplication } from './admission'
+import { buildProfileSnapshot } from './admission'
 
 export async function submitApplication(
   universityId: string,
@@ -50,13 +50,13 @@ export async function submitApplication(
     program,
     programName: program,
     programId: programId || '',
+    // The student's declared marks, exams, category etc. — what the university reviews.
+    studentProfile: buildProfileSnapshot(profile),
     status: 'submitted',
     statusHistory: [{ status: 'submitted', date: new Date().toISOString(), note: 'Application submitted' }],
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   })
-  // Give the university the documents the student has already uploaded.
-  await shareDocumentsWithApplication(docRef.id, userId).catch(() => {})
   return docRef.id
 }
 

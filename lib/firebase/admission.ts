@@ -10,10 +10,10 @@
 //   side exits: rejected · waitlisted · offer_declined · withdrawn
 import {
   arrayUnion, collection, doc, getDoc, getDocs, onSnapshot, query, where,
-  serverTimestamp, setDoc, updateDoc, addDoc,
+  serverTimestamp, updateDoc, addDoc,
 } from 'firebase/firestore'
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage'
-import { auth, db, storage } from './config'
+import { auth, db } from './config'
+import { normalizeProfile } from '@/lib/utils/profileFields'
 
 export type AdmissionStatus =
   | 'submitted' | 'under_review' | 'docs_verified' | 'selected' | 'allotted' | 'waitlisted'
@@ -37,20 +37,14 @@ export const OFFER_STATUSES: AdmissionStatus[] = ['selected', 'allotted']
 export const WITHDRAWABLE: AdmissionStatus[] = ['submitted', 'under_review', 'docs_verified', 'waitlisted']
 export const CLOSED: AdmissionStatus[] = ['rejected', 'offer_declined', 'withdrawn']
 
-export interface GeneratedDoc { id: string; type: 'offer_letter' | 'admit_card' | 'enrollment_certificate' | string; url: string; version?: number; generatedAt?: any }
-export interface SharedDoc { id: string; name: string; url: string; category?: string; status?: string; history?: { note?: string; reason?: string; status?: string }[]; rejectionReason?: string }
+/** Issued by the university. `data` holds the letter's contents; the PDF is rendered on demand. */
+export interface GeneratedDoc { id: string; type: 'offer_letter' | 'admit_card' | 'enrollment_certificate' | string; data?: Record<string, string>; url?: string; version?: number; generatedAt?: any; generatedBy?: string }
 export interface ExamSchedule { id: string; programId: string; universityId: string; date?: string; time?: string; center?: string; instructions?: string }
 
 // ── Listeners ───────────────────────────────────────────────────────────────
 export function listenGeneratedDocuments(appId: string, cb: (docs: GeneratedDoc[]) => void) {
   return onSnapshot(collection(db, `applications/${appId}/generated_documents`),
     (snap) => cb(snap.docs.map(d => ({ id: d.id, ...(d.data() as any) })).sort((a, b) => (b.version ?? 0) - (a.version ?? 0))),
-    () => cb([]))
-}
-
-export function listenSharedDocuments(appId: string, cb: (docs: SharedDoc[]) => void) {
-  return onSnapshot(collection(db, `applications/${appId}/documents`),
-    (snap) => cb(snap.docs.map(d => ({ id: d.id, ...(d.data() as any) }))),
     () => cb([]))
 }
 
@@ -117,76 +111,77 @@ export async function withdrawApplication(appId: string, reason: string) {
   await notifyUniversity(app, 'Application withdrawn', `${app.studentName || 'A student'} withdrew their application for ${app.programName || app.program || 'your program'}.`)
 }
 
-export async function submitFeePayment(appId: string, input: { amount: number; transactionRef: string; paidOn: string; mode: string; receipt: File }) {
-  const { user } = await loadOwnedApplication(appId)
+/**
+ * Records a fee payment made outside EDUING (UPI / bank transfer / DD). No receipt
+ * file is stored — the admissions office matches the reference number with its bank statement.
+ */
+export async function submitFeePayment(appId: string, input: { amount: number; transactionRef: string; paidOn: string; mode: string; payerName?: string }) {
+  await loadOwnedApplication(appId)
   if (!(input.amount > 0)) throw new Error('Enter the amount you paid.')
-  if (!input.transactionRef.trim()) throw new Error('Enter the transaction / UTR reference from your bank.')
-  if (input.receipt.size > 10 * 1024 * 1024) throw new Error('The receipt must be smaller than 10 MB.')
-  const ext = input.receipt.name.split('.').pop() || 'pdf'
-  const storageRef = ref(storage, `users/${user.uid}/payments/${appId}_${Date.now()}.${ext}`)
-  await uploadBytes(storageRef, input.receipt, { contentType: input.receipt.type || 'application/octet-stream' })
-  const receiptUrl = await getDownloadURL(storageRef)
-  const app = await transition(appId, ['seat_accepted'], 'fee_paid', `Fee payment submitted (ref ${input.transactionRef.trim()})`, {
+  const ref = input.transactionRef.trim()
+  if (ref.length < 6) throw new Error('Enter the full transaction / UTR reference from your bank or UPI app.')
+  const app = await transition(appId, ['seat_accepted'], 'fee_paid', `Fee payment submitted (ref ${ref})`, {
     paymentDetails: {
       amountPaid: input.amount,
-      transactionRef: input.transactionRef.trim(),
+      transactionRef: ref,
       paidOn: input.paidOn,
       mode: input.mode,
-      receiptUrl,
+      payerName: input.payerName?.trim() || '',
       submittedAt: new Date().toISOString(),
       status: 'submitted',
     },
   })
-  await notifyUniversity(app, 'Fee payment submitted', `${app.studentName || 'A student'} submitted a fee payment of ₹${input.amount.toLocaleString('en-IN')} for verification.`)
+  await notifyUniversity(app, 'Fee payment submitted', `${app.studentName || 'A student'} submitted a fee payment of ₹${input.amount.toLocaleString('en-IN')} (ref ${ref}) for verification.`)
 }
 
-// ── Documents shared with universities ──────────────────────────────────────
-const DOC_LABELS: Record<string, string> = {
-  '10th_marksheet': '10th Marksheet', '12th_marksheet': '12th Marksheet',
-  id_proof: 'Identity Proof', passport_photo: 'Passport Photo',
-}
+// ── Details shared with universities ───────────────────────────────────────
+// Students don't upload files. What the university sees is a snapshot of the
+// details the student declared in their profile (marks, exams, category …),
+// saved on the application as `studentProfile`. DigiLocker will verify them later.
+export const SHARED_PROFILE_KEYS = [
+  'fullName', 'phone', 'dob', 'gender', 'nationality', 'category', 'pwd', 'domicileState',
+  'address', 'city', 'state', 'pincode',
+  'guardianName', 'guardianRelation', 'guardianPhone', 'annualIncome',
+  'tenthBoard', 'tenthYear', 'tenthScore', 'school', 'twelfthBoard', 'stream', 'twelfthYear', 'twelfthScore',
+  'jeeScore', 'neetScore', 'cuetScore', 'bitsatScore', 'nataScore', 'clatScore', 'catPercentile', 'gateScore',
+] as const
 
-/** Copy the student's uploaded documents into an application so the university can verify them. */
-export async function shareDocumentsWithApplication(appId: string, uid?: string) {
-  const owner = uid || auth.currentUser?.uid
-  if (!owner) return 0
-  const [mine, shared] = await Promise.all([
-    getDocs(collection(db, 'users', owner, 'documents')),
-    getDocs(collection(db, `applications/${appId}/documents`)),
-  ])
-  const existing = new Map(shared.docs.map(d => [d.id, d.data() as Record<string, any>]))
-  let count = 0
-  for (const d of mine.docs) {
-    const data = d.data() as Record<string, any>
-    const url = data.fileUrl || data.downloadUrl || data.url || data.previewUrl
-    if (!url) continue
-    const prev = existing.get(d.id)
-    if (prev && prev.url === url) continue // unchanged — keep the university's verification status
-    await setDoc(doc(db, `applications/${appId}/documents`, d.id), {
-      name: data.name || DOC_LABELS[d.id] || d.id.replace(/_/g, ' '),
-      url,
-      category: data.category || 'Academic',
-      status: 'pending',
-      ownerId: owner,
-      uploadDate: serverTimestamp(),
-      history: prev ? arrayUnion({ status: 'pending', date: new Date().toISOString(), note: 'Student uploaded a new version' }) : [],
-    }, { merge: true })
-    count++
+export function buildProfileSnapshot(raw: Record<string, any> | null | undefined) {
+  const p = normalizeProfile(raw ?? {}) ?? {}
+  const out: Record<string, string> = {}
+  for (const k of SHARED_PROFILE_KEYS) {
+    const v = p[k]
+    if (v !== undefined && v !== null && String(v).trim() !== '') out[k] = String(v).trim()
   }
-  return count
+  out.sharedAt = new Date().toISOString()
+  return out
 }
 
-/** Re-share documents with every application that is still being processed. */
-export async function shareDocumentsWithActiveApplications(uid: string) {
-  const [a, b] = await Promise.all([
+/** Sends the student's current profile details to one application. */
+export async function shareDetailsWithApplication(appId: string) {
+  const { user, data } = await loadOwnedApplication(appId)
+  const status = normalizeStatus(data.status)
+  if (CLOSED.includes(status) || status === 'enrolled') return
+  const profileSnap = await getDoc(doc(db, 'users', user.uid))
+  await updateDoc(doc(db, 'applications', appId), {
+    studentProfile: buildProfileSnapshot(profileSnap.exists() ? profileSnap.data() : {}),
+    updatedAt: serverTimestamp(),
+  })
+}
+
+/** Keeps every in-progress application up to date after the student edits their profile. */
+export async function shareDetailsWithActiveApplications(uid: string) {
+  const [a, b, profileSnap] = await Promise.all([
     getDocs(query(collection(db, 'applications'), where('studentId', '==', uid))),
     getDocs(query(collection(db, 'applications'), where('userId', '==', uid))),
+    getDoc(doc(db, 'users', uid)),
   ])
-  const ids = new Map<string, Record<string, any>>()
-  ;[...a.docs, ...b.docs].forEach(d => ids.set(d.id, d.data()))
-  for (const [id, data] of ids) {
+  const snapshot = buildProfileSnapshot(profileSnap.exists() ? profileSnap.data() : {})
+  const apps = new Map<string, Record<string, any>>()
+  ;[...a.docs, ...b.docs].forEach(d => apps.set(d.id, d.data()))
+  for (const [id, data] of apps) {
     const s = normalizeStatus(data.status)
     if (CLOSED.includes(s) || s === 'enrolled') continue
-    await shareDocumentsWithApplication(id, uid).catch(() => {})
+    await updateDoc(doc(db, 'applications', id), { studentProfile: snapshot, updatedAt: serverTimestamp() }).catch(() => {})
   }
 }

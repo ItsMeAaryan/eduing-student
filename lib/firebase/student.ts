@@ -4,13 +4,10 @@ import {
   serverTimestamp, setDoc, collection,
   query, orderBy, where
 } from 'firebase/firestore'
-import {
-  ref, uploadBytes, getDownloadURL
-} from 'firebase/storage'
-import { db, storage } from './config'
-import { shareDocumentsWithActiveApplications } from './admission'
+import { db } from './config'
 import { UserProfile, UserDocument } from '@/types/firebase'
-import { compressImage } from '../utils/compression'
+// EDUING doesn't store files (no Firebase Storage). Documents will be verified
+// through DigiLocker; until then students enter their marks in the profile.
 
 const log = (...args: unknown[]) => {
   if (process.env.NODE_ENV === 'development') console.log(...args)
@@ -52,61 +49,6 @@ export async function updateUserProfile(
   )
 }
 
-// Upload profile photo
-export async function uploadProfilePhoto(
-  uid: string,
-  file: File
-) {
-  try {
-    const compressed = await compressImage(file)
-    const path = `users/${uid}/profile_photo`
-    const storageRef = ref(storage, path)
-    await uploadBytes(storageRef, compressed)
-    const url = await getDownloadURL(storageRef)
-    await updateDoc(
-      doc(db, 'users', uid),
-      {
-        profilePhotoURL: url,
-        updatedAt: serverTimestamp(),
-      }
-    )
-    return url
-  } catch (err: unknown) {
-    log('[uploadProfilePhoto] failed for uid:', uid, err)
-    throw err
-  }
-}
-
-// Upload student document to subcollection
-export async function uploadUserDocument(
-  uid: string,
-  file: File,
-  docId: '10th_marksheet' | '12th_marksheet' | 'id_proof' | 'passport_photo'
-) {
-  try {
-    const compressed = await compressImage(file, 1200, 1200, 0.8)
-    // Storage path must match storage.rules: users/{uid}/documents/{docId}
-    const path = `users/${uid}/documents/${docId}`
-    const storageRef = ref(storage, path)
-    await uploadBytes(storageRef, compressed)
-    const url = await getDownloadURL(storageRef)
-    await setDoc(
-      doc(db, 'users', uid, 'documents', docId),
-      {
-        fileUrl: url,
-        status: 'uploaded',
-        uploadedAt: serverTimestamp(),
-      }
-    )
-    // Keep every in-progress application's copy up to date for the university.
-    await shareDocumentsWithActiveApplications(uid).catch(() => {})
-    return url
-  } catch (err: unknown) {
-    log('[uploadUserDocument]', docId, 'failed for uid:', uid, err)
-    throw err
-  }
-}
-
 // Listen to user documents (real-time)
 export function listenUserDocuments(
   uid: string,
@@ -135,15 +77,6 @@ export async function removeProfilePhoto(uid: string) {
   await updateDoc(doc(db, 'users', uid), {
     profilePhotoURL: '',
     updatedAt: serverTimestamp()
-  })
-}
-
-// Soft-delete document — mark as removed (not 'rejected')
-export async function deleteUserDocument(uid: string, docId: string) {
-  await updateDoc(doc(db, 'users', uid, 'documents', docId), {
-    status: 'removed',
-    fileUrl: '',
-    uploadedAt: serverTimestamp()
   })
 }
 

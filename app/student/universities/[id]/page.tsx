@@ -1172,7 +1172,7 @@ export default function UniversityDetailPage() {
               <div>
                 {[
                   { title: 'Check Eligibility', desc: 'Verify you meet minimum Class XII and entrance exam requirements.', done: true },
-                  { title: 'Complete Documents', desc: 'Upload transcripts, ID, and supporting documents to your EDUING profile.', done: missingDocs.length === 0 },
+                  { title: 'Add your marks', desc: 'Add your Class 10/12 marks and exam scores to your EDUING profile.', done: missingDocs.length === 0 },
                   { title: 'Profile Verification', desc: 'EDUING verifies your documents — usually within 48 hours.', done: false },
                   { title: 'Submit Application', desc: 'Apply to this university directly through EDUING in one click.', done: applicationSubmitted },
                   { title: 'Track Admission', desc: 'Monitor your application status in real time on your dashboard.', done: false },
