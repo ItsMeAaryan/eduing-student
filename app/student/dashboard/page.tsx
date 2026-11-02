@@ -1,14 +1,14 @@
 // app/student/dashboard/page.tsx
 // The student's admission HQ — same layout as the dashboard shown on eduing.in:
 // greeting + stream cards, three progress rings, "Your applications",
-// an AI match, a calendar strip and the nearest deadline.
+// the best-fit university, the College Predictor, a calendar strip and the nearest deadline.
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
-  AlertCircle, ArrowRight, CalendarDays, ChevronLeft, ChevronRight, Clock, Plus, RefreshCw, Sparkles,
+  AlertCircle, ArrowRight, CalendarDays, ChevronLeft, ChevronRight, Clock, Gauge, Plus, RefreshCw, Sparkles,
 } from 'lucide-react'
 import { collection, getDocs, limit, query } from 'firebase/firestore'
 import { db } from '@/lib/firebase/config'
@@ -122,7 +122,7 @@ export default function StudentDashboard() {
   }, [loading, profile, stream])
   const pickStream = (k: StreamKey) => { setStream(k); try { localStorage.setItem(STREAM_STORE, k) } catch { /* ignore */ } }
 
-  // programs power the stream cards, the AI match and program deadlines
+  // programs power the stream cards, the best-fit university and program deadlines
   useEffect(() => {
     getDocs(query(collection(db, 'programs'), limit(400)))
       .then(s => setPrograms(s.docs.map(d => ({ id: d.id, ...d.data() })).filter((p: any) => p.isActive !== false && p.status !== 'inactive')))
@@ -151,6 +151,8 @@ export default function StudentDashboard() {
       .sort((a: any, b: any) => Number(!!b.isFeatured) - Number(!!a.isFeatured) || parseFloat(b.rating ?? 0) - parseFloat(a.rating ?? 0))
       .slice(0, 4)
   }, [universities, streamPrograms])
+
+  const predictorSummary = (profile as any)?.predictorSummary as { likelySeat?: string; anySeat?: number | null } | undefined
 
   const match = useMemo(() => {
     const appliedUnis = new Set(active.map(a => a.universityId))
@@ -335,12 +337,24 @@ export default function StudentDashboard() {
               </div>
             )}
 
+            <Link href="/student/predictor" className="mt-[12px] flex items-center gap-[12px] rounded-[18px] border border-[var(--border)] p-[12px] text-[13px] transition hover:border-[var(--border-hover)]">
+              <span className="flex h-[36px] w-[36px] shrink-0 items-center justify-center rounded-[12px] bg-[var(--accent-bg)] text-[var(--accent)]"><Gauge size={16} /></span>
+              <p className="min-w-0 flex-1 truncate">
+                {predictorSummary?.likelySeat ? (
+                  <><strong>Most likely JoSAA seat:</strong> <span className="text-[var(--text-muted)]">{predictorSummary.likelySeat}{predictorSummary.anySeat != null ? ` · ${predictorSummary.anySeat}% chance of a seat` : ''}</span></>
+                ) : (
+                  <><strong>College Predictor</strong><span className="text-[var(--text-muted)]"> · your chances at every IIT, NIT and IIIT program, from real cutoffs</span></>
+                )}
+              </p>
+              <ArrowRight size={15} className="shrink-0 text-[var(--text-muted)]" />
+            </Link>
+
             {match && (
               <div className="mt-[12px] flex items-center gap-[12px] rounded-[18px] border border-[var(--border)] p-[12px] text-[13px]">
                 <span className="flex h-[36px] w-[36px] shrink-0 items-center justify-center rounded-[12px] bg-[var(--gold-bg)] text-[var(--gold)]"><Sparkles size={16} /></span>
                 <p className="min-w-0 flex-1 truncate">
                   <strong>{match.university.shortName || match.university.name}</strong>
-                  <span className="text-[var(--text-muted)]"> · AI match {match.overallMatchScore}%{match.matchReasons[0] ? ` · ${match.matchReasons[0].toLowerCase()}` : ''}</span>
+                  <span className="text-[var(--text-muted)]"> · {match.overallMatchScore}% profile fit{match.matchReasons[0] ? ` · ${match.matchReasons[0].toLowerCase()}` : ''}</span>
                 </p>
                 <Link href={`/student/universities/${match.university.id}`} className="shrink-0 rounded-full bg-[var(--text-primary)] px-[14px] py-[6px] text-[12px] font-semibold text-[var(--bg)] transition hover:opacity-85">Apply</Link>
               </div>

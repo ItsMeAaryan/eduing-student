@@ -19,7 +19,7 @@ export function CompareSectionAdmissions({ data }: { data: any[] }) {
             <div key={u.id} className="min-w-[280px] max-w-[320px] flex-1 snap-start flex flex-col gap-6">
               
               <div>
-                <p className="text-[12px] font-bold text-muted-foreground uppercase tracking-wider mb-2">AI Admission Probability</p>
+                <p className="text-[12px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Admission estimate (profile-based)</p>
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-[24px] font-bold text-foreground">{probScores[idx]}%</p>
                   {isSafest && <span className="text-[11px] font-bold text-accent bg-accent/10 px-2 py-1 rounded-md">Safest Choice</span>}

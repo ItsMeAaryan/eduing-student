@@ -228,7 +228,7 @@ export default function ProfilePage() {
         {/* ── Stats row (responsive grid) ── */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }} className="lg:grid-cols-4" id="profile-stats-grid">
           <style>{`@media (min-width: 1024px) { #profile-stats-grid { grid-template-columns: repeat(4, 1fr) !important; } }`}</style>
-          <StatCard label="Profile Strength" value={`${strength}%`} sub="AI completion score" color={strengthColor} />
+          <StatCard label="Profile Strength" value={`${strength}%`} sub="Profile completion" color={strengthColor} />
           <StatCard label="Docs Verified" value={verifiedDocs} sub={`of ${docValues.length} uploaded`} color="var(--green)" />
           <StatCard label="Applications" value={uniqueApps?.length || 0} sub="Submitted" />
           <StatCard label="Offers" value={selectedOffers?.length || 0} sub="Received" color="var(--accent)" />

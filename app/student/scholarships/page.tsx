@@ -341,7 +341,7 @@ export default function ScholarshipsPage() {
                   <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                       <Sparkles size={14} style={{ color: 'var(--accent)' }} strokeWidth={1.8} />
-                      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>AI Match Analysis</span>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>Eligibility check</span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                       {selectedSch.matchReasons.map((reason: string, idx: number) => (
