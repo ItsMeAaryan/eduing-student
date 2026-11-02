@@ -123,7 +123,7 @@ function SOPBuilderContent() {
   const profileFields = useMemo(() => [
     { label: 'Full Name',     value: p.fullName || null,       icon: User          },
     { label: 'Stream',        value: p.stream || null,         icon: BookOpen      },
-    { label: '12th Score',    value: p.twelfthScore ? `${p.twelfthScore}%` : null, icon: FileText },
+    { label: '12th Score',    value: p.twelfthScore ? `${String(p.twelfthScore).replace(/%+$/, '')}%` : null, icon: FileText },
     { label: 'JEE Score',     value: p.jeeScore ? String(p.jeeScore) : null,       icon: Target   },
     { label: 'CUET Score',    value: p.cuetScore ? String(p.cuetScore) : null,     icon: Target   },
     { label: 'Target Degree', value: p.targetDegree || null,  icon: GraduationCap },
@@ -166,7 +166,7 @@ function SOPBuilderContent() {
       };
 
       const result = await SOPService.generateSOP(context, tone);
-      if (!result.success) { toast.error('SOP generation failed. Please try again.'); return; }
+      if (!result.success) { toast.error(result.error || 'SOP generation failed. Please try again.'); return; }
 
       const data = result.data as { title?: string; sections?: { heading: string; content: string }[] } | null;
       let text = '';
@@ -303,7 +303,7 @@ function SOPBuilderContent() {
             {/* Section 2 — Writing Style */}
             <div>
               <SectionHeader number="2" title="Writing Style" />
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginTop: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 12, marginTop: 16 }}>
                 {TONES.map(t => {
                   const active = tone === t.id;
                   const Icon = t.icon;
@@ -311,7 +311,7 @@ function SOPBuilderContent() {
                     <button key={t.id} onClick={() => setTone(t.id)}
                       className="tone-card-btn"
                       style={{
-                        minWidth: 140, padding: 20, borderRadius: 18, cursor: 'pointer',
+                        minWidth: 0, padding: 16, borderRadius: 18, cursor: 'pointer',
                         border: active ? '2px solid var(--accent)' : '1.5px solid var(--border-hover)',
                         background: active ? 'var(--accent-bg)' : 'var(--bg-card)',
                         boxShadow: active ? '0 2px 8px rgba(124,58,237,0.15)' : 'none',

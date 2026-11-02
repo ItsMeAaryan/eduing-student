@@ -1,5 +1,6 @@
 // components/auth/LoginForm.tsx
 'use client'
+import { authErrorMessage } from '@/lib/utils/authErrors'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -24,7 +25,7 @@ export default function LoginForm() {
       else if (role === 'super_admin') window.location.assign('https://uni.eduing.in/admin')
       else setError('Unauthorized access')
     } catch (err: unknown) {
-      setError('Invalid email or password')
+      setError(authErrorMessage(err, 'Couldn\u2019t sign in. Please try again.'))
     } finally {
       setLoading(false)
     }

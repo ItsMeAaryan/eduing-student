@@ -4,12 +4,13 @@
 import { getOptimalModelForTask } from '../models';
 import { PromptBuilder } from '../prompts';
 import { GeminiResponse } from '../types';
+import { aiAuthHeaders } from '../../authHeaders';
 
 async function callAI(prompt: string, model: string, temperature = 0.7, max_tokens = 1024): Promise<GeminiResponse> {
   try {
     const response = await fetch('/api/ai', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...(await aiAuthHeaders()) },
       body: JSON.stringify({
         model,
         messages: [{ role: 'user', content: prompt }],
@@ -19,7 +20,8 @@ async function callAI(prompt: string, model: string, temperature = 0.7, max_toke
     });
 
     if (!response.ok) {
-      return { success: false, error: 'Something went wrong. Please try again later.' };
+      const err = await response.json().catch(() => ({}));
+      return { success: false, error: err.message || 'The AI assistant is unavailable right now. Please try again.' };
     }
 
     const data = await response.json();
