@@ -278,21 +278,6 @@ export default function ApplicationDetailsPage() {
               </Link>
             )}
 
-            <Link
-              id="draft-email-detail-btn"
-              href={`/student/email?university=${encodeURIComponent(application.universityName || application.universityId || '')}&program=${encodeURIComponent(application.programName || application.programId || '')}`}
-              style={{
-                width: '100%', height: 36,
-                display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                background: 'var(--accent)', border: 'none',
-                borderRadius: 12, fontSize: 13, fontWeight: 600,
-                color: '#fff', cursor: 'pointer',
-                textDecoration: 'none',
-              }}
-            >
-              <Mail size={14} strokeWidth={1.8} />
-              Draft an Email
-            </Link>
 
             <button
               onClick={() => router.push('/student/applications')}

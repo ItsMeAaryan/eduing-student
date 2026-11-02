@@ -166,34 +166,6 @@ export class CopilotService {
   }
 }
 
-export class ResumeService {
-  static async generateResume(context: any, mode: string = 'Professional Resume'): Promise<GeminiResponse> {
-    const prompt = PromptBuilder.buildResumePrompt(context, mode);
-    const response = await generateAIResponse(prompt, { model: getOptimalModelForTask('high') });
-    return parseAIResponse(response, 'Resume generation');
-  }
-
-  static async reviewResume(resumeContent: string, context: any): Promise<GeminiResponse> {
-    const prompt = PromptBuilder.buildResumeReviewPrompt(resumeContent, context);
-    const response = await generateAIResponse(prompt, { model: getOptimalModelForTask('high') });
-    return parseAIResponse(response, 'Resume review');
-  }
-}
-
-export class EmailService {
-  static async generateEmail(context: any, intent: string): Promise<GeminiResponse> {
-    const prompt = PromptBuilder.buildEmailPrompt(context, intent);
-    const response = await generateAIResponse(prompt, { model: getOptimalModelForTask('high') });
-    return parseAIResponse(response, 'Email generation');
-  }
-
-  static async reviewEmail(emailContent: string, context: any): Promise<GeminiResponse> {
-    const prompt = PromptBuilder.buildEmailReviewPrompt(emailContent, context);
-    const response = await generateAIResponse(prompt, { model: getOptimalModelForTask('high') });
-    return parseAIResponse(response, 'Email review');
-  }
-}
-
 export class InterviewService {
   static async generateQuestion(context: any, interviewType: string, previousQuestions: string[]): Promise<GeminiResponse> {
     const prompt = PromptBuilder.buildInterviewPrompt(context, interviewType, previousQuestions);

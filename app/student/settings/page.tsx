@@ -776,9 +776,8 @@ export default function SettingsPage() {
           <div style={CARD}>
             <SectionHeader title="AI & Personalization" />
             <Toggle title="Profile Engine" sub="Allow AI to automatically match you with universities." defaultOn />
-            <Toggle title="Resume Parsing" sub="Allow AI to extract text from uploaded documents." defaultOn />
+            <Toggle title="Document Parsing" sub="Allow AI to read marks and details from uploaded marksheets." defaultOn />
             <Toggle title="Smart Auto-Fill" sub="Use AI to pre-fill application forms." defaultOn />
-            <Toggle title="Career Path Insights" sub="Weekly AI career advice based on your profile." defaultOn />
             <Toggle title="Interview Coaching" sub="Personalised question sets from your academic profile." defaultOn />
             <div style={{ padding: '14px 20px' }}>
               <button style={{

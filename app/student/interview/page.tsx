@@ -17,10 +17,8 @@ import AIMarkdown from '@/components/ai/AIMarkdown';
 const INTERVIEW_TRACKS = [
   { name: 'University Admission', color: 'var(--accent)' },
   { name: 'Scholarship', color: 'var(--green)' },
-  { name: 'Technical', color: '#06B6D4' },
-  { name: 'Behavioral', color: 'var(--accent-2)' },
-  { name: 'Research', color: 'var(--gold)' },
-  { name: 'Internship', color: '#EC4899' },
+  { name: 'MBA GD-PI', color: 'var(--accent-2)' },
+  { name: 'Design & Architecture Portfolio', color: 'var(--gold)' },
 ];
 
 const DIFFICULTIES = [

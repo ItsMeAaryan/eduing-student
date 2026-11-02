@@ -21,7 +21,7 @@ export default function LoginForm() {
     try {
       const { role } = await loginUser(email, password)
       if (role === 'student') router.push('/student/dashboard')
-      else if (role === 'super_admin') router.push('/admin/dashboard')
+      else if (role === 'super_admin') window.location.assign('https://uni.eduing.in/admin')
       else setError('Unauthorized access')
     } catch (err: unknown) {
       setError('Invalid email or password')

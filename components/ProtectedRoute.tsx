@@ -20,7 +20,7 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
         router.push('/auth/login')
       } else if (allowedRoles && role && !allowedRoles.includes(role)) {
         if (role === 'student') router.push('/student/dashboard')
-        else if (role === 'super_admin') router.push('/admin/dashboard')
+        else if (role === 'super_admin') window.location.assign('https://uni.eduing.in/admin')
         else router.push('/auth/login')
       }
     }
