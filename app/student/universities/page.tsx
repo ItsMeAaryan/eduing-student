@@ -4,7 +4,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useSearchParams } from 'next/navigation'
 import {
-  Search, MapPin, Heart, ArrowUpRight, SlidersHorizontal, ChevronDown, X, Mic,
+  Search, MapPin, Bookmark, ArrowUpRight, SlidersHorizontal, ChevronDown, X, Mic,
   BookOpen, Award, Globe, Building2, Zap, Home, Check, Scale, GraduationCap,
   Layers, Filter
 } from 'lucide-react'
@@ -14,6 +14,7 @@ import { useRouter } from 'next/navigation'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import SegmentedTabs from '@/components/ui/SegmentedTabs'
 import { useUniversities } from '@/hooks/useUniversities'
+import { useSavedUniversities } from '@/hooks/useSavedUniversities'
 import { UniversityFirestore } from '@/lib/firebase/universities'
 import { CompareWorkspace } from '@/components/compare/CompareWorkspace'
 
@@ -110,8 +111,8 @@ function logoColorFromName(name: string) {
 /**
  * NETFLIX-STYLE PROGRESSIVE REVEAL HOVER CARD
  */
-const UniCard = React.memo(function UniCard({ uni, onShortlist, shortlisted, onCompare, isCompared, index }: {
-  uni: UniversityFirestore; onShortlist: (id: string) => void; shortlisted: boolean;
+const UniCard = React.memo(function UniCard({ uni, onSave, saved, onCompare, isCompared, index }: {
+  uni: UniversityFirestore; onSave: (uni: UniversityFirestore) => void; saved: boolean;
   onCompare: (id: string) => void; isCompared: boolean; index: number
 }) {
   const router = useRouter()
@@ -190,11 +191,13 @@ const UniCard = React.memo(function UniCard({ uni, onShortlist, shortlisted, onC
           </button>
 
           <button
-            onClick={(e) => { e.stopPropagation(); onShortlist(uni.id) }}
-            className="w-[30px] h-[30px] rounded-full bg-black/40 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-xs transition-transform hover:scale-110"
-            aria-label={shortlisted ? 'Remove from favorites' : 'Add to favorites'}
+            onClick={(e) => { e.stopPropagation(); onSave(uni) }}
+            className={`w-[30px] h-[30px] rounded-full backdrop-blur-md border flex items-center justify-center shadow-xs transition-transform hover:scale-110 ${saved ? 'bg-primary border-primary' : 'bg-black/40 border-white/30'}`}
+            aria-label={saved ? `Remove ${uni.name} from Saved` : `Save ${uni.name}`}
+            aria-pressed={saved}
+            title={saved ? 'Saved — click to remove' : 'Save'}
           >
-            <Heart size={14} className={shortlisted ? 'fill-destructive text-destructive' : 'text-white'} />
+            <Bookmark size={14} className={saved ? 'fill-white text-white' : 'text-white'} />
           </button>
         </div>
 
@@ -253,6 +256,17 @@ const UniCard = React.memo(function UniCard({ uni, onShortlist, shortlisted, onC
                   View Details
                   <ArrowUpRight size={13} />
                 </Link>
+
+                <button
+                  onClick={(e) => { e.stopPropagation(); onSave(uni) }}
+                  aria-pressed={saved}
+                  className={`h-[34px] px-[12px] rounded-[12px] border text-[12px] font-medium backdrop-blur-md transition-all inline-flex items-center gap-[4px] ${
+                    saved ? 'bg-primary/30 border-primary text-white' : 'bg-card/15 border-white/30 text-white hover:bg-card/25'
+                  }`}
+                >
+                  <Bookmark size={12} className={saved ? 'fill-white' : ''} />
+                  {saved ? 'Saved' : 'Save'}
+                </button>
 
                 <button
                   onClick={(e) => { e.stopPropagation(); onCompare(uni.id) }}
@@ -609,7 +623,7 @@ export default function UniversitiesPage() {
   const [degreeLevel, setDegreeLevel] = useState('All Levels')
   const [search, setSearch] = useState(() => searchParams.get('q') ?? '')
   const [sortBy, setSortBy] = useState('NIRF Rank')
-  const [shortlisted, setShortlisted] = useState<Set<string>>(new Set())
+  const { isSaved, toggleSave, count: savedCount } = useSavedUniversities()
   const [compareList, setCompareList] = useState<string[]>([])
   const [showFilters, setShowFilters] = useState(false)
   const [typeFilter, setTypeFilter] = useState('All Types')
@@ -627,7 +641,6 @@ export default function UniversitiesPage() {
     if (q !== null) setSearch(q)
   }, [searchParams])
 
-  const toggleShortlist = (id: string) => setShortlisted(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
   const toggleCompare = (id: string) => setCompareList(prev => {
     if (prev.includes(id)) return prev.filter(x => x !== id)
     if (prev.length >= 4) return prev
@@ -877,11 +890,11 @@ export default function UniversitiesPage() {
               <strong className="text-foreground">{viewMode === 'universities' ? filteredUnis.length : filteredPrograms.length}</strong>{' '}
               {viewMode === 'universities' ? 'universities' : 'programs'}
             </span>
-            {shortlisted.size > 0 && viewMode === 'universities' && (
-              <span className="flex items-center gap-[4px] px-[8px] h-[24px] rounded-full bg-primary/10 text-primary text-[11px] font-semibold">
-                <Heart size={10} className="fill-primary" />
-                {shortlisted.size} shortlisted
-              </span>
+            {savedCount > 0 && viewMode === 'universities' && (
+              <Link href="/student/saved" className="flex items-center gap-[4px] px-[8px] h-[24px] rounded-full bg-primary/10 text-primary text-[11px] font-semibold hover:bg-primary/15">
+                <Bookmark size={10} className="fill-primary" />
+                {savedCount} saved
+              </Link>
             )}
           </div>
         </div>
@@ -915,8 +928,8 @@ export default function UniversitiesPage() {
                   key={uni.id}
                   uni={uni}
                   index={i}
-                  onShortlist={toggleShortlist}
-                  shortlisted={shortlisted.has(uni.id)}
+                  onSave={toggleSave}
+                  saved={isSaved(uni.id)}
                   onCompare={toggleCompare}
                   isCompared={compareList.includes(uni.id)}
                 />

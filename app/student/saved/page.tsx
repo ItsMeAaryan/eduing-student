@@ -7,10 +7,10 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Bookmark, MapPin, CalendarDays, GraduationCap, Trash2, ArrowRight, Search, Loader2 } from 'lucide-react'
-import { arrayRemove, collection, doc, getDocs, query, updateDoc, where } from 'firebase/firestore'
-import { auth, db } from '@/lib/firebase/config'
+import { collection, getDocs, query, where } from 'firebase/firestore'
+import { db } from '@/lib/firebase/config'
 import { useStudentData } from '@/components/providers/StudentDataProvider'
-import { useToast } from '@/hooks/useToast'
+import { useSavedUniversities } from '@/hooks/useSavedUniversities'
 
 const CARD = 'rounded-[24px] border border-[var(--border)] bg-[var(--bg-card)] shadow-[var(--shadow-card)]'
 
@@ -25,10 +25,10 @@ const inr = (n: number) => (n >= 100000 ? `₹${(n / 100000).toFixed(n % 100000 
 
 export default function SavedPage() {
   const { savedPrograms, universities, uniqueApps, loading } = useStudentData()
-  const { toast } = useToast()
   const [search, setSearch] = useState('')
   const [programs, setPrograms] = useState<Program[] | null>(null)
   const [removing, setRemoving] = useState<string | null>(null)
+  const { toggleSave } = useSavedUniversities()
 
   const saved = useMemo(() => (Array.isArray(savedPrograms) ? savedPrograms : []).filter((s: any) => s?.universityId), [savedPrograms])
   const ids = useMemo(() => Array.from(new Set(saved.map((s: any) => s.universityId as string))).slice(0, 30), [saved])
@@ -69,19 +69,12 @@ export default function SavedPage() {
   const shown = cards.filter(c => !search || `${c.name} ${c.place}`.toLowerCase().includes(search.toLowerCase()))
   const closingSoon = cards.filter(c => c.nextDeadline && c.nextDeadline.getTime() - now < 30 * 86400000).length
 
-  const remove = async (entry: any, id: string) => {
-    const uid = auth.currentUser?.uid
-    if (!uid) return
+  // removes every bookmark for that university (same helper as the Save buttons)
+  const remove = async (id: string, name: string) => {
     setRemoving(id)
-    try {
-      await updateDoc(doc(db, 'users', uid), { savedPrograms: arrayRemove(entry) })
-      toast.success('Removed from saved.')
-    } catch {
-      toast.error('Couldn’t remove it. Try again.')
-    } finally {
-      setRemoving(null)
-    }
+    try { await toggleSave({ id, name }) } finally { setRemoving(null) }
   }
+
 
   if (loading) {
     return <div className="flex min-h-[60vh] items-center justify-center"><Loader2 className="animate-spin text-[var(--accent)]" size={30} /></div>
@@ -149,7 +142,7 @@ export default function SavedPage() {
                 <Link href={`/student/universities/${c.id}`} className="inline-flex h-[40px] flex-1 items-center justify-center gap-[6px] rounded-full bg-[var(--accent)] text-[13px] font-semibold text-white">
                   {c.applied ? 'View university' : 'View programs & apply'} <ArrowRight size={14} />
                 </Link>
-                <button onClick={() => remove(c.entry, c.id)} disabled={removing === c.id} aria-label={`Remove ${c.name} from saved`}
+                <button onClick={() => remove(c.id, c.name)} disabled={removing === c.id} aria-label={`Remove ${c.name} from saved`}
                   className="flex h-[40px] w-[40px] items-center justify-center rounded-full border border-[var(--border)] text-[var(--text-muted)] transition hover:border-[var(--red)] hover:text-[var(--red)] disabled:opacity-50">
                   {removing === c.id ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
                 </button>

@@ -6,7 +6,7 @@ import {
   Search, Building2, X, FileText, Award,
   AlertCircle, ChevronDown, MoreHorizontal,
   CheckCircle2, Clock, Calendar, LayoutGrid, List,
-  Sparkles, Zap, Mail, MessageSquare
+  Sparkles, Zap, Mail
 } from 'lucide-react'
 import { useStudentData } from '@/components/providers/StudentDataProvider'
 import ProtectedRoute from '@/components/ProtectedRoute'
@@ -201,33 +201,6 @@ function DetailDrawer({ app, onClose }: { app: any; onClose: () => void }) {
             }}>
               {st === 'offer' ? 'Respond to offer' : 'Open application'}
             </Link>
-            {st === 'under_review' && (
-              <Link
-                href={`/student/interview?university=${encodeURIComponent(app.universityName || '')}&program=${encodeURIComponent(app.program || app.programName || '')}`}
-                id="prepare-interview-drawer-btn"
-                title="Open Interview Prep for this application"
-                style={{
-                  height: 34, padding: '0 12px',
-                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                  background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.3)',
-                  borderRadius: 12, fontSize: 13, fontWeight: 600,
-                  color: 'var(--accent-2)', cursor: 'pointer',
-                  textDecoration: 'none',
-                  transition: 'background 0.15s, border-color 0.15s',
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(139,92,246,0.18)'
-                  ;(e.currentTarget as HTMLAnchorElement).style.borderColor = 'var(--accent-2)'
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(139,92,246,0.1)'
-                  ;(e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(139,92,246,0.3)'
-                }}
-              >
-                <MessageSquare size={13} strokeWidth={1.8} />
-                Prepare for Interview
-              </Link>
-            )}
             <button onClick={onClose} style={{
               height: 34, padding: '0 14px',
               background: 'var(--bg-elevated)', border: '1px solid var(--border)',

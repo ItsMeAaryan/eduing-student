@@ -4,7 +4,7 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react'
 import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
-import { onSnapshot, doc, collection, query, where, or, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore'
+import { onSnapshot, doc, collection, query, where, or } from 'firebase/firestore'
 import { auth, db } from '@/lib/firebase/config'
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
 import {
@@ -23,6 +23,7 @@ import { useStudentData } from '@/components/providers/StudentDataProvider'
 import { submitApplication } from '@/lib/firebase/applications'
 import { calculateAdmissionProbability } from '@/lib/utils/probabilityEngine'
 import { useToast } from '@/hooks/useToast'
+import { useSavedUniversities } from '@/hooks/useSavedUniversities'
 
 /* ── Deterministic color from name ─────────────────────────────────── */
 function logoColor(name = '') {
@@ -187,7 +188,6 @@ export default function UniversityDetailPage() {
   const [applying, setApplying] = useState(false)
   const [applicationSubmitted, setApplicationSubmitted] = useState(false)
   const [selectedProgram, setSelectedProgram] = useState<any | null>(null)
-  const [isBookmarked, setIsBookmarked] = useState(false)
   const [copiedLink, setCopiedLink] = useState(false)
   const [programSearch, setProgramSearch] = useState('')
   const [customScore, setCustomScore] = useState('')
@@ -196,34 +196,10 @@ export default function UniversityDetailPage() {
   const [selectedProgramDetail, setSelectedProgramDetail] = useState<any | null>(null)
   const [programLevelFilter, setProgramLevelFilter] = useState('All')
 
-  // Sync bookmark state from real savedPrograms (Firestore)
-  useEffect(() => {
-    const isSaved = Array.isArray(savedPrograms) &&
-      savedPrograms.some((p: any) => p?.universityId === id || p?.id === id)
-    setIsBookmarked(isSaved)
-  }, [savedPrograms, id])
-
-  // Persist bookmark to Firestore
-  const toggleBookmark = async () => {
-    const uid = auth.currentUser?.uid
-    if (!uid || !university) return
-    const savedEntry = { universityId: id, name: university.name, scholarshipAvailable: !!(university.scholarships?.length) }
-    try {
-      if (isBookmarked) {
-        setIsBookmarked(false)
-        await updateDoc(doc(db, 'users', uid), {
-          savedPrograms: arrayRemove(savedPrograms.find((p: any) => p?.universityId === id) || savedEntry)
-        })
-      } else {
-        setIsBookmarked(true)
-        await updateDoc(doc(db, 'users', uid), {
-          savedPrograms: arrayUnion(savedEntry)
-        })
-      }
-    } catch {
-      setIsBookmarked(v => !v) // Revert on failure
-    }
-  }
+  // Saved state comes straight from the student's profile, so it matches the Saved page.
+  const { isSaved, toggleSave } = useSavedUniversities()
+  const isBookmarked = isSaved(id)
+  const toggleBookmark = () => { if (university) toggleSave({ ...university, id }) }
 
   const { scrollY } = useScroll()
   const heroOpacity = useTransform(scrollY, [0, 300], [1, 0.3])

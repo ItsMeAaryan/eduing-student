@@ -167,16 +167,3 @@ export class CopilotService {
   }
 }
 
-export class InterviewService {
-  static async generateQuestion(context: any, interviewType: string, previousQuestions: string[]): Promise<GeminiResponse> {
-    const prompt = PromptBuilder.buildInterviewPrompt(context, interviewType, previousQuestions);
-    const response = await generateAIResponse(prompt, { model: getOptimalModelForTask('high') });
-    return parseAIResponse(response, 'Interview generation');
-  }
-
-  static async evaluateAnswer(question: string, answer: string, context: any): Promise<GeminiResponse> {
-    const prompt = PromptBuilder.buildInterviewEvaluationPrompt(question, answer, context);
-    const response = await generateAIResponse(prompt, { model: getOptimalModelForTask('high') });
-    return parseAIResponse(response, 'Interview evaluate');
-  }
-}
