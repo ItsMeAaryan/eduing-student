@@ -1,6 +1,7 @@
 // components/auth/RegisterForm.tsx
 /* eslint-disable jsx-a11y/label-has-associated-control */
 'use client'
+import { authErrorMessage } from '@/lib/utils/authErrors'
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation'
@@ -101,8 +102,7 @@ export default function RegisterForm() {
 
       router.push('/student/onboarding')
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Registration failed. Please try again.'
-      setFormError(msg)
+      setFormError(authErrorMessage(err, 'Registration failed. Please try again.'))
       setLoading(false)
     }
   }
