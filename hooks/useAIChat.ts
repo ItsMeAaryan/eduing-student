@@ -51,7 +51,7 @@ export function useAIChat(initialMessages: ChatMessage[] = []) {
         role: 'assistant',
         content: res.success
           ? (res.text || 'No response provided.')
-          : 'Something went wrong. Please try again later.',
+          : toFriendlyError(res.error),
         timestamp: new Date()
       };
       setMessages(prev => [...prev, assistantMsg]);

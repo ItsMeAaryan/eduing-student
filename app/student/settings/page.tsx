@@ -5,7 +5,7 @@ import React, { useState, useMemo } from 'react'
 import {
   User, Bell, Lock, Monitor, Smartphone, Key,
   Fingerprint, Sun, Moon, Laptop, Layers, Activity,
-  Mail, Phone, Globe, Languages, ShieldCheck,
+  Mail, Phone, ShieldCheck,
   LogOut, Trash2, AlertCircle, Eye, EyeOff, X,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -236,47 +236,6 @@ function EditableRow({
           >Cancel</button>
         </div>
       )}
-    </div>
-  )
-}
-
-/* ── Select row ── */
-function SelectRow({ title, sub, icon: Icon, value, options, onChange }: {
-  title: string; sub: string; icon?: React.ElementType; value: string;
-  options: string[]; onChange: (v: string) => void
-}) {
-  return (
-    <div style={{
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '14px 20px', borderBottom: '1px solid var(--border)',
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        {Icon && (
-          <div style={{
-            width: 32, height: 32, borderRadius: '50%',
-            background: 'var(--accent-bg)', border: '1px solid var(--accent-border)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-          }}>
-            <Icon size={14} style={{ color: 'var(--accent)' }} strokeWidth={1.8} />
-          </div>
-        )}
-        <div>
-          <p style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)', margin: 0 }}>{title}</p>
-          <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '2px 0 0' }}>{sub}</p>
-        </div>
-      </div>
-      <select
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        style={{
-          height: 30, padding: '0 8px', fontSize: 12, fontWeight: 500,
-          borderRadius: 10, cursor: 'pointer', border: '1px solid var(--border)',
-          background: 'var(--bg-elevated)', color: 'var(--text-secondary)',
-          outline: 'none',
-        }}
-      >
-        {options.map(o => <option key={o} value={o}>{o}</option>)}
-      </select>
     </div>
   )
 }
@@ -517,12 +476,6 @@ export default function SettingsPage() {
   const session = useCurrentSession()
   const [showDeleteModal, setShowDeleteModal] = useState(false)
 
-  // General tab local state
-  const [timezone, setTimezone] = useState('Asia/Kolkata (IST)')
-  const [language, setLanguage] = useState('English (India)')
-
-  const TIMEZONES = ['Asia/Kolkata (IST)', 'Asia/Dubai (GST)', 'Europe/London (GMT)', 'America/New_York (EST)', 'America/Los_Angeles (PST)']
-  const LANGUAGES = ['English (India)', 'Hindi', 'Tamil', 'Telugu', 'Marathi', 'Bengali']
 
   const themeOptions = [
     { key: 'light', label: 'Light', icon: Sun, desc: 'Warm paper canvas' },
@@ -533,7 +486,7 @@ export default function SettingsPage() {
   const handleLogout = async () => {
     try {
       await signOut(auth)
-      router.push('/login')
+      router.push('/auth/login')
     } catch {
       toast.error('Failed to sign out. Please try again.')
     }
@@ -559,6 +512,8 @@ export default function SettingsPage() {
   const handleSaveName = async (val: string) => {
     const uid = auth.currentUser?.uid
     if (!uid) { toast.error('Not authenticated.'); return }
+    val = val.trim()
+    if (val.length < 2) { toast.error('Enter your full name.'); return }
     try {
       await updateDoc(doc(db, 'users', uid), { fullName: val, name: val, updatedAt: serverTimestamp() })
       toast.success('Name updated.')
@@ -570,6 +525,9 @@ export default function SettingsPage() {
   const handleSavePhone = async (val: string) => {
     const uid = auth.currentUser?.uid
     if (!uid) { toast.error('Not authenticated.'); return }
+    const digits = val.replace(/[\s-]/g, '').replace(/^\+?91/, '')
+    if (!/^[6-9]\d{9}$/.test(digits)) { toast.error('Enter a 10-digit Indian mobile number.'); return }
+    val = digits
     try {
       await updateDoc(doc(db, 'users', uid), { phone: val, updatedAt: serverTimestamp() })
       toast.success('Phone updated.')
@@ -593,9 +551,9 @@ export default function SettingsPage() {
             <Row title="Account Email" sub={user?.email || 'Not set'} icon={Mail} />
             <EditableRow
               title="Full Name"
-              sub={profile?.name || 'Not set'}
+              sub={profile?.fullName || profile?.name || 'Not set'}
               icon={User}
-              value={profile?.name || ''}
+              value={profile?.fullName || profile?.name || ''}
               placeholder="Your full name"
               onSave={handleSaveName}
             />
@@ -607,22 +565,6 @@ export default function SettingsPage() {
               placeholder="+91 98765 43210"
               type="tel"
               onSave={handleSavePhone}
-            />
-            <SelectRow
-              title="Timezone"
-              sub={`Currently: ${timezone}`}
-              icon={Globe}
-              value={timezone}
-              options={TIMEZONES}
-              onChange={setTimezone}
-            />
-            <SelectRow
-              title="Language"
-              sub={`Currently: ${language}`}
-              icon={Languages}
-              value={language}
-              options={LANGUAGES}
-              onChange={setLanguage}
             />
           </div>
         )}
