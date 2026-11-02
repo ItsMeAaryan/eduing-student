@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import {
   ChevronLeft, Check, Clock, XCircle, FileText, Download, CalendarDays, MapPin,
-  Upload, RefreshCw, ShieldCheck, AlertTriangle, PartyPopper, Wallet, MessageSquare,
+  Upload, RefreshCw, ShieldCheck, AlertTriangle, PartyPopper, Wallet,
   Building2, History, Loader2, GraduationCap,
 } from 'lucide-react'
 import { listenApplication } from '@/lib/firebase/applications'
@@ -212,11 +212,6 @@ export default function ApplicationDetailsPage() {
                 <dt className="text-[var(--text-muted)]">Applied on</dt><dd className="text-right font-medium">{fmt(appliedOn)}</dd>
                 <dt className="text-[var(--text-muted)]">Reference</dt><dd className="truncate text-right font-mono text-[12px]">{id.slice(0, 10).toUpperCase()}</dd>
               </dl>
-              {!CLOSED.includes(status) && status !== 'enrolled' && (
-                <Link href={`/student/interview?university=${encodeURIComponent(uni)}&program=${encodeURIComponent(program)}`} className={`${BTN} mt-[16px] w-full border border-[var(--accent-border)] bg-[var(--accent-bg)] text-[var(--accent)]`}>
-                  <MessageSquare size={15} /> Practise the interview
-                </Link>
-              )}
             </section>
           </aside>
         </div>

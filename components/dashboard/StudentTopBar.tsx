@@ -28,7 +28,6 @@ const PAGE_TITLES: Record<string, string> = {
     '/student/onboarding': 'Onboarding',
     '/student/copilot': 'AI Copilot',
     '/student/sop': 'SOP Builder',
-    '/student/interview': 'Interview Prep',
 }
 
 /** Format a Firestore Timestamp or Date-like value into a human-readable relative string */

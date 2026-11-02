@@ -22,9 +22,4 @@ test.describe('AI Tools Workflows', () => {
     await expect(page.getByRole('heading', { name: /SOP/i }).first()).toBeVisible();
   });
 
-  test('Interview Prep - offers admission-focused tracks only', async ({ page }) => {
-    await page.goto('/student/interview');
-    await expect(page.getByText('University Admission').first()).toBeVisible();
-    await expect(page.getByText('Internship')).toHaveCount(0);
-  });
 });
