@@ -14,40 +14,40 @@ import { AnimatePresence, motion } from 'framer-motion'
 import SegmentedTabs from '@/components/ui/SegmentedTabs'
 import { EmptyState } from '@/components/ui/EmptyState'
 import Link from 'next/link'
+import { normalizeStatus as baseStatus } from '@/lib/firebase/admission'
 
 /* ── Status config ───────────────────────────────────────────────── */
-function normalizeStatus(s: string) {
-  if (!s) return 'draft'
-  const v = s.toLowerCase()
+// Groups the shared admission statuses (see lib/firebase/admission.ts) into
+// the five buckets a student cares about.
+function normalizeStatus(s: string): StatusKey {
+  const v = baseStatus(s)
   if (v === 'submitted') return 'submitted'
-  if (v === 'review' || v === 'under_review') return 'under_review'
-  if (v === 'interview') return 'interview'
-  if (v === 'accepted' || v === 'selected') return 'accepted'
-  if (v === 'reject' || v === 'rejected') return 'rejected'
-  return 'draft'
+  if (v === 'under_review' || v === 'docs_verified' || v === 'waitlisted') return 'under_review'
+  if (v === 'selected' || v === 'allotted' || v === 'seat_accepted' || v === 'fee_paid' || v === 'payment_verified') return 'offer'
+  if (v === 'enrolled') return 'enrolled'
+  return 'closed'
 }
 
-type StatusKey = 'draft' | 'submitted' | 'under_review' | 'interview' | 'accepted' | 'rejected'
+type StatusKey = 'submitted' | 'under_review' | 'offer' | 'enrolled' | 'closed'
 
 const STATUS_CONFIG: Record<StatusKey, { label: string; dotColor: string; textColor: string; bgColor: string }> = {
-  draft: { label: 'Draft', dotColor: 'var(--text-muted)', textColor: 'var(--text-secondary)', bgColor: 'rgba(0,0,0,0.05)' },
   submitted: { label: 'Submitted', dotColor: 'var(--accent)', textColor: 'var(--accent)', bgColor: 'var(--accent-bg)' },
-  under_review: { label: 'Under Review', dotColor: 'var(--gold)', textColor: 'var(--gold)', bgColor: 'rgba(217,119,6,0.08)' },
-  interview: { label: 'Interview', dotColor: 'var(--accent-2)', textColor: 'var(--accent-2)', bgColor: 'rgba(139,92,246,0.08)' },
-  accepted: { label: 'Accepted', dotColor: 'var(--green)', textColor: 'var(--green)', bgColor: 'rgba(26,174,57,0.08)' },
-  rejected: { label: 'Rejected', dotColor: 'var(--red)', textColor: 'var(--red)', bgColor: 'rgba(220,38,38,0.07)' },
+  under_review: { label: 'In review', dotColor: 'var(--gold)', textColor: 'var(--gold)', bgColor: 'var(--gold-bg)' },
+  offer: { label: 'Offer', dotColor: 'var(--green)', textColor: 'var(--green)', bgColor: 'color-mix(in srgb, var(--green) 10%, transparent)' },
+  enrolled: { label: 'Enrolled', dotColor: 'var(--accent-2)', textColor: 'var(--accent-2)', bgColor: 'color-mix(in srgb, var(--accent-2) 12%, transparent)' },
+  closed: { label: 'Closed', dotColor: 'var(--text-muted)', textColor: 'var(--text-secondary)', bgColor: 'var(--bg-subtle)' },
 }
 
 const BOARD_COLUMNS: { id: StatusKey; label: string }[] = [
-  { id: 'draft', label: 'Draft' },
   { id: 'submitted', label: 'Submitted' },
-  { id: 'under_review', label: 'Under Review' },
-  { id: 'interview', label: 'Interview' },
-  { id: 'accepted', label: 'Accepted' },
-  { id: 'rejected', label: 'Rejected' },
+  { id: 'under_review', label: 'In review' },
+  { id: 'offer', label: 'Offer' },
+  { id: 'enrolled', label: 'Enrolled' },
+  { id: 'closed', label: 'Closed' },
 ]
 
-const TABS = ['All', 'Draft', 'Submitted', 'Under Review', 'Interview', 'Accepted']
+const TABS = ['All', 'Submitted', 'In review', 'Offer', 'Enrolled', 'Closed']
+const TAB_KEY: Record<string, StatusKey> = { Submitted: 'submitted', 'In review': 'under_review', Offer: 'offer', Enrolled: 'enrolled', Closed: 'closed' }
 
 /* ── Mini progress bar ───────────────────────────────────────────── */
 function MiniBar({ pct }: { pct: number }) {
@@ -60,7 +60,7 @@ function MiniBar({ pct }: { pct: number }) {
 
 /* ── Status badge ────────────────────────────────────────────────── */
 function StatusBadge({ status }: { status: StatusKey }) {
-  const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.draft
+  const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.submitted
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: 5,
@@ -248,15 +248,16 @@ function DetailDrawer({ app, onClose }: { app: any; onClose: () => void }) {
             display: 'flex', gap: 10,
             flexWrap: 'wrap',
           }}>
-            <button style={{
+            <Link href={`/student/applications/${app.id}`} style={{
               flex: 1, height: 34,
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               background: 'var(--accent)', color: '#fff',
-              border: 'none', borderRadius: 12,
-              fontSize: 13, fontWeight: 600, cursor: 'pointer',
+              borderRadius: 999, textDecoration: 'none',
+              fontSize: 13, fontWeight: 600,
             }}>
-              Continue Application
-            </button>
-            {st === 'interview' && (
+              {st === 'offer' ? 'Respond to offer' : 'Open application'}
+            </Link>
+            {st === 'under_review' && (
               <Link
                 href={`/student/interview?university=${encodeURIComponent(app.universityName || '')}&program=${encodeURIComponent(app.program || app.programName || '')}`}
                 id="prepare-interview-drawer-btn"
@@ -311,15 +312,14 @@ export default function ApplicationsPage() {
     const matchSearch = !search ||
       app.universityName?.toLowerCase().includes(search.toLowerCase()) ||
       app.program?.toLowerCase().includes(search.toLowerCase())
-    const tabKey = activeTab.toLowerCase().replace(' ', '_')
-    const matchTab = activeTab === 'All' || normalizeStatus(app.status) === tabKey
+    const matchTab = activeTab === 'All' || normalizeStatus(app.status) === TAB_KEY[activeTab]
     return matchSearch && matchTab
   }), [apps, search, activeTab])
 
   const kpis = [
-    { label: 'Active', value: apps.filter((a: any) => !['accepted', 'rejected'].includes(normalizeStatus(a.status))).length, sub: 'In pipeline', color: 'var(--accent)', Icon: FileText },
+    { label: 'Active', value: apps.filter((a: any) => !['enrolled', 'closed'].includes(normalizeStatus(a.status))).length, sub: 'In pipeline', color: 'var(--accent)', Icon: FileText },
     { label: 'Submitted', value: apps.filter((a: any) => normalizeStatus(a.status) === 'submitted').length, sub: 'Awaiting review', color: 'var(--green)', Icon: CheckCircle2 },
-    { label: 'Offers', value: apps.filter((a: any) => normalizeStatus(a.status) === 'accepted').length, sub: 'Accepted', color: 'var(--accent-2)', Icon: Award },
+    { label: 'Offers', value: apps.filter((a: any) => normalizeStatus(a.status) === 'offer').length, sub: 'Offers & seats', color: 'var(--accent-2)', Icon: Award },
     { label: 'Deadlines', value: deadlines?.length || 0, sub: 'Upcoming', color: 'var(--gold)', Icon: Clock },
   ]
 

@@ -1,1256 +1,402 @@
+// app/student/dashboard/page.tsx
+// The student's admission HQ — same layout as the dashboard shown on eduing.in:
+// greeting + stream cards, three progress rings, "Your applications",
+// an AI match, a calendar strip and the nearest deadline.
 'use client'
 
-import React, { useState, useMemo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import {
-  Sparkles,
-  CheckCircle2,
-  Clock,
-  ArrowRight,
-  TrendingUp,
-  AlertCircle,
-  Building2,
-  GraduationCap,
-  Award,
-  FileText,
-  Video,
-  Compass,
-  Bookmark,
-  ChevronRight,
-  Zap,
-  Flame,
-  Target,
-  ShieldCheck,
-  BarChart3,
-  Calendar,
-  ExternalLink,
-  Plus,
-  RefreshCw,
-  Send,
-  MessageSquare,
-  X,
-  Check,
-  Star,
-  Users,
-  Search,
-  User,
-  BookOpen,
-  Globe,
-  Upload,
-} from 'lucide-react'
-import { useStudentData } from '@/components/providers/StudentDataProvider'
+import React, { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { generateAdmissionChecklist } from '@/lib/utils/checklistEngine'
+import { motion } from 'framer-motion'
+import {
+  AlertCircle, ArrowRight, CalendarDays, ChevronLeft, ChevronRight, Clock, Plus, RefreshCw, Sparkles,
+} from 'lucide-react'
+import { collection, getDocs, limit, query } from 'firebase/firestore'
+import { db } from '@/lib/firebase/config'
+import { useStudentData } from '@/components/providers/StudentDataProvider'
+import { recommendUniversities } from '@/lib/utils/recommendationEngine'
 import { generateDeadlineInsights } from '@/lib/utils/deadlineEngine'
+import { normalizeStatus, OFFER_STATUSES, CLOSED, listenExamSchedules, type AdmissionStatus, type ExamSchedule } from '@/lib/firebase/admission'
 
-/* =========================================================================
-   STYLING CONSTANTS (STRICTLY FROM DESIGN.md)
-   ========================================================================= */
-const CARD_STYLE = "bg-card text-card-foreground border border-border rounded-[28px] p-[20px] md:p-[26px] shadow-[var(--shadow-card)] transition-all duration-300 hover:shadow-[var(--shadow-card-hover)]"
-const BUTTON_PRIMARY = "bg-primary hover:opacity-90 text-primary-foreground font-medium px-[16px] h-[38px] rounded-full text-[13px] inline-flex items-center gap-[6px] transition-all active:scale-[0.98] shadow-sm cursor-pointer select-none"
-const BUTTON_SECONDARY = "bg-secondary hover:bg-secondary/80 text-secondary-foreground border border-border font-medium px-[14px] h-[38px] rounded-full text-[13px] inline-flex items-center gap-[6px] transition-all active:scale-[0.98] cursor-pointer select-none"
-const BUTTON_UTILITY = "bg-background hover:bg-muted text-muted-foreground border border-border font-medium px-[12px] h-[32px] rounded-full text-[12px] inline-flex items-center gap-[4px] transition-colors cursor-pointer"
-const STICKER_TEAL = "bg-[#2a9d99]/10 text-[#1e6b68] border border-[#2a9d99]/20"
-const STICKER_PURPLE = "bg-[#d6b6f6]/10 text-[#d6b6f6] border border-[#d6b6f6]/20"
-const STICKER_ORANGE = "bg-[#dd5b00]/10 text-[#dd5b00] border border-[#dd5b00]/20"
-const STICKER_GREEN = "bg-success/10 text-success border border-success/20"
-const STICKER_SKY = "bg-primary/10 text-primary border border-primary/20"
+const EASE = [0.16, 1, 0.3, 1] as const
+const CARD = 'rounded-[26px] border border-[var(--border)] bg-[var(--bg-card)] shadow-[var(--shadow-card)]'
 
-/* =========================================================================
-   SECTION 0: VERIFICATION STATUS BANNER
-   ========================================================================= */
-function VerificationStatusBanner({ status }: { status: string }) {
-  const config: Record<string, { color: string; icon: React.ElementType; cta?: string; ctaLink?: string; message: string }> = {
-    'Profile Incomplete': {
-      color: 'bg-[#dd5b00]/10 border-[#dd5b00]/20 text-[#dd5b00]',
-      icon: AlertCircle,
-      message: 'Your profile is incomplete. Complete it to unlock university recommendations and admission insights.',
-      cta: 'Complete Profile',
-      ctaLink: '/student/profile',
-    },
-    'Profile Complete': {
-      color: 'bg-primary/10 border-primary/20 text-primary',
-      icon: ShieldCheck,
-      message: 'Profile complete! Upload your documents to unlock full verification.',
-      cta: 'Upload Documents',
-      ctaLink: '/student/documents',
-    },
-    'Documents Pending': {
-      color: 'bg-amber-500/10 border-amber-500/20 text-amber-600',
-      icon: Clock,
-      message: 'Your documents are under review. We\'ll notify you once verified.',
-    },
-    'Documents Verified': {
-      color: 'bg-success/10 border-success/20 text-success',
-      icon: CheckCircle2,
-      message: 'Profile & documents verified! You\'re fully set to apply to universities.',
-    },
-  }
+/* ── streams ─────────────────────────────────────────────────────────────── */
+type StreamKey = 'engineering' | 'medical' | 'management' | 'design' | 'law'
+const STREAMS: { key: StreamKey; label: string; test: RegExp }[] = [
+  { key: 'engineering', label: 'Engineering', test: /b\.?\s?tech|\bb\.?e\b|m\.?\s?tech|engineering|computer|electr|mechanic|civil/i },
+  { key: 'medical', label: 'Medical', test: /mbbs|bds|nursing|pharm|medical|medicine|bams|bhms|physio|paramedic/i },
+  { key: 'management', label: 'Management', test: /mba|bba|pgdm|management|business|commerce|b\.?com/i },
+  { key: 'design', label: 'Design & Arch', test: /b\.?\s?des|b\.?\s?arch|design|architecture|fashion|planning/i },
+  { key: 'law', label: 'Law', test: /llb|llm|\blaw\b|legal|b\.?a\.?\s?ll/i },
+]
+const STREAM_STORE = 'eduing.dashboard.stream'
 
-  const c = config[status]
-  if (!c) return null
-  const Icon = c.icon
-
-  return (
-    <div className={`flex items-center justify-between gap-[12px] px-[16px] py-[10px] rounded-[14px] border ${c.color} text-[13px]`}>
-      <div className="flex items-center gap-[8px]">
-        <Icon size={15} className="shrink-0" />
-        <span className="font-medium">{status}</span>
-        <span className="text-[12px] opacity-80 hidden sm:inline">— {c.message}</span>
-      </div>
-      {c.cta && c.ctaLink && (
-        <Link href={c.ctaLink} className="shrink-0 font-semibold text-[12px] underline underline-offset-2 whitespace-nowrap">
-          {c.cta} →
-        </Link>
-      )}
-    </div>
-  )
+function guessStream(profile: Record<string, any> | null): StreamKey {
+  const hay = `${profile?.preferredPrograms ?? ''} ${profile?.preferredBranch ?? ''} ${profile?.stream ?? ''}`
+  if (/pcb|bio|neet|mbbs|medic/i.test(hay) || profile?.neetScore) return 'medical'
+  for (const s of STREAMS) if (s.test.test(hay)) return s.key
+  return 'engineering'
 }
 
-/* =========================================================================
-   SECTION 1: WELCOME AREA & QUICK AI SUMMARY
-   ========================================================================= */
-const STREAMS: { label: string; sub: string; q: string; shapes: React.ReactNode }[] = [
-  { label: 'Engineering', sub: 'B.Tech · BE', q: 'Engineering', shapes: <g><circle cx="30" cy="34" r="18" fill="#F5B829" /><rect x="46" y="18" width="30" height="30" rx="8" fill="#4B2FC9" transform="rotate(12 61 33)" /><circle cx="64" cy="60" r="6" fill="#17142B" /></g> },
-  { label: 'Design', sub: 'B.Des · UX', q: 'Design', shapes: <g><path d="M12 62 L40 14 L68 62Z" fill="#7C66F6" /><circle cx="66" cy="32" r="14" fill="#F5B829" /><rect x="20" y="42" width="20" height="20" rx="6" fill="#17142B" /></g> },
-  { label: 'Medicine', sub: 'MBBS · BDS', q: 'Medical', shapes: <g><rect x="14" y="14" width="38" height="38" rx="19" fill="#4B2FC9" /><rect x="42" y="32" width="32" height="24" rx="6" fill="#F5B829" /><circle cx="26" cy="64" r="6" fill="#F46846" /></g> },
-  { label: 'Management', sub: 'BBA · MBA', q: 'Management', shapes: <g><path d="M16 58 Q 42 4 72 44" stroke="currentColor" strokeWidth="8" fill="none" strokeLinecap="round" /><circle cx="22" cy="26" r="11" fill="#F5B829" /><rect x="50" y="50" width="22" height="16" rx="5" fill="#7C66F6" /></g> },
-]
+/* ── playful tiles, same shapes as the landing page mockup ───────────────── */
+function Shapes({ v }: { v: number }) {
+  const sets = [
+    <g key="a"><circle cx="34" cy="34" r="20" fill="#F5B829" /><rect x="52" y="20" width="34" height="34" rx="8" fill="#4B2FC9" transform="rotate(12 69 37)" /><circle cx="70" cy="62" r="7" fill="currentColor" /></g>,
+    <g key="b"><path d="M14 64 L44 14 L74 64Z" fill="#7C66F6" /><circle cx="70" cy="34" r="16" fill="#F5B829" /><rect x="22" y="44" width="22" height="22" rx="6" fill="currentColor" /></g>,
+    <g key="c"><rect x="16" y="16" width="40" height="40" rx="20" fill="#4B2FC9" /><rect x="46" y="34" width="34" height="26" rx="6" fill="#F5B829" /><circle cx="30" cy="66" r="6" fill="#F46846" /></g>,
+    <g key="d"><path d="M20 60 Q 46 6 76 46" stroke="currentColor" strokeWidth="9" fill="none" strokeLinecap="round" /><circle cx="26" cy="28" r="12" fill="#F5B829" /><rect x="54" y="52" width="22" height="16" rx="5" fill="#7C66F6" /></g>,
+  ]
+  return <svg viewBox="0 0 90 80" aria-hidden className="h-[64px] w-[76px] transition-transform duration-500 group-hover:-rotate-6 group-hover:scale-110">{sets[v % 4]}</svg>
+}
 
-function MiniRing({ value, label, sub, color }: { value: number; label: string; sub: string; color: string }) {
+/* ── journey progress per status (matches the application detail stepper) ─ */
+const STAGE: Record<AdmissionStatus, number> = {
+  submitted: 1, under_review: 2, waitlisted: 2, docs_verified: 3, selected: 4, allotted: 4,
+  seat_accepted: 5, fee_paid: 5, payment_verified: 6, enrolled: 7, rejected: 0, offer_declined: 0, withdrawn: 0,
+}
+const STAGE_LABEL: Record<AdmissionStatus, string> = {
+  submitted: 'Submitted', under_review: 'Under review', waitlisted: 'Waitlisted', docs_verified: 'Docs verified',
+  selected: 'Offer 🎉', allotted: 'Seat allotted 🎉', seat_accepted: 'Pay fee', fee_paid: 'Fee in review',
+  payment_verified: 'Fee verified', enrolled: 'Enrolled', rejected: 'Not selected', offer_declined: 'Declined', withdrawn: 'Withdrawn',
+}
+const ACTION: Partial<Record<AdmissionStatus, string>> = {
+  selected: 'Accept offer', allotted: 'Accept seat', seat_accepted: 'Pay admission fee',
+}
+const urgency = (s: AdmissionStatus) => (OFFER_STATUSES.includes(s) ? 0 : s === 'seat_accepted' ? 1 : CLOSED.includes(s) ? 9 : 5)
+
+function toDate(v: any): Date | null {
+  if (!v) return null
+  const d = typeof v?.toDate === 'function' ? v.toDate() : typeof v?.seconds === 'number' ? new Date(v.seconds * 1000) : new Date(v)
+  return isNaN(d.getTime()) ? null : d
+}
+function ago(d: Date | null) {
+  if (!d) return ''
+  const s = Math.floor((Date.now() - d.getTime()) / 1000)
+  if (s < 3600) return `${Math.max(1, Math.floor(s / 60))}m ago`
+  if (s < 86400) return `${Math.floor(s / 3600)}h ago`
+  return `${Math.floor(s / 86400)}d ago`
+}
+const dayKey = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
+
+/* ── progress ring ───────────────────────────────────────────────────────── */
+function Ring({ pct, label, sub, next, color, href, delay }: { pct: number; label: string; sub: string; next: string; color: string; href: string; delay: number }) {
   const c = 2 * Math.PI * 22
   return (
-    <div className="flex items-center gap-3 rounded-[22px] bg-card px-4 py-3 shadow-[var(--shadow-card)] border border-border">
-      <svg viewBox="0 0 56 56" className="h-[48px] w-[48px] -rotate-90 shrink-0" aria-hidden>
-        <circle cx="28" cy="28" r="22" fill="none" strokeWidth="6" style={{ stroke: 'var(--border)' }} />
-        <motion.circle cx="28" cy="28" r="22" fill="none" strokeWidth="6" strokeLinecap="round" style={{ stroke: color }}
-          strokeDasharray={c} initial={{ strokeDashoffset: c }} animate={{ strokeDashoffset: c * (1 - Math.min(100, value) / 100) }}
-          transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }} />
-      </svg>
-      <div className="min-w-0">
-        <div className="text-[10.5px] font-bold uppercase tracking-wider text-[var(--text-faint)]">{sub}</div>
-        <div className="text-[14px] font-bold text-foreground truncate">{label}</div>
-      </div>
-    </div>
+    <Link href={href} className={`${CARD} group flex items-center gap-[14px] p-[14px] transition hover:-translate-y-0.5 hover:shadow-[var(--shadow-card-hover)]`}>
+      <span className="relative shrink-0">
+        <svg viewBox="0 0 56 56" className="h-[58px] w-[58px] -rotate-90" aria-hidden>
+          <circle cx="28" cy="28" r="22" fill="none" strokeWidth="6" style={{ stroke: 'var(--border)' }} />
+          <motion.circle cx="28" cy="28" r="22" fill="none" strokeWidth="6" strokeLinecap="round" style={{ stroke: color }}
+            strokeDasharray={c} initial={{ strokeDashoffset: c }} animate={{ strokeDashoffset: c * (1 - Math.min(100, pct) / 100) }}
+            transition={{ duration: 1.5, delay, ease: EASE }} />
+        </svg>
+        <span className="absolute inset-0 flex items-center justify-center text-[12px] font-bold">{pct}%</span>
+      </span>
+      <span className="min-w-0">
+        <span className="block text-[11px] font-semibold text-[var(--text-faint)]">{sub}</span>
+        <span className="block text-[15px] font-bold leading-tight">{label}</span>
+        <span className="block truncate text-[12px] text-[var(--text-muted)]">{next}</span>
+      </span>
+    </Link>
   )
 }
 
-function WelcomeArea({ profile, profileScore, appsCount }: { profile: any; profileScore: number; appsCount: number }) {
-  const name = profile?.fullName ? profile.fullName.split(' ')[0] : 'Student'
+/* ── page ────────────────────────────────────────────────────────────────── */
+export default function StudentDashboard() {
+  const {
+    loading, error, profile, uniqueApps, profileScore, profileStrength, universities,
+    userDocuments, docUploaded, deadlines, documents, savedPrograms,
+  } = useStudentData()
 
-  const getGreeting = () => {
-    const hour = new Date().getHours()
-    if (hour < 12) return 'Good morning'
-    if (hour < 18) return 'Good afternoon'
-    return 'Good evening'
+  const [stream, setStream] = useState<StreamKey | null>(null)
+  const [programs, setPrograms] = useState<any[] | null>(null)
+  const [exams, setExams] = useState<Record<string, ExamSchedule[]>>({})
+  const [weekOffset, setWeekOffset] = useState(0)
+
+  // stream: remembered choice, else guessed from the profile
+  useEffect(() => {
+    if (stream || loading) return
+    let saved: string | null = null
+    try { saved = localStorage.getItem(STREAM_STORE) } catch { /* private mode */ }
+    setStream((STREAMS.find(s => s.key === saved)?.key) ?? guessStream(profile))
+  }, [loading, profile, stream])
+  const pickStream = (k: StreamKey) => { setStream(k); try { localStorage.setItem(STREAM_STORE, k) } catch { /* ignore */ } }
+
+  // programs power the stream cards, the AI match and program deadlines
+  useEffect(() => {
+    getDocs(query(collection(db, 'programs'), limit(400)))
+      .then(s => setPrograms(s.docs.map(d => ({ id: d.id, ...d.data() })).filter((p: any) => p.isActive !== false && p.status !== 'inactive')))
+      .catch(() => setPrograms([]))
+  }, [])
+
+  const apps = useMemo(() => (uniqueApps ?? []).map((a: any) => ({ ...a, s: normalizeStatus(a.status) as AdmissionStatus }) as Record<string, any> & { s: AdmissionStatus }), [uniqueApps])
+  const active = apps.filter(a => !CLOSED.includes(a.s))
+
+  // exam schedules for universities the student is still in the running for
+  const activeUniIds = useMemo(() => Array.from(new Set(active.map(a => a.universityId).filter(Boolean))).sort().join(','), [active])
+  useEffect(() => {
+    if (!activeUniIds) return
+    const unsubs = activeUniIds.split(',').map(id => listenExamSchedules(id, undefined, list => setExams(prev => ({ ...prev, [id]: list }))))
+    return () => unsubs.forEach(u => u())
+  }, [activeUniIds])
+
+  const streamDef = STREAMS.find(s => s.key === stream) ?? STREAMS[0]
+  const uniById = useMemo(() => new Map((universities ?? []).map((u: any) => [u.id, u])), [universities])
+  const streamPrograms = useMemo(() => (programs ?? []).filter(p => streamDef.test.test(`${p.name ?? ''} ${p.level ?? ''} ${p.department ?? ''}`)), [programs, streamDef])
+
+  const streamUnis = useMemo(() => {
+    const ids = new Set(streamPrograms.map(p => p.universityId))
+    return (universities ?? [])
+      .filter((u: any) => ids.size === 0 || ids.has(u.id))
+      .sort((a: any, b: any) => Number(!!b.isFeatured) - Number(!!a.isFeatured) || parseFloat(b.rating ?? 0) - parseFloat(a.rating ?? 0))
+      .slice(0, 4)
+  }, [universities, streamPrograms])
+
+  const match = useMemo(() => {
+    const appliedUnis = new Set(active.map(a => a.universityId))
+    const pool = (universities ?? []).filter((u: any) => !appliedUnis.has(u.id) && (streamPrograms.length === 0 || streamPrograms.some(p => p.universityId === u.id)))
+    return recommendUniversities(pool, { profile, documents: documents ?? [], savedPrograms: savedPrograms ?? [], applications: apps, profileScore: profileScore ?? 0 })[0] ?? null
+  }, [universities, streamPrograms, profile, documents, savedPrograms, apps, active, profileScore])
+
+  // calendar events: published exams + personal deadlines + open program deadlines in this stream
+  const events = useMemo(() => {
+    const out: { date: Date; title: string; sub: string; tone: string; href: string }[] = []
+    const today = new Date(); today.setHours(0, 0, 0, 0)
+    for (const a of active) {
+      for (const x of exams[a.universityId] ?? []) {
+        if (x.programId && a.programId && x.programId !== a.programId) continue
+        const d = toDate(x.date)
+        if (d && d >= today) out.push({ date: d, title: `${a.universityName ?? 'University'} test`, sub: [x.time, x.center].filter(Boolean).join(' · ') || 'Entrance test / interview', tone: 'var(--accent)', href: `/student/applications/${a.id}` })
+      }
+    }
+    const { insights } = generateDeadlineInsights({ deadlines: deadlines ?? [], applications: apps, documents: documents ?? [], profileScore: profileScore ?? 0 })
+    for (const i of insights) if (i.priority !== 'Completed' && i.daysRemaining >= 0) out.push({ date: i.date, title: i.title, sub: i.universityName ?? 'Deadline', tone: 'var(--gold-bright)', href: i.appId ? `/student/applications/${i.appId}` : '/student/calendar' })
+    const appliedPrograms = new Set(apps.map(a => a.programId).filter(Boolean))
+    for (const p of streamPrograms) {
+      const d = toDate(p.applicationDeadline)
+      if (!d || d < today || appliedPrograms.has(p.id)) continue
+      const u: any = uniById.get(p.universityId)
+      out.push({ date: d, title: `${u?.shortName || u?.name || 'University'} · ${p.name}`, sub: 'Applications close', tone: '#F46846', href: `/student/universities/${p.universityId}` })
+    }
+    return out.sort((a, b) => a.date.getTime() - b.date.getTime())
+  }, [active, exams, deadlines, apps, documents, profileScore, streamPrograms, uniById])
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="h-[36px] w-[36px] animate-spin rounded-full border-[3px] border-[var(--border)] border-t-[var(--accent)]" />
+      </div>
+    )
   }
 
+  /* derived numbers */
+  const first = (profile?.fullName || 'there').split(' ')[0]
+  const docsPct = Math.round(Math.min(4, docUploaded ?? 0) / 4 * 100)
+  const missingDocs = ['10th_marksheet', '12th_marksheet', 'id_proof', 'passport_photo'].filter(k => !(userDocuments as any)?.[k]?.fileUrl)
+  const furthest = active.reduce((m, a) => Math.max(m, STAGE[a.s] ?? 0), 0)
+  const appsPct = Math.round((furthest / 7) * 100)
+  const featured = [...apps].sort((a, b) => urgency(a.s) - urgency(b.s) || (toDate(b.updatedAt ?? b.createdAt)?.getTime() ?? 0) - (toDate(a.updatedAt ?? a.createdAt)?.getTime() ?? 0)).slice(0, 2)
+  const needsYou = apps.filter(a => urgency(a.s) <= 1).length
+  const nextMissing = profileStrength?.missingFields?.[0]?.label
+  const subtitle = needsYou > 0
+    ? `${needsYou} application${needsYou > 1 ? 's need' : ' needs'} your response.`
+    : active.length > 0
+      ? `Your profile is ${profileScore}% complete and ${active.length} application${active.length > 1 ? 's are' : ' is'} in progress.`
+      : `Your profile is ${profileScore}% complete. Pick a stream and apply to your first university.`
+
+  // week strip
+  const weekStart = new Date(); weekStart.setHours(0, 0, 0, 0)
+  weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7) + weekOffset * 7)
+  const week = Array.from({ length: 7 }, (_, i) => { const d = new Date(weekStart); d.setDate(d.getDate() + i); return d })
+  const eventDays = new Set(events.map(e => dayKey(e.date)))
+  const todayKey = dayKey(new Date())
+  const weekEnd = new Date(week[6]); weekEnd.setHours(23, 59, 59)
+  const weekEvents = events.filter(e => e.date >= week[0] && e.date <= weekEnd)
+  const shownEvents = (weekEvents.length ? weekEvents : events).slice(0, 3)
+  const alert = events[0]
+  const daysLeft = alert ? Math.max(0, Math.ceil((alert.date.getTime() - new Date().setHours(0, 0, 0, 0)) / 86400000)) : 0
+
   return (
-    <section aria-label="Welcome" className="relative overflow-hidden rounded-[30px] border border-border bg-card p-5 shadow-[var(--shadow-card)] md:p-7">
-      <div aria-hidden className="pointer-events-none absolute -right-[96px] -top-[96px] h-72 w-72 rounded-full opacity-40 blur-3xl" style={{ background: 'var(--accent)' }} />
-      <div aria-hidden className="pointer-events-none absolute -bottom-28 left-1/3 h-60 w-60 rounded-full opacity-30 blur-3xl" style={{ background: 'var(--gold-bright)' }} />
-      <div className="relative grid gap-6 xl:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] xl:items-center">
-        <div>
-          <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mb-2 inline-flex items-center gap-2 rounded-full border border-border bg-[var(--bg-subtle)] px-3 py-1 text-[12px] font-semibold text-[var(--text-secondary)]">
-            <span className="h-1.5 w-1.5 rounded-full bg-[var(--gold-bright)]" />{getGreeting()}
-          </motion.p>
-          <motion.h1
-            initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="text-[30px] font-bold leading-[1.04] tracking-[-0.035em] text-foreground md:text-[42px]"
-          >
-            Hi, {name}! 👋<br />Where do you want to <span className="text-[var(--gold-bright)]">study</span> next?
+    <div className="flex flex-col gap-[20px] pb-[40px]">
+      {error && (
+        <div role="alert" className="flex items-center justify-between gap-[12px] rounded-[20px] border border-[color-mix(in_srgb,var(--red)_25%,transparent)] bg-[color-mix(in_srgb,var(--red)_8%,transparent)] p-[14px] text-[13px] text-[var(--red)]">
+          <span className="flex items-center gap-[8px]"><AlertCircle size={17} /> {error}. Some numbers may be out of date.</span>
+          <button onClick={() => window.location.reload()} className="inline-flex items-center gap-[6px] rounded-full bg-[var(--red)] px-[12px] py-[6px] font-semibold text-white"><RefreshCw size={13} /> Reload</button>
+        </div>
+      )}
+
+      {/* ── hero: greeting + stream cards ─────────────────────────────── */}
+      <section aria-label="Welcome" className="grid grid-cols-1 gap-[20px] xl:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] xl:items-stretch">
+        <div className="flex min-w-0 flex-col justify-center">
+          <motion.h1 initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: EASE }}
+            className="font-display text-[32px] font-bold leading-[1.04] tracking-[-0.035em] md:text-[42px]">
+            Hi, {first}! 👋<br />Where do you want to <span className="text-[var(--gold-bright)]">study</span> next?
           </motion.h1>
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="mt-3 max-w-[46ch] text-[14px] text-[var(--text-muted)]">
-            Your profile is {profileScore}% complete{appsCount > 0 ? ` and you have ${appsCount} application${appsCount === 1 ? '' : 's'} in motion` : ' — finish it to unlock AI matches'}.
-          </motion.p>
-          <div className="mt-5 grid max-w-[420px] grid-cols-2 gap-3">
-            <MiniRing value={profileScore} label={`Profile ${profileScore}%`} sub="Readiness" color="var(--accent)" />
-            <MiniRing value={Math.min(100, appsCount * 20)} label={`${appsCount} applied`} sub="Applications" color="var(--gold-bright)" />
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25 }} className="mt-[12px] max-w-[44ch] text-[14px] text-[var(--text-muted)]">{subtitle}</motion.p>
+          <div role="tablist" aria-label="Stream" className="mt-[18px] flex w-fit max-w-full gap-[4px] overflow-x-auto rounded-full border border-[var(--border)] bg-[var(--bg-card)] p-[4px] shadow-[var(--shadow-card)] no-scrollbar">
+            {STREAMS.map(s => {
+              const on = s.key === streamDef.key
+              return (
+                <button key={s.key} role="tab" aria-selected={on} onClick={() => pickStream(s.key)}
+                  className={`relative shrink-0 rounded-full px-[14px] py-[7px] text-[12.5px] font-semibold transition-colors ${on ? 'text-[var(--bg)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}>
+                  {on && <motion.span layoutId="stream-pill" className="absolute inset-0 rounded-full bg-[var(--text-primary)]" transition={{ type: 'spring', stiffness: 460, damping: 34 }} />}
+                  <span className="relative">{s.label}</span>
+                </button>
+              )
+            })}
           </div>
         </div>
-        <div className="flex gap-3 overflow-x-auto pb-1 no-scrollbar">
-          <Link href="/student/universities" aria-label="Explore all universities" className="flex w-14 shrink-0 items-center justify-center rounded-[24px] border-2 border-dashed border-border text-[var(--text-faint)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]">
+
+        <div className="flex min-w-0 gap-[12px] overflow-x-auto pb-[4px] no-scrollbar">
+          <Link href={`/student/universities?q=${encodeURIComponent(streamDef.label)}`} aria-label={`Browse all ${streamDef.label} universities`}
+            className="flex w-[56px] shrink-0 items-center justify-center rounded-[24px] border-2 border-dashed border-[var(--border-hover)] text-[var(--text-faint)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]">
             <Plus size={20} />
           </Link>
-          {STREAMS.map((st, i) => {
-            const dark = i === STREAMS.length - 1
+          {(streamUnis.length || programs !== null ? streamUnis : [null, null, null, null]).map((u: any, i: number, arr: any[]) => {
+            const dark = i === arr.length - 1
+            const inner = (
+              <>
+                <span className={dark ? 'text-white' : 'text-[#17142B] dark:text-white'}><Shapes v={i} /></span>
+                <span className="mt-[10px] line-clamp-2 text-[13.5px] font-bold leading-tight">{u ? (u.shortName || u.name) : ' '}</span>
+                <span className={`mt-[2px] text-[11.5px] ${dark ? 'text-white/55' : 'text-[var(--text-muted)]'}`}>{u ? [u.city, u.type].filter(Boolean).join(' · ') : streamDef.label}</span>
+              </>
+            )
+            const cls = `group flex h-full min-h-[168px] flex-col items-center justify-end rounded-[24px] p-[14px] text-center transition-all duration-300 hover:-translate-y-1 ${dark ? 'bg-[var(--night)] text-white shadow-[var(--shadow-card-hover)] dark:ring-1 dark:ring-white/10' : 'border border-[var(--border)] bg-[var(--bg-card)] shadow-[var(--shadow-card)]'}`
             return (
-              <motion.div key={st.label} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.07, duration: 0.6, ease: [0.16, 1, 0.3, 1] }} className="min-w-[116px] flex-1">
-                <Link
-                  href={`/student/universities?q=${encodeURIComponent(st.q)}`}
-                  className={`group flex h-full flex-col items-center justify-end rounded-[24px] p-4 text-center transition-all duration-300 hover:-translate-y-1 ${dark ? 'text-white' : 'border border-border bg-[var(--bg-subtle)] text-foreground'}`}
-                  style={dark ? { background: 'var(--night)', boxShadow: 'var(--shadow-card-hover)' } : undefined}
-                >
-                  <svg viewBox="0 0 86 76" className={`h-[70px] w-[80px] transition-transform duration-500 group-hover:rotate-[-6deg] group-hover:scale-110 ${dark ? 'text-white' : 'text-[#17142B] dark:text-white'}`} aria-hidden>{st.shapes}</svg>
-                  <span className="mt-3 text-[14px] font-bold">{st.label}</span>
-                  <span className={`text-[11.5px] ${dark ? 'text-white/55' : 'text-[var(--text-muted)]'}`}>{st.sub}</span>
-                </Link>
+              <motion.div key={u?.id ?? i} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 + i * 0.07, duration: 0.6, ease: EASE }} className="min-w-[128px] flex-1">
+                {u ? <Link href={`/student/universities/${u.id}`} className={cls}>{inner}</Link>
+                  : <div className={`${cls} animate-pulse`} aria-hidden>{inner}</div>}
               </motion.div>
             )
           })}
         </div>
-      </div>
-    </section>
-  )
-}
+      </section>
 
-/* =========================================================================
-   SECTION 2: TODAY'S FOCUS (DATA-DRIVEN FROM checklistEngine)
-   ========================================================================= */
-function TodaysFocus({
-  profile,
-  userDocuments,
-  applications,
-  savedPrograms,
-  deadlines,
-  isOnboardingComplete,
-}: {
-  profile: any
-  userDocuments: Record<string, any>
-  applications: any[]
-  savedPrograms: any[]
-  deadlines: any[]
-  isOnboardingComplete: boolean
-}) {
-  // Convert userDocuments map into a list for the checklist engine
-  const docsList = Object.entries(userDocuments).map(([id, d]) => ({ id, ...d }))
-
-  const checklist = useMemo(() =>
-    generateAdmissionChecklist({
-      profile,
-      documents: docsList,
-      applications,
-      savedPrograms,
-      deadlines,
-    }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [profile, userDocuments, applications, savedPrograms, deadlines]
-  )
-
-  const tasks = checklist.tasks
-  const [checked, setChecked] = useState<Set<string>>(new Set())
-
-  const toggle = (id: string) => {
-    setChecked(prev => {
-      const n = new Set(prev)
-      n.has(id) ? n.delete(id) : n.add(id)
-      return n
-    })
-  }
-
-  const completedCount = checked.size
-
-  const iconMap: Record<string, React.ElementType> = {
-    Document: FileText,
-    Profile: User,
-    Application: Send,
-    Deadline: Calendar,
-    Bookmark: Bookmark,
-  }
-
-  const priorityColor: Record<string, string> = {
-    Critical: STICKER_ORANGE,
-    High: STICKER_SKY,
-    Medium: STICKER_PURPLE,
-    Low: STICKER_TEAL,
-  }
-
-  if (tasks.length === 0) {
-    return (
-      <div className={CARD_STYLE}>
-        <div className="flex items-center gap-[10px] mb-[16px]">
-          <div className="w-[28px] h-[28px] rounded-[12px] bg-primary/10 flex items-center justify-center text-primary">
-            <Target size={16} strokeWidth={2} />
+      {/* ── body ─────────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 gap-[20px] xl:grid-cols-[minmax(0,1fr)_330px]">
+        <div className="flex min-w-0 flex-col gap-[20px]">
+          <div className="grid gap-[12px] sm:grid-cols-3">
+            <Ring pct={profileScore ?? 0} sub="Step 1" label="Profile" next={nextMissing ? `Next: ${nextMissing}` : 'All details added'} color="var(--accent)" href="/student/profile" delay={0.1} />
+            <Ring pct={docsPct} sub="Step 2" label="Documents" next={missingDocs.length ? `${missingDocs.length} still to upload` : 'All four uploaded'} color="var(--gold-bright)" href="/student/documents" delay={0.2} />
+            <Ring pct={appsPct} sub="Step 3" label="Applications" next={active.length ? `Furthest: ${STAGE_LABEL[(Object.keys(STAGE) as AdmissionStatus[]).find(k => STAGE[k] === furthest) ?? 'submitted']}` : 'None yet'} color="var(--green)" href="/student/applications" delay={0.3} />
           </div>
-          <h2 className="text-[16px] font-bold text-foreground tracking-tight">Today&apos;s Focus</h2>
-        </div>
-        <div className="flex flex-col items-center justify-center py-[32px] gap-[10px] text-center">
-          <div className="w-[44px] h-[44px] rounded-full bg-success/10 flex items-center justify-center">
-            <CheckCircle2 size={20} className="text-success" />
-          </div>
-          <p className="text-[14px] font-semibold text-foreground">All caught up!</p>
-          <p className="text-[12px] text-muted-foreground max-w-[240px]">No pending actions right now. Keep exploring universities and check back soon.</p>
-        </div>
-      </div>
-    )
-  }
 
-  return (
-    <div className={CARD_STYLE}>
-      <div className="flex items-center justify-between pb-[16px] mb-[16px] border-b border-border">
-        <div className="flex items-center gap-[10px]">
-          <div className="w-[28px] h-[28px] rounded-[12px] bg-primary/10 flex items-center justify-center text-primary">
-            <Target size={16} strokeWidth={2} />
-          </div>
-          <div>
-            <h2 className="text-[16px] font-bold text-foreground tracking-tight">Today&apos;s Focus</h2>
-            <p className="text-[12px] text-muted-foreground">{completedCount} of {tasks.length} actions completed</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-[8px]">
-          <div className="w-[120px] h-[6px] bg-secondary rounded-full overflow-hidden hidden sm:block">
-            <div className="h-full bg-primary transition-all duration-500 rounded-full" style={{ width: `${tasks.length > 0 ? (completedCount / tasks.length) * 100 : 0}%` }} />
-          </div>
-          <span className="text-[12px] font-semibold text-primary">{tasks.length > 0 ? Math.round((completedCount / tasks.length) * 100) : 0}%</span>
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-[10px]">
-        {tasks.map(task => {
-          const isChecked = checked.has(task.id)
-          const Icon = iconMap[task.iconType] || Target
-          return (
-            <div
-              key={task.id}
-              className={`p-[14px] rounded-[14px] border transition-all flex items-center justify-between gap-[12px] ${
-                isChecked
-                  ? 'bg-muted border-border opacity-60'
-                  : 'bg-card border-border hover:border-primary/30 hover:shadow-xs'
-              }`}
-            >
-              <div className="flex items-center gap-[12px] min-w-0">
-                <button
-                  onClick={() => toggle(task.id)}
-                  className={`w-[20px] h-[20px] rounded-[10px] border flex items-center justify-center transition-colors cursor-pointer shrink-0 ${
-                    isChecked ? 'bg-success border-success text-white' : 'border-border hover:border-primary'
-                  }`}
-                  aria-label={`Mark ${task.title} as completed`}
-                >
-                  {isChecked && <Check size={14} strokeWidth={3} />}
-                </button>
-
-                <div className="min-w-0">
-                  <div className="flex items-center gap-[8px] flex-wrap">
-                    <span className={`text-[13.5px] font-semibold truncate ${isChecked ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
-                      {task.title}
-                    </span>
-                    <span className={`text-[10px] font-semibold px-[8px] py-[2px] rounded-full ${priorityColor[task.priority] || STICKER_SKY}`}>
-                      {task.priority}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-[12px] text-[11px] text-muted-foreground mt-[2px]">
-                    <span className="flex items-center gap-[4px]">
-                      <Clock size={11} className="text-muted-foreground" />
-                      ~{task.estimatedTime} min
-                    </span>
-                    <span className="text-muted-foreground truncate">{task.description}</span>
-                  </div>
-                </div>
-              </div>
-
-              <Link href={task.actionUrl} className={BUTTON_UTILITY}>
-                {task.actionLabel}
-                <ChevronRight size={12} />
+          <section className={`${CARD} p-[18px] md:p-[22px]`} aria-labelledby="apps-heading">
+            <div className="mb-[14px] flex items-center justify-between">
+              <h2 id="apps-heading" className="font-display text-[18px] font-bold">Your applications</h2>
+              <Link href="/student/applications" className="inline-flex items-center gap-[8px] text-[12.5px] font-semibold text-[var(--text-muted)] hover:text-[var(--accent)]">
+                {apps.length > 2 && <span className="flex -space-x-[6px]">{['var(--accent)', 'var(--gold-bright)', 'var(--green)'].map(c => <span key={c} className="h-[20px] w-[20px] rounded-full border-2 border-[var(--bg-card)]" style={{ background: c }} />)}</span>}
+                View all{apps.length > 2 ? ` ${apps.length}` : ''}
               </Link>
             </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
 
-/* =========================================================================
-   SECTION 3: APPLICATION PIPELINE
-   ========================================================================= */
-function getStageLabel(status: string): string {
-  switch (status) {
-    case 'draft': return 'Draft'
-    case 'submitted':  case 'active': return 'Submitted'
-    case 'under_review': case 'review': return 'Under Review'
-    case 'interview': return 'Interview'
-    case 'selected': case 'offer': return 'Offer'
-    case 'accepted': return 'Accepted'
-    case 'rejected': return 'Rejected'
-    default: return 'Submitted'
-  }
-}
-
-function ApplicationPipeline({ apps }: { apps: any[] }) {
-  const [selectedStage, setSelectedStage] = useState<string | null>(null)
-
-  const STAGES = [
-    { label: 'Draft',       count: apps.filter(a => a.status === 'draft' || !a.status).length,                           color: '#615d59' },
-    { label: 'Submitted',   count: apps.filter(a => a.status === 'submitted' || a.status === 'active').length,            color: 'var(--accent)' },
-    { label: 'Under Review',count: apps.filter(a => a.status === 'under_review' || a.status === 'review').length,         color: '#d6b6f6' },
-    { label: 'Interview',   count: apps.filter(a => a.status === 'interview').length,                                     color: '#2a9d99' },
-    { label: 'Offer',       count: apps.filter(a => a.status === 'selected' || a.status === 'offer').length,              color: '#1aae39' },
-    { label: 'Accepted',    count: apps.filter(a => a.status === 'accepted').length,                                      color: 'var(--green)' },
-    { label: 'Rejected',    count: apps.filter(a => a.status === 'rejected').length,                                      color: 'var(--red)' },
-  ]
-
-  const normalizedApps = apps.map(a => ({
-    id: a.id,
-    name: a.universityName || a.university || 'Unknown University',
-    program: a.program || a.programName || a.course || '—',
-    stage: getStageLabel(a.status),
-    progress: a.progress ?? (a.status === 'accepted' || a.status === 'selected' ? 100 : a.status === 'interview' ? 75 : a.status === 'under_review' || a.status === 'review' ? 60 : 40),
-    deadline: a.deadline || (a.createdAt?.seconds ? new Date(a.createdAt.seconds * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'),
-  }))
-
-  const filteredApps = selectedStage
-    ? normalizedApps.filter(a => a.stage.toLowerCase() === selectedStage.toLowerCase())
-    : normalizedApps
-
-  return (
-    <div className={CARD_STYLE}>
-      <div className="flex items-center justify-between pb-[16px] mb-[20px] border-b border-border">
-        <div>
-          <h2 className="text-[16px] font-bold text-foreground tracking-tight">Application Pipeline</h2>
-          <p className="text-[12px] text-muted-foreground">Click a stage to filter your active applications</p>
-        </div>
-        <Link href="/student/applications" className="text-[12px] font-semibold text-primary hover:underline flex items-center gap-[4px]">
-          View Full Tracker →
-        </Link>
-      </div>
-
-      {/* Stage Flow Bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-[8px] mb-[20px]">
-        {STAGES.map((s) => {
-          const isSelected = selectedStage === s.label
-          return (
-            <button
-              key={s.label}
-              onClick={() => setSelectedStage(isSelected ? null : s.label)}
-              className={`p-[10px] rounded-[14px] border text-left transition-all cursor-pointer ${
-                isSelected
-                  ? 'bg-primary/10 border-primary shadow-xs'
-                  : 'bg-muted border-border hover:border-border'
-              }`}
-            >
-              <div className="flex items-center justify-between mb-[4px]">
-                <span className="text-[10px] font-bold uppercase text-muted-foreground">{s.label}</span>
-                <span className="w-[6px] h-[6px] rounded-full" style={{ backgroundColor: s.color }} />
-              </div>
-              <p className="text-[18px] font-extrabold text-foreground leading-none">{s.count}</p>
-            </button>
-          )
-        })}
-      </div>
-
-      {/* Pipeline Active List */}
-      <div className="flex flex-col gap-[10px]">
-        {apps.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-[32px] gap-[10px] text-center">
-            <div className="w-[44px] h-[44px] rounded-full bg-muted flex items-center justify-center">
-              <Building2 size={20} className="text-muted-foreground" />
-            </div>
-            <p className="text-[14px] font-semibold text-foreground">No applications yet</p>
-            <p className="text-[12px] text-muted-foreground max-w-[260px]">
-              Start exploring universities and submit your first application to see your pipeline here.
-            </p>
-            <Link href="/student/universities" className={BUTTON_PRIMARY}>
-              Explore Universities
-              <ArrowRight size={14} />
-            </Link>
-          </div>
-        ) : filteredApps.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-[24px] gap-[8px] text-center">
-            <p className="text-[14px] font-semibold text-foreground">No applications in {selectedStage} stage</p>
-            <p className="text-[12px] text-muted-foreground">Try another stage or clear the filter.</p>
-          </div>
-        ) : (
-          filteredApps.map((app) => (
-            <div key={app.id} className="p-[14px] bg-card text-card-foreground border border-border rounded-[14px] flex flex-col sm:flex-row sm:items-center justify-between gap-[12px] hover:border-primary/30 transition-all">
-              <div className="flex items-center gap-[12px]">
-                <div className="w-[36px] h-[36px] rounded-[12px] bg-primary/10 flex items-center justify-center shrink-0">
-                  <Building2 size={18} className="text-primary" />
-                </div>
-                <div>
-                  <p className="text-[14px] font-semibold text-foreground">{app.name}</p>
-                  <p className="text-[12px] text-muted-foreground">{app.program}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-[16px] flex-wrap justify-between sm:justify-end">
-                <div className="flex items-center gap-[8px]">
-                  <div className="w-[60px] h-[5px] bg-secondary rounded-full overflow-hidden">
-                    <div className="h-full bg-primary rounded-full" style={{ width: `${app.progress}%` }} />
-                  </div>
-                  <span className="text-[12px] font-semibold text-foreground">{app.progress}%</span>
-                </div>
-
-                <span className={`text-[11px] font-semibold px-[10px] py-[3px] rounded-full ${
-                  app.stage === 'Offer' || app.stage === 'Accepted' ? STICKER_GREEN : app.stage === 'Interview' ? STICKER_TEAL : app.stage === 'Rejected' ? STICKER_ORANGE : STICKER_SKY
-                }`}>
-                  {app.stage}
-                </span>
-
-                <Link href="/student/applications" className={BUTTON_UTILITY}>
-                  Details
-                </Link>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-    </div>
-  )
-}
-
-/* =========================================================================
-   SECTION 4: PROFILE STRENGTH WORKSPACE (DYNAMIC)
-   ========================================================================= */
-function ProfileStrengthWorkspace({ profileStrength }: { profileStrength: any }) {
-  const { percentage, grade, missingFields, categoryBreakdown } = profileStrength
-
-  // Show top 3 missing high-priority items as recommended actions
-  const topMissing = (missingFields || []).slice(0, 3)
-
-  const gradeColor =
-    percentage >= 80 ? 'bg-success/15 text-success' :
-    percentage >= 60 ? 'bg-primary/15 text-primary' :
-    percentage >= 40 ? 'bg-amber-500/15 text-amber-600' :
-    'bg-[#dd5b00]/15 text-[#dd5b00]'
-
-  const breakdown = [
-    { label: 'Personal',     pct: categoryBreakdown?.personal    ?? 0 },
-    { label: 'Academics',    pct: categoryBreakdown?.academics   ?? 0 },
-    { label: 'Test Scores',  pct: categoryBreakdown?.testScores  ?? 0 },
-    { label: 'Preferences',  pct: categoryBreakdown?.preferences ?? 0 },
-    { label: 'Documents',    pct: categoryBreakdown?.documents   ?? 0 },
-  ]
-
-  return (
-    <div className={CARD_STYLE}>
-      <div className="flex items-center justify-between pb-[16px] mb-[16px] border-b border-border">
-        <div>
-          <h2 className="text-[16px] font-bold text-foreground tracking-tight">Profile Strength &amp; Readiness</h2>
-          <p className="text-[12px] text-muted-foreground">Complete missing requirements to maximize admission probability</p>
-        </div>
-        <span className={`text-[11px] font-bold px-[8px] py-[2px] rounded-full ${gradeColor}`}>
-          {grade}
-        </span>
-      </div>
-
-      <div className="flex flex-col gap-[20px]">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-[20px] items-center">
-          {/* Circle Gauge */}
-          <div className="flex flex-col items-center justify-center p-[16px] bg-muted border border-border rounded-[14px] h-full">
-            <div className="relative w-[90px] h-[90px] flex items-center justify-center">
-              <svg className="w-full h-full transform -rotate-90">
-                <circle cx="45" cy="45" r="38" stroke="var(--border-hover)" strokeWidth="8" fill="transparent" />
-                <circle
-                  cx="45" cy="45" r="38" stroke="var(--accent)" strokeWidth="8" fill="transparent"
-                  strokeDasharray="239"
-                  strokeDashoffset={239 - (239 * percentage) / 100}
-                  strokeLinecap="round"
-                  className="transition-all duration-1000"
-                />
-              </svg>
-              <div className="absolute flex flex-col items-center">
-                <span className="text-[20px] font-extrabold text-foreground leading-none">{percentage}%</span>
-                <span className="text-[10px] font-semibold text-muted-foreground mt-[2px]">Score</span>
-              </div>
-            </div>
-            <p className="text-[11px] font-semibold text-foreground mt-[10px] text-center leading-tight">
-              {percentage < 100 ? `${100 - percentage}% more to unlock full insights` : 'Profile Complete!'}
-            </p>
-          </div>
-
-          {/* Missing Requirements */}
-          <div className="md:col-span-2 flex flex-col gap-[10px]">
-            <p className="text-[12px] font-bold uppercase text-muted-foreground tracking-wider">Recommended Completion Actions</p>
-            {topMissing.length === 0 ? (
-              <div className="flex items-center gap-[8px] p-[10px] bg-success/10 border border-success/20 rounded-[12px]">
-                <CheckCircle2 size={14} className="text-success" />
-                <span className="text-[13px] font-medium text-foreground">All key fields completed!</span>
+            {featured.length === 0 ? (
+              <div className="rounded-[20px] border-2 border-dashed border-[var(--border)] p-[24px] text-center">
+                <p className="font-semibold">You haven&apos;t applied anywhere yet.</p>
+                <p className="mt-[4px] text-[13px] text-[var(--text-muted)]">Your profile and documents go with every application — no forms to refill.</p>
+                <Link href="/student/universities" className="mt-[14px] inline-flex h-[40px] items-center gap-[6px] rounded-full bg-[var(--accent)] px-[18px] text-[13px] font-semibold text-white shadow-[var(--shadow-glow)]"><Plus size={15} /> Start an application</Link>
               </div>
             ) : (
-              topMissing.map((item: any, idx: number) => (
-                <div key={idx} className="p-[10px] bg-card text-card-foreground border border-border rounded-[12px] flex items-center justify-between gap-[12px]">
-                  <div className="flex items-center gap-[8px]">
-                    <AlertCircle size={14} className={item.priority === 'High' ? 'text-[#dd5b00] shrink-0' : 'text-amber-500 shrink-0'} />
-                    <span className="text-[13px] font-medium text-foreground">{item.label}</span>
-                  </div>
-                  <div className="flex items-center gap-[10px]">
-                    <span className={`text-[10px] font-semibold px-[6px] py-[1px] rounded-full ${item.priority === 'High' ? STICKER_ORANGE : STICKER_SKY}`}>
-                      {item.priority}
-                    </span>
-                    <Link href={item.link || '/student/profile'} className={BUTTON_UTILITY + " shrink-0"}>
-                      Fix
-                    </Link>
-                  </div>
-                </div>
-              ))
+              <div className="grid gap-[12px] md:grid-cols-2">
+                {featured.map((a, i) => {
+                  const dark = i === 0 && urgency(a.s) <= 1
+                  const pct = Math.round(((STAGE[a.s] ?? 0) / 7) * 100)
+                  const closed = CLOSED.includes(a.s)
+                  return (
+                    <motion.div key={a.id} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 + i * 0.08, duration: 0.6, ease: EASE }}>
+                      <Link href={`/student/applications/${a.id}`}
+                        className={`block h-full rounded-[20px] p-[16px] transition hover:-translate-y-0.5 ${dark ? 'bg-[var(--night)] text-white shadow-[0_24px_50px_-24px_rgba(22,19,38,0.9)] dark:ring-1 dark:ring-[var(--accent-border)]' : 'bg-[var(--accent-bg)]'}`}>
+                        <div className="mb-[14px] flex items-start justify-between gap-[10px]">
+                          <div className="min-w-0">
+                            <p className="truncate text-[15px] font-bold leading-snug">{a.universityName || 'University'}</p>
+                            <p className={`truncate text-[12px] ${dark ? 'text-white/55' : 'text-[var(--text-muted)]'}`}>{a.programName || a.program || 'Program'}</p>
+                          </div>
+                          <span className={`shrink-0 rounded-full px-[9px] py-[3px] text-[11px] font-bold ${dark ? 'bg-[var(--gold-bright)] text-[#17142B]' : closed ? 'bg-[var(--bg-card)] text-[var(--text-muted)]' : 'bg-[var(--bg-card)] text-[var(--accent)]'}`}>{STAGE_LABEL[a.s]}</span>
+                        </div>
+                        <div className={`mb-[8px] h-[6px] overflow-hidden rounded-full ${dark ? 'bg-white/15' : 'bg-[color-mix(in_srgb,var(--text-primary)_10%,transparent)]'}`}>
+                          <motion.div initial={{ width: 0 }} animate={{ width: `${closed ? 100 : pct}%` }} transition={{ duration: 1.2, delay: 0.3, ease: EASE }}
+                            className={`h-full rounded-full ${dark ? 'bg-[var(--gold-bright)]' : closed ? 'bg-[var(--border-hover)]' : 'bg-[var(--accent)]'}`} />
+                        </div>
+                        <div className={`flex justify-between text-[11.5px] ${dark ? 'text-white/55' : 'text-[var(--text-muted)]'}`}>
+                          <span>Updated {ago(toDate(a.updatedAt ?? a.createdAt)) || 'recently'}</span>
+                          <span className={`font-semibold ${dark ? 'text-white' : 'text-[var(--accent)]'}`}>{ACTION[a.s] ? <>{ACTION[a.s]} <ArrowRight size={11} className="inline" /></> : closed ? 'Closed' : `${pct}%`}</span>
+                        </div>
+                      </Link>
+                    </motion.div>
+                  )
+                })}
+              </div>
             )}
-          </div>
-        </div>
 
-        {/* Profile Completion Breakdown — all live from categoryBreakdown */}
-        <div className="pt-[16px] border-t border-border grid grid-cols-2 gap-[16px]">
-          {breakdown.map(({ label, pct }) => (
-            <div key={label}>
-              <div className="flex items-center justify-between mb-[6px]">
-                <span className="text-[11px] font-semibold text-foreground">{label}</span>
-                <span className={`text-[11px] ${pct === 100 ? 'text-success' : pct === 0 ? 'text-[#dd5b00]' : 'text-muted-foreground'}`}>
-                  {pct === 0 ? 'Pending' : `${pct}%`}
-                </span>
+            {match && (
+              <div className="mt-[12px] flex items-center gap-[12px] rounded-[18px] border border-[var(--border)] p-[12px] text-[13px]">
+                <span className="flex h-[36px] w-[36px] shrink-0 items-center justify-center rounded-[12px] bg-[var(--gold-bg)] text-[var(--gold)]"><Sparkles size={16} /></span>
+                <p className="min-w-0 flex-1 truncate">
+                  <strong>{match.university.shortName || match.university.name}</strong>
+                  <span className="text-[var(--text-muted)]"> · AI match {match.overallMatchScore}%{match.matchReasons[0] ? ` · ${match.matchReasons[0].toLowerCase()}` : ''}</span>
+                </p>
+                <Link href={`/student/universities/${match.university.id}`} className="shrink-0 rounded-full bg-[var(--text-primary)] px-[14px] py-[6px] text-[12px] font-semibold text-[var(--bg)] transition hover:opacity-85">Apply</Link>
               </div>
-              <div className="w-full h-[6px] bg-secondary rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all duration-700 ${pct === 100 ? 'bg-success' : pct < 30 ? 'bg-[#dd5b00]' : 'bg-primary'}`}
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
+            )}
+          </section>
+        </div>
+
+        {/* right column */}
+        <div className="flex flex-col gap-[20px] sm:flex-row xl:flex-col">
+          <section className={`${CARD} flex-1 p-[18px]`} aria-labelledby="cal-heading">
+            <div className="mb-[12px] flex items-center justify-between">
+              <h2 id="cal-heading" className="font-display text-[16px] font-bold">{week[3].toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}</h2>
+              <span className="flex gap-[2px] text-[var(--text-muted)]">
+                <button onClick={() => setWeekOffset(w => w - 1)} aria-label="Previous week" className="rounded-full p-[4px] hover:bg-[var(--bg-subtle)]"><ChevronLeft size={16} /></button>
+                <button onClick={() => setWeekOffset(w => w + 1)} aria-label="Next week" className="rounded-full p-[4px] hover:bg-[var(--bg-subtle)]"><ChevronRight size={16} /></button>
+              </span>
             </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-/* =========================================================================
-   SECTION 5: AI RECOMMENDATIONS HUB (GUARDED)
-   ========================================================================= */
-function AIRecommendationsHub({ profileScore }: { profileScore: number }) {
-  if (profileScore < 40) {
-    return (
-      <div className={CARD_STYLE}>
-        <div className="flex items-center justify-between pb-[16px] mb-[16px] border-b border-border">
-          <div className="flex items-center gap-[10px]">
-            <div className="w-[28px] h-[28px] rounded-[12px] bg-primary/10 flex items-center justify-center text-primary">
-              <Sparkles size={16} strokeWidth={2} />
+            <div className="grid grid-cols-7 gap-[4px] text-center text-[11px] text-[var(--text-faint)]">
+              {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => <span key={i}>{d}</span>)}
+              {week.map(d => {
+                const k = dayKey(d)
+                const isToday = k === todayKey
+                const has = eventDays.has(k)
+                return (
+                  <span key={k} className={`mx-auto flex h-[32px] w-[32px] items-center justify-center rounded-full text-[12.5px] font-semibold ${isToday ? 'bg-[var(--gold-bright)] text-[#17142B]' : has ? 'bg-[var(--accent)] text-white' : 'text-[var(--text-secondary)]'}`}>{d.getDate()}</span>
+                )
+              })}
             </div>
-            <div>
-              <h2 className="text-[16px] font-bold text-foreground tracking-tight">EDING AI Recommendations</h2>
-              <p className="text-[12px] text-muted-foreground">Personalized smart suggestions tailored to your profile</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-col items-center justify-center py-[32px] gap-[12px] text-center">
-          <div className="w-[48px] h-[48px] rounded-full bg-primary/10 flex items-center justify-center">
-            <Sparkles size={22} className="text-primary" />
-          </div>
-          <p className="text-[14px] font-semibold text-foreground">AI Recommendations Locked</p>
-          <p className="text-[12px] text-muted-foreground max-w-[300px] leading-relaxed">
-            Complete at least 40% of your profile — including academic scores and preferences — to unlock personalised university, scholarship, and career recommendations.
-          </p>
-          <Link href="/student/profile" className={BUTTON_PRIMARY}>
-            Complete Profile
-            <ArrowRight size={14} />
-          </Link>
-        </div>
-      </div>
-    )
-  }
-
-  const recommendations = [
-    {
-      title: 'Practice Mock Interview',
-      desc: 'AI-driven behavioral questions ready for you',
-      tag: 'AI Practice',
-      type: 'Interview',
-      action: 'Start Practice',
-      link: '/student/interview',
-      color: STICKER_TEAL
-    },
-    {
-      title: 'Draft Your Statement of Purpose',
-      desc: 'AI copilot will help you write a compelling SOP',
-      tag: 'SOP',
-      type: 'Writing',
-      action: 'Write with AI',
-      link: '/student/sop',
-      color: STICKER_SKY
-    },
-    {
-      title: 'Explore Scholarships',
-      desc: 'Discover merit-based grants matching your profile',
-      tag: 'Scholarship',
-      type: 'Scholarship',
-      action: 'View Matches',
-      link: '/student/scholarships',
-      color: STICKER_GREEN
-    },
-  ]
-
-  return (
-    <div className={CARD_STYLE}>
-      <div className="flex items-center justify-between pb-[16px] mb-[16px] border-b border-border">
-        <div className="flex items-center gap-[10px]">
-          <div className="w-[28px] h-[28px] rounded-[12px] bg-primary/10 flex items-center justify-center text-primary">
-            <Sparkles size={16} strokeWidth={2} />
-          </div>
-          <div>
-            <h2 className="text-[16px] font-bold text-foreground tracking-tight">EDING AI Recommendations</h2>
-            <p className="text-[12px] text-muted-foreground">Personalized smart suggestions tailored to your profile</p>
-          </div>
-        </div>
-        <Link href="/student/copilot" className="text-[12px] font-semibold text-primary hover:underline">
-          Ask AI Copilot →
-        </Link>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-[14px]">
-        {recommendations.map((rec, i) => (
-          <div key={i} className="p-[16px] bg-card text-card-foreground border border-border rounded-[14px] flex flex-col justify-between gap-[12px] hover:border-primary/30 hover:shadow-xs transition-all">
-            <div>
-              <div className="flex items-center justify-between mb-[6px]">
-                <span className={`text-[10px] font-bold px-[8px] py-[2px] rounded-full ${rec.color}`}>
-                  {rec.tag}
-                </span>
-                <span className="text-[11px] font-semibold text-muted-foreground">{rec.type}</span>
-              </div>
-              <h3 className="text-[14px] font-bold text-foreground mb-[2px]">{rec.title}</h3>
-              <p className="text-[12px] text-muted-foreground leading-snug">{rec.desc}</p>
-            </div>
-
-            <Link href={rec.link} className={BUTTON_PRIMARY + " w-full justify-center"}>
-              {rec.action}
-              <ArrowRight size={14} />
-            </Link>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-/* =========================================================================
-   SECTION 6: UPCOMING DEADLINES TIMELINE (DATA-DRIVEN)
-   ========================================================================= */
-function UpcomingDeadlinesTimeline({
-  deadlines,
-  applications,
-  documents,
-  profileScore,
-}: {
-  deadlines: any[]
-  applications: any[]
-  documents: any[]
-  profileScore: number
-}) {
-  const { insights } = useMemo(() =>
-    generateDeadlineInsights({ deadlines, applications, documents, profileScore }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [deadlines, applications, profileScore]
-  )
-
-  // Only show upcoming (non-completed) deadlines
-  const upcoming = insights
-    .filter(d => d.priority !== 'Completed' && d.daysRemaining >= 0)
-    .slice(0, 4)
-
-  const formatDate = (date: Date) => {
-    const today = new Date(); today.setHours(0,0,0,0)
-    const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1)
-    const dDate = new Date(date); dDate.setHours(0,0,0,0)
-
-    if (dDate.getTime() === today.getTime()) return 'Today'
-    if (dDate.getTime() === tomorrow.getTime()) return 'Tomorrow'
-    if ((dDate.getTime() - today.getTime()) / 86400000 <= 7) return 'This Week'
-    return dDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-  }
-
-  return (
-    <div className={CARD_STYLE}>
-      <div className="flex items-center justify-between pb-[16px] mb-[16px] border-b border-border">
-        <div className="flex items-center gap-[8px]">
-          <Calendar className="text-primary" size={18} />
-          <h2 className="text-[16px] font-bold text-foreground tracking-tight">Upcoming Deadlines Timeline</h2>
-        </div>
-        <Link href="/student/calendar" className="text-[12px] font-semibold text-primary hover:underline">
-          View Planner →
-        </Link>
-      </div>
-
-      {upcoming.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-[32px] gap-[10px] text-center">
-          <div className="w-[44px] h-[44px] rounded-full bg-muted flex items-center justify-center">
-            <Calendar size={20} className="text-muted-foreground" />
-          </div>
-          <p className="text-[14px] font-semibold text-foreground">No application deadlines yet.</p>
-          <p className="text-[12px] text-muted-foreground max-w-[240px]">
-            Start applying to universities — your deadlines will appear here automatically.
-          </p>
-          <Link href="/student/universities" className={BUTTON_PRIMARY}>
-            Explore Universities
-            <ArrowRight size={14} />
-          </Link>
-        </div>
-      ) : (
-        <div className="relative pl-[16px] border-l border-border flex flex-col gap-[16px]">
-          {upcoming.map((item, idx) => (
-            <div key={item.id} className="relative flex items-start justify-between gap-[12px]">
-              {/* Timeline node */}
-              <div className={`absolute -left-[21px] top-[4px] w-[10px] h-[10px] rounded-full border-[2px] bg-card ${
-                item.priority === 'Critical' ? 'border-[#dd5b00]' : 'border-primary'
-              }`} />
-
-              <div>
-                <div className="flex items-center gap-[8px] mb-[2px]">
-                  <span className={`text-[10px] font-bold uppercase px-[6px] py-[1px] rounded-md ${
-                    item.priority === 'Critical' ? STICKER_ORANGE : STICKER_SKY
-                  }`}>
-                    {formatDate(item.date)}
+            <div className="mt-[14px] flex flex-col gap-[8px]">
+              {shownEvents.length === 0 ? (
+                <p className="rounded-[14px] bg-[var(--bg-subtle)] p-[12px] text-[12.5px] text-[var(--text-muted)]">Nothing scheduled. Exam dates and deadlines appear here as universities publish them.</p>
+              ) : shownEvents.map((e, i) => (
+                <Link key={i} href={e.href} className="flex items-center gap-[10px] rounded-[14px] bg-[var(--bg-subtle)] p-[10px] transition hover:bg-[var(--bg-card-hover)]">
+                  <span className="h-[34px] w-[4px] shrink-0 rounded-full" style={{ background: e.tone }} />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[12.5px] font-semibold">{e.title}</span>
+                    <span className="block truncate text-[11.5px] text-[var(--text-muted)]">{e.date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} · {e.sub}</span>
                   </span>
-                  <span className="text-[11px] font-semibold text-muted-foreground">
-                    {item.daysRemaining === 0 ? 'Due Today' : `${item.daysRemaining}d left`}
-                  </span>
-                </div>
-                <p className="text-[13.5px] font-semibold text-foreground">{item.title}</p>
-                <p className="text-[11px] text-muted-foreground">{item.universityName}</p>
-              </div>
-
-              <Link href={item.appId ? '/student/applications' : '/student/calendar'} className={BUTTON_UTILITY}>
-                {item.appId ? 'View App' : 'Calendar'}
-              </Link>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
-
-/* =========================================================================
-   SECTION 8: GAMIFIED ACHIEVEMENTS (DATA-DRIVEN)
-   ========================================================================= */
-function GamifiedAchievements({
-  profileScore,
-  applications,
-  userDocuments,
-  scholarships,
-}: {
-  profileScore: number
-  applications: any[]
-  userDocuments: Record<string, any>
-  scholarships: any[]
-}) {
-  const docCount = Object.keys(userDocuments).length
-  const hasSubmittedApp = applications.some(a => a.status && a.status !== 'draft')
-  const hasCompletedInterview = false // would come from a 'mock_sessions' collection
-  const isScholarshipEligible = scholarships.length > 0
-
-  const achievements = [
-    {
-      title: 'Profile 80% Unlocked',
-      desc: 'Completed core profile fields',
-      icon: Target,
-      unlocked: profileScore >= 80,
-    },
-    {
-      title: 'First Application Sent',
-      desc: 'Submitted to at least one university',
-      icon: Send,
-      unlocked: hasSubmittedApp,
-    },
-    {
-      title: 'Documents Uploaded',
-      desc: 'Uploaded at least 2 documents',
-      icon: FileText,
-      unlocked: docCount >= 2,
-    },
-    {
-      title: 'Scholarship Eligible',
-      desc: 'Matched with scholarship programs',
-      icon: Award,
-      unlocked: isScholarshipEligible,
-    },
-  ]
-
-  const unlockedCount = achievements.filter(a => a.unlocked).length
-
-  return (
-    <div className={CARD_STYLE}>
-      <div className="flex items-center justify-between pb-[16px] mb-[16px] border-b border-border">
-        <div className="flex items-center gap-[8px]">
-          <Flame className="text-[#dd5b00]" size={18} />
-          <h2 className="text-[16px] font-bold text-foreground tracking-tight">Milestones &amp; Achievements</h2>
-        </div>
-        <span className="text-[12px] font-semibold text-primary">{unlockedCount} of {achievements.length} Unlocked</span>
-      </div>
-
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-[12px]">
-        {achievements.map((ach, i) => {
-          const IconComp = ach.icon
-          return (
-            <div
-              key={i}
-              className={`p-[14px] rounded-[14px] border flex flex-col items-center text-center gap-[8px] ${
-                ach.unlocked
-                  ? 'bg-card border-border shadow-xs'
-                  : 'bg-muted border-border opacity-50'
-              }`}
-            >
-              <div className={`w-[36px] h-[36px] rounded-full flex items-center justify-center ${
-                ach.unlocked ? 'bg-success/15 text-success' : 'bg-secondary/80 text-muted-foreground'
-              }`}>
-                <IconComp size={18} strokeWidth={2} />
-              </div>
-              <div>
-                <p className="text-[12px] font-bold text-foreground leading-tight">{ach.title}</p>
-                <p className="text-[10px] text-muted-foreground mt-[2px]">{ach.desc}</p>
-              </div>
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
-/* =========================================================================
-   SECTION 9: ADMISSION INSIGHTS & PROBABILITIES (GUARDED)
-   ========================================================================= */
-function StudentInsightsAnalytics({
-  profileScore,
-  applications,
-  profileStrength,
-}: {
-  profileScore: number
-  applications: any[]
-  profileStrength: any
-}) {
-  if (profileScore < 40) {
-    return (
-      <div className={CARD_STYLE}>
-        <div className="flex items-center justify-between pb-[16px] mb-[16px] border-b border-border">
-          <div className="flex items-center gap-[8px]">
-            <BarChart3 className="text-primary" size={18} />
-            <h2 className="text-[16px] font-bold text-foreground tracking-tight">Admission Insights &amp; Probabilities</h2>
-          </div>
-          <span className="text-[11px] font-bold bg-primary/15 text-primary px-[8px] py-[2px] rounded-full">
-            AI Engine Predictive
-          </span>
-        </div>
-
-        <div className="flex flex-col items-center justify-center py-[28px] gap-[10px] text-center">
-          <div className="w-[44px] h-[44px] rounded-full bg-muted flex items-center justify-center">
-            <BarChart3 size={20} className="text-muted-foreground" />
-          </div>
-          <p className="text-[14px] font-semibold text-foreground">Complete your profile to unlock admission insights.</p>
-          <p className="text-[12px] text-muted-foreground max-w-[280px]">
-            We need your academic scores (12th marks or CGPA) and at least 40% profile completion to predict your admission probability.
-          </p>
-          <Link href="/student/profile" className={BUTTON_PRIMARY}>
-            Update Profile
-            <ArrowRight size={14} />
-          </Link>
-        </div>
-      </div>
-    )
-  }
-
-  // Enough data — compute real stats from Firebase data
-  const activeApps = applications.filter(a => a.status && a.status !== 'rejected')
-  const acceptedApps = applications.filter(a => a.status === 'accepted' || a.status === 'selected')
-
-  const pipelineHealth =
-    applications.length === 0 ? 'No Applications' :
-    activeApps.length >= 3 ? 'Optimal' :
-    activeApps.length >= 1 ? 'Building' : 'Needs Attention'
-
-  const acceptanceChance =
-    profileScore >= 80 ? 'High' :
-    profileScore >= 60 ? 'Moderate' : 'Developing'
-
-  return (
-    <div className={CARD_STYLE}>
-      <div className="flex items-center justify-between pb-[16px] mb-[16px] border-b border-border">
-        <div className="flex items-center gap-[8px]">
-          <BarChart3 className="text-primary" size={18} />
-          <h2 className="text-[16px] font-bold text-foreground tracking-tight">Admission Insights &amp; Probabilities</h2>
-        </div>
-        <span className="text-[11px] font-bold bg-primary/15 text-primary px-[8px] py-[2px] rounded-full">
-          AI Engine Predictive
-        </span>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-[16px]">
-        <div className="p-[14px] bg-muted border border-border rounded-[14px]">
-          <p className="text-[11px] font-semibold text-muted-foreground uppercase">Profile Readiness</p>
-          <p className={`text-[24px] font-extrabold leading-tight mt-[4px] ${profileScore >= 80 ? 'text-success' : profileScore >= 60 ? 'text-primary' : 'text-amber-600'}`}>
-            {profileScore}%
-          </p>
-          <p className="text-[11px] text-muted-foreground mt-[2px]">{acceptanceChance} readiness level</p>
-        </div>
-
-        <div className="p-[14px] bg-muted border border-border rounded-[14px]">
-          <p className="text-[11px] font-semibold text-muted-foreground uppercase">Pipeline Health</p>
-          <p className={`text-[24px] font-extrabold leading-tight mt-[4px] ${pipelineHealth === 'Optimal' ? 'text-success' : pipelineHealth === 'Building' ? 'text-primary' : 'text-muted-foreground'}`}>
-            {pipelineHealth}
-          </p>
-          <p className="text-[11px] text-muted-foreground mt-[2px]">{activeApps.length} active application{activeApps.length !== 1 ? 's' : ''}</p>
-        </div>
-
-        <div className="p-[14px] bg-muted border border-border rounded-[14px]">
-          <p className="text-[11px] font-semibold text-muted-foreground uppercase">Offers Received</p>
-          <p className={`text-[24px] font-extrabold leading-tight mt-[4px] ${acceptedApps.length > 0 ? 'text-success' : 'text-foreground'}`}>
-            {acceptedApps.length}
-          </p>
-          <p className="text-[11px] text-muted-foreground mt-[2px]">
-            {acceptedApps.length > 0 ? 'Congratulations!' : 'Keep applying to universities'}
-          </p>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-/* =========================================================================
-   SECTION 11: UNIVERSITY RECOMMENDATIONS GRID (GUARDED)
-   ========================================================================= */
-function UniversityRecommendationsGrid({
-  universities,
-  hasMinimumProfileForRecommendations,
-}: {
-  universities: any[]
-  hasMinimumProfileForRecommendations: boolean
-}) {
-  const topUnis = useMemo(() => {
-    return [...universities]
-      .sort((a, b) => ((b.aiMatch ?? b.placementRate ?? 0) - (a.aiMatch ?? a.placementRate ?? 0)))
-      .slice(0, 3)
-  }, [universities])
-
-  return (
-    <div className={CARD_STYLE}>
-      <div className="flex items-center justify-between pb-[16px] mb-[16px] border-b border-border">
-        <div>
-          <h2 className="text-[16px] font-bold text-foreground tracking-tight">Top University Recommendations</h2>
-          <p className="text-[12px] text-muted-foreground">AI-matched universities based on your profile &amp; test scores</p>
-        </div>
-        <Link href="/student/universities" className="text-[12px] font-semibold text-primary hover:underline">
-          Explore All →
-        </Link>
-      </div>
-
-      {!hasMinimumProfileForRecommendations ? (
-        <div className="flex flex-col items-center justify-center py-[32px] gap-[10px] text-center">
-          <div className="w-[44px] h-[44px] rounded-full bg-muted flex items-center justify-center">
-            <GraduationCap size={20} className="text-muted-foreground" />
-          </div>
-          <p className="text-[14px] font-semibold text-foreground">Complete your profile to receive personalized university recommendations.</p>
-          <p className="text-[12px] text-muted-foreground max-w-[280px]">
-            Add your academic scores and study preferences so our AI can match you with the best-fit universities.
-          </p>
-          <Link href="/student/profile" className={BUTTON_PRIMARY}>
-            Complete Profile
-            <ArrowRight size={14} />
-          </Link>
-        </div>
-      ) : topUnis.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-[32px] gap-[10px] text-center">
-          <div className="w-[44px] h-[44px] rounded-full bg-muted flex items-center justify-center">
-            <GraduationCap size={20} className="text-muted-foreground" />
-          </div>
-          <p className="text-[14px] font-semibold text-foreground">No universities available yet</p>
-          <p className="text-[12px] text-muted-foreground max-w-[220px]">Check back later — our team is continuously adding new institutions.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-[12px]">
-          {topUnis.map((u) => {
-            const location = typeof u.location === 'object'
-              ? `${u.location.city ?? ''}, ${u.location.state ?? ''}`.replace(/^, |, $/g, '')
-              : (u.location ?? '')
-            const matchPct = u.aiMatch != null ? `${u.aiMatch}%` : u.placementRate != null ? `${u.placementRate}%` : null
-            const rank = u.rankings?.nirfOverall != null ? `NIRF #${u.rankings.nirfOverall}` : null
-            const scholarship = u.scholarships ? 'Scholarship Available' : null
-
-            return (
-              <div key={u.id} className="p-[12px] bg-card text-card-foreground border border-border rounded-[14px] flex items-center justify-between gap-[12px] hover:border-primary/30 transition-all">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-[8px] mb-[4px]">
-                    {matchPct && (
-                      <span className="text-[10px] font-bold bg-[#62aef0]/20 text-primary px-[6px] py-[2px] rounded-full shrink-0">
-                        {matchPct} Match
-                      </span>
-                    )}
-                    {rank && <span className="text-[10px] font-medium text-muted-foreground">{rank}</span>}
-                  </div>
-                  <h3 className="text-[13px] font-bold text-foreground leading-tight truncate">{u.name}</h3>
-                  <div className="flex items-center gap-[8px] mt-[4px] flex-wrap">
-                    {location && <p className="text-[11px] text-muted-foreground">{location}</p>}
-                    {scholarship && (
-                      <span className="text-[10px] font-semibold text-success bg-success/10 px-[6px] py-[2px] rounded-md inline-block shrink-0">
-                        {scholarship}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <Link href={`/student/universities`} className={BUTTON_PRIMARY + " shrink-0 !h-[30px] !text-[11px] !px-[12px]"}>
-                  View Details
                 </Link>
-              </div>
-            )
-          })}
-        </div>
-      )}
-    </div>
-  )
-}
+              ))}
+            </div>
+            <Link href="/student/calendar" className="mt-[12px] inline-flex items-center gap-[6px] text-[12.5px] font-semibold text-[var(--accent)]"><CalendarDays size={14} /> Open calendar</Link>
+          </section>
 
-/* =========================================================================
-   SECTION 12: FLOATING AI ASSISTANT WIDGET
-   ========================================================================= */
-function FloatingAIAssistantWidget() {
-  const [open, setOpen] = useState(false)
-
-  return (
-    <div className="fixed bottom-[24px] right-[24px] z-40">
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="mb-[12px] w-[320px] sm:w-[360px] bg-card text-card-foreground border border-border rounded-[22px] shadow-2xl p-[18px] flex flex-col gap-[12px]"
-          >
-            <div className="flex items-center justify-between pb-[10px] border-b border-border">
-              <div className="flex items-center gap-[8px]">
-                <div className="w-[26px] h-[26px] rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                  <Sparkles size={14} />
+          <section className={`${CARD} flex-1 p-[18px]`} aria-labelledby="deadline-heading">
+            <h2 id="deadline-heading" className="mb-[10px] font-display text-[16px] font-bold">Deadline alert</h2>
+            {alert ? (
+              <>
+                <div className="rounded-[14px] bg-[color-mix(in_srgb,#F46846_11%,transparent)] p-[12px] text-[12.5px]">
+                  <p className="flex items-center gap-[6px] font-semibold text-[#E0553A]"><Clock size={13} /> {daysLeft === 0 ? 'Today' : daysLeft === 1 ? '1 day left' : `${daysLeft} days left`}</p>
+                  <p className="mt-[4px] text-[var(--text-secondary)]">{alert.title} — {alert.sub.toLowerCase()} {alert.date.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' })}</p>
                 </div>
-                <span className="text-[13px] font-bold text-foreground">EDING AI Assistant</span>
-              </div>
-              <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground" aria-label="Close AI Widget">
-                <X size={16} />
-              </button>
-            </div>
-
-            <p className="text-[12px] text-muted-foreground leading-relaxed">
-              💡 <strong>Need help?</strong> Ask our AI Copilot anything — from university selection to SOP writing and interview prep.
-            </p>
-
-            <div className="flex flex-col gap-[6px]">
-              <Link href="/student/sop" className={BUTTON_PRIMARY + " w-full justify-center text-[12px] h-[32px]"}>
-                Write SOP with AI
-              </Link>
-              <Link href="/student/copilot" className={BUTTON_SECONDARY + " w-full justify-center text-[12px] h-[32px]"}>
-                Ask Copilot Anything
-              </Link>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-[48px] h-[48px] rounded-full bg-primary text-white flex items-center justify-center shadow-lg hover:bg-primary/90 transition-all cursor-pointer active:scale-95"
-        aria-label="Open AI Assistant"
-      >
-        <Sparkles size={20} />
-      </button>
-    </div>
-  )
-}
-
-export default function StudentDashboard() {
-
-  const {
-    loading,
-    error,
-    uniqueApps,
-    profile,
-    profileScore,
-    profileStrength,
-    universities,
-    userDocuments,
-    docUploaded,
-    docVerified,
-    docPending,
-    verificationStatus,
-    isOnboardingComplete,
-    hasMinimumProfileForRecommendations,
-    deadlines,
-    documents,
-    savedPrograms,
-    scholarships,
-  } = useStudentData()
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-[36px] h-[36px] border-[3px] border-border border-t-[var(--accent)] rounded-full animate-spin" />
-      </div>
-    )
-  }
-
-  const safeApps = uniqueApps || []
-  const safeUnis = universities || []
-  const safeUserDocs = userDocuments || {}
-  const safeScholarships = scholarships || []
-
-  return (
-    <div className="flex flex-col gap-[24px] pb-[40px]">
-      {error && (
-        <div className="p-[16px] flex items-center justify-between text-[13px] text-[var(--red)] bg-[color-mix(in_srgb,var(--red)_8%,transparent)] rounded-[22px] border border-[color-mix(in_srgb,var(--red)_25%,transparent)]">
-          <div className="flex items-center gap-[10px]">
-            <AlertCircle size={18} />
-            <span><strong>Warning:</strong> {error}. Some data may be missing or incomplete.</span>
-          </div>
-          <button 
-            onClick={() => window.location.reload()}
-            className="flex items-center gap-[6px] px-[12px] py-[6px] bg-[var(--red)] text-white rounded-[10px] font-medium transition-all hover:bg-[var(--red)]"
-          >
-            <RefreshCw size={14} />
-            Retry
-          </button>
+                <div className="mt-[12px] flex gap-[8px] text-[12px] font-semibold">
+                  <Link href="/student/calendar" className="flex-1 rounded-full border border-[var(--border-hover)] py-[8px] text-center text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]">See all dates</Link>
+                  <Link href={alert.href} className="flex-1 rounded-full bg-[var(--accent)] py-[8px] text-center text-white shadow-[var(--shadow-glow)]">Finish now</Link>
+                </div>
+              </>
+            ) : (
+              <p className="text-[13px] text-[var(--text-muted)]">No deadlines coming up for {streamDef.label.toLowerCase()} right now.</p>
+            )}
+          </section>
         </div>
-      )}
-
-      {/* SECTION 1: Welcome Area */}
-      <WelcomeArea profile={profile} profileScore={profileScore || 0} appsCount={safeApps.length} />
-
-      {/* Verification Status Banner */}
-      <VerificationStatusBanner status={verificationStatus || 'Profile Incomplete'} />
-
-      {/* Row 1 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-[24px]">
-        <ProfileStrengthWorkspace profileStrength={profileStrength || { percentage: 0, grade: 'Incomplete', missingFields: [], categoryBreakdown: { personal: 0, academics: 0, testScores: 0, preferences: 0, documents: 0 } }} />
-        <UniversityRecommendationsGrid
-          universities={safeUnis}
-          hasMinimumProfileForRecommendations={hasMinimumProfileForRecommendations || false}
-        />
       </div>
-
-      {/* Row 2 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-[24px]">
-        <TodaysFocus
-          profile={profile}
-          userDocuments={safeUserDocs}
-          applications={safeApps}
-          savedPrograms={savedPrograms || []}
-          deadlines={deadlines || []}
-          isOnboardingComplete={isOnboardingComplete || false}
-        />
-        <UpcomingDeadlinesTimeline
-          deadlines={deadlines || []}
-          applications={safeApps}
-          documents={documents || []}
-          profileScore={profileScore || 0}
-        />
-      </div>
-
-      {/* Row 3 */}
-      <ApplicationPipeline apps={safeApps} />
-
-      {/* Row 4 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-[24px]">
-        <GamifiedAchievements
-          profileScore={profileScore || 0}
-          applications={safeApps}
-          userDocuments={safeUserDocs}
-          scholarships={safeScholarships}
-        />
-        <StudentInsightsAnalytics
-          profileScore={profileScore || 0}
-          applications={safeApps}
-          profileStrength={profileStrength}
-        />
-      </div>
-
-      {/* Row 5: AI Recommendations */}
-      <AIRecommendationsHub profileScore={profileScore || 0} />
-
-      {/* Floating AI Assistant Widget */}
-      <FloatingAIAssistantWidget />
     </div>
   )
 }

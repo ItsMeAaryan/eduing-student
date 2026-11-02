@@ -26,7 +26,7 @@ import {
   signOut,
 } from 'firebase/auth'
 
-const TABS = ['General', 'Appearance', 'Notifications', 'Security', 'AI Preferences']
+const TABS = ['General', 'Appearance', 'Notifications', 'Security']
 
 /* ── Shared primitives ──────────────────────────────────────────── */
 const CARD: React.CSSProperties = {
@@ -108,8 +108,25 @@ function Row({
   )
 }
 
-function Toggle({ title, sub, defaultOn = false }: { title: string; sub: string; defaultOn?: boolean }) {
-  const [on, setOn] = useState(defaultOn)
+function Toggle({ title, sub, prefKey, defaultOn = false }: { title: string; sub: string; prefKey: string; defaultOn?: boolean }) {
+  // Saved to users/{uid}.notificationPrefs so the choice survives reloads and devices.
+  const { profile } = useStudentData()
+  const { toast } = useToast()
+  const stored = profile?.notificationPrefs?.[prefKey]
+  const [local, setLocal] = useState<boolean | null>(null)
+  const on = local ?? (typeof stored === 'boolean' ? stored : defaultOn)
+  const setOn = async (fn: (v: boolean) => boolean) => {
+    const next = fn(on)
+    setLocal(next)
+    const uid = auth.currentUser?.uid
+    if (!uid) return
+    try {
+      await updateDoc(doc(db, 'users', uid), { [`notificationPrefs.${prefKey}`]: next, updatedAt: serverTimestamp() })
+    } catch {
+      setLocal(!next)
+      toast.error('Couldn\u2019t save that setting. Try again.')
+    }
+  }
   return (
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -679,12 +696,10 @@ export default function SettingsPage() {
         {activeTab === 'Notifications' && (
           <div style={CARD}>
             <SectionHeader title="Notification Preferences" />
-            <Toggle title="Email Notifications" sub="Receive daily digests and important updates." defaultOn />
-            <Toggle title="Push Notifications" sub="Get real-time alerts on your device." defaultOn />
-            <Toggle title="Scholarship Alerts" sub="Notified when new scholarships match your profile." defaultOn />
-            <Toggle title="Deadline Reminders" sub="Alerts 7 days and 24 hours before each deadline." defaultOn />
-            <Toggle title="AI Suggestions" sub="Weekly insights on universities and admissions." />
-            <Toggle title="Application Updates" sub="Status changes for each submitted application." defaultOn />
+            <Toggle prefKey="applicationUpdates" title="Application updates" sub="Offers, exam schedules, document checks and fee verification." defaultOn />
+            <Toggle prefKey="deadlineReminders" title="Deadline reminders" sub="Alerts 7 days and 24 hours before each application deadline." defaultOn />
+            <Toggle prefKey="scholarshipAlerts" title="Scholarship alerts" sub="When a new scholarship matches your profile." defaultOn />
+            <Toggle prefKey="email" title="Email copies" sub="Also send important updates to your email address." defaultOn />
           </div>
         )}
 
@@ -767,28 +782,6 @@ export default function SettingsPage() {
                   <Trash2 size={14} /> Delete Account
                 </button>
               </div>
-            </div>
-          </div>
-        )}
-
-        {/* ── AI PREFERENCES ───────────────────────────────────────── */}
-        {activeTab === 'AI Preferences' && (
-          <div style={CARD}>
-            <SectionHeader title="AI & Personalization" />
-            <Toggle title="Profile Engine" sub="Allow AI to automatically match you with universities." defaultOn />
-            <Toggle title="Document Parsing" sub="Allow AI to read marks and details from uploaded marksheets." defaultOn />
-            <Toggle title="Smart Auto-Fill" sub="Use AI to pre-fill application forms." defaultOn />
-            <Toggle title="Interview Coaching" sub="Personalised question sets from your academic profile." defaultOn />
-            <div style={{ padding: '14px 20px' }}>
-              <button style={{
-                height: 34, padding: '0 14px', fontSize: 13, fontWeight: 500, borderRadius: 12, cursor: 'pointer',
-                border: '1px solid rgba(220,38,38,0.3)', background: 'rgba(220,38,38,0.07)', color: 'var(--red)',
-              }}>
-                Clear AI Cache &amp; Recommendations
-              </button>
-              <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 6 }}>
-                This will reset all personalised recommendations. Cannot be undone.
-              </p>
             </div>
           </div>
         )}
