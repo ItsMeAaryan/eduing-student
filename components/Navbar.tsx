@@ -47,7 +47,7 @@ export default function Navbar() {
 
   const navLinks = [
     { name: 'Universities', href: '/student/universities' },
-    { name: 'About', href: '/about' },
+    { name: 'About', href: 'https://www.eduing.in/about' },
   ]
 
   return (

@@ -283,31 +283,6 @@ function DetailDrawer({ app, onClose }: { app: any; onClose: () => void }) {
                 Prepare for Interview
               </Link>
             )}
-            <Link
-              href={`/student/email?university=${encodeURIComponent(app.universityName || '')}&program=${encodeURIComponent(app.program || app.programName || '')}`}
-              id="draft-email-drawer-btn"
-              title="Open Email Writer for this application"
-              style={{
-                height: 34, padding: '0 14px',
-                display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                background: 'var(--bg-elevated)', border: '1px solid var(--border)',
-                borderRadius: 12, fontSize: 13, fontWeight: 500,
-                color: 'var(--text-secondary)', cursor: 'pointer',
-                textDecoration: 'none',
-                transition: 'border-color 0.15s, color 0.15s',
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLAnchorElement).style.borderColor = 'var(--accent)'
-                ;(e.currentTarget as HTMLAnchorElement).style.color = 'var(--accent)'
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLAnchorElement).style.borderColor = 'var(--border)'
-                ;(e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-secondary)'
-              }}
-            >
-              <Mail size={13} strokeWidth={1.8} />
-              Draft an Email
-            </Link>
             <button onClick={onClose} style={{
               height: 34, padding: '0 14px',
               background: 'var(--bg-elevated)', border: '1px solid var(--border)',

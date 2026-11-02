@@ -6,8 +6,8 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
     LayoutDashboard, FileText, Building2, BookOpen,
-    Settings, Bookmark, Bot, User, Bell,
-    ChevronLeft, ChevronRight, CalendarDays, Sparkles, PenLine,
+    Settings, Bookmark, Bot, Bell,
+    ChevronLeft, ChevronRight, CalendarDays, Sparkles, PenLine, Mic,
 } from 'lucide-react'
 import Logo from '@/components/Logo'
 import { useStudentData } from '@/components/providers/StudentDataProvider'
@@ -31,7 +31,7 @@ const primaryNav: NavItem[] = [
 
 const aiNav: NavItem[] = [
     { label: 'AI Copilot',      href: '/student/copilot', icon: Bot },
-    { label: 'Resume Builder',  href: '/student/resume',  icon: User },
+    { label: 'Interview Prep',  href: '/student/interview', icon: Mic },
     { label: 'SOP Builder',     href: '/student/sop',     icon: PenLine },
 ]
 

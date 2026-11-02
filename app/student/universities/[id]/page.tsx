@@ -284,7 +284,7 @@ export default function UniversityDetailPage() {
     if (university?.approvalStatus && university.approvalStatus !== 'approved') return
     setApplying(true)
     try {
-      await submitApplication(id, university.name, program?.name || 'General Admission')
+      await submitApplication(id, university.name, program?.name || 'General Admission', program?.id)
       setApplicationSubmitted(true)
       setTimeout(() => { setApplying(false); setSelectedProgram(null) }, 1400)
     } catch (err: any) {

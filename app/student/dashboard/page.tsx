@@ -640,15 +640,6 @@ function AIRecommendationsHub({ profileScore }: { profileScore: number }) {
 
   const recommendations = [
     {
-      title: 'Optimize Your Resume',
-      desc: 'Add quantitative metrics to boost ATS score',
-      tag: 'Resume',
-      type: 'Resume',
-      action: 'Open AI Resume',
-      link: '/student/resume',
-      color: STICKER_PURPLE
-    },
-    {
       title: 'Practice Mock Interview',
       desc: 'AI-driven behavioral questions ready for you',
       tag: 'AI Practice',

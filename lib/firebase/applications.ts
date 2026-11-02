@@ -1,7 +1,7 @@
 // lib/firebase/applications.ts
 import {
   collection, addDoc, query, where,
-  onSnapshot, doc, serverTimestamp, orderBy
+  onSnapshot, doc, getDoc, serverTimestamp, orderBy
 } from 'firebase/firestore'
 import { auth, db } from './config'
 import { Application } from '@/types/firebase'
@@ -9,7 +9,8 @@ import { Application } from '@/types/firebase'
 export async function submitApplication(
   universityId: string,
   universityName: string,
-  program: string
+  program: string,
+  programId?: string
 ) {
   const currentUser = auth.currentUser
   if (!currentUser) throw new Error('Not authenticated')
@@ -24,18 +25,30 @@ export async function submitApplication(
   )
   const existingSnap = await import('firebase/firestore').then(({ getDocs }) => getDocs(existingQuery))
   const duplicate = existingSnap.docs.find(
-    d => (d.data().program === program) || !program
+    d => (d.data().program === program) || (d.data().programName === program) || !program
   )
   if (duplicate) {
     throw new Error('You have already applied to this program. Check your Applications page.')
   }
 
+  // Snapshot of the applicant so the university portal can identify them.
+  // (It reads studentName / studentEmail / programName — previously missing,
+  // so every web application showed up as "Unnamed Student".)
+  const profileSnap = await getDoc(doc(db, 'users', userId))
+  const profile = profileSnap.exists() ? profileSnap.data() : {}
+
   const docRef = await addDoc(collection(db, 'applications'), {
     userId,
     studentId: userId,
+    studentName: profile.fullName || currentUser.displayName || '',
+    studentEmail: profile.email || currentUser.email || '',
+    studentPhone: profile.phone || '',
+    category: profile.category || '',
     universityId,
     universityName,
     program,
+    programName: program,
+    programId: programId || '',
     status: 'submitted',
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
