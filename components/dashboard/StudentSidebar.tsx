@@ -7,7 +7,7 @@ import { motion } from 'framer-motion'
 import {
     LayoutDashboard, FileText, Building2, BookOpen,
     Settings, Bookmark, Bot, Bell,
-    ChevronLeft, ChevronRight, CalendarDays, Sparkles, PenLine, FolderOpen,
+    ChevronLeft, ChevronRight, CalendarDays, Sparkles, PenLine, FolderOpen, Gauge,
 } from 'lucide-react'
 import Logo from '@/components/Logo'
 import { useStudentData } from '@/components/providers/StudentDataProvider'
@@ -32,6 +32,7 @@ const primaryNav: NavItem[] = [
 ]
 
 const aiNav: NavItem[] = [
+    { label: 'College Predictor', href: '/student/predictor', icon: Gauge },
     { label: 'AI Copilot',      href: '/student/copilot', icon: Bot },
     { label: 'SOP Builder',     href: '/student/sop',     icon: PenLine },
 ]

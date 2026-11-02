@@ -71,7 +71,7 @@ function BrandPanel() {
           initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, delay: 0.45, ease: EASE }}
           className="absolute bottom-[96px] right-6 flex items-center gap-2 rounded-full bg-[#4B2FC9] px-4 py-2 text-[12.5px] font-semibold shadow-[0_14px_34px_-12px_rgba(75,47,201,0.8)]"
         >
-          <Sparkles size={14} className="text-[#F5B829]" /> 96% AI match · BITS Pilani
+          <Sparkles size={14} className="text-[#F5B829]" /> 86% admit chance · NIT Trichy
         </motion.div>
       </div>
 
