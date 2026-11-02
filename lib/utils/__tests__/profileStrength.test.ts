@@ -39,15 +39,12 @@ describe('calculateProfileStrength', () => {
     expect(result.missingFields[0].priority).toBe('High');
   });
 
-  it('handles documents correctly', () => {
-    const profile = { fullName: 'John Doe' };
-    const documents = {
-      '10th_marksheet': { fileUrl: 'http://example.com/doc1' }
-    };
-    
+  it('counts admission details instead of uploaded files', () => {
+    const profile = { fullName: 'John Doe', domicileState: 'Karnataka' };
+    const documents = { '10th_marksheet': { fileUrl: 'http://example.com/doc1' } };
     const result = calculateProfileStrength(profile, documents);
-    
-    // 1 field + 1 doc = 2 fields
+    // uploads no longer count; the two profile fields do
     expect(result.completedFields).toBe(2);
+    expect(result.categoryBreakdown.documents).toBe(25);
   });
 });

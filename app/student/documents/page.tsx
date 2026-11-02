@@ -1,757 +1,100 @@
 'use client'
-import { auth } from '@/lib/firebase/config'
-import { uploadUserDocument } from '@/lib/firebase/student'
-import { useStudentData } from '@/components/providers/StudentDataProvider'
-import React, { useState, useRef, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import {
-  Search, Upload, FileText, CheckCircle2, Clock, XCircle, AlertTriangle,
-  Sparkles, Eye, Download, Trash2, X, FolderOpen, Mic, MoreHorizontal,
-  ShieldCheck, Zap, ChevronRight, Bot, ArrowRight, RefreshCw, FileCheck,
-  Check, Filter, AlertCircle, Info, Shield, Scale, Plus
-} from 'lucide-react'
+
+// Documents — EDUING doesn't store document files. Students enter their marks and
+// details in the profile (shared with every application), and documents will be
+// verified through DigiLocker. This page shows what universities will check and
+// what the student should keep ready.
+import Link from 'next/link'
+import { motion } from 'framer-motion'
+import { ShieldCheck, CheckCircle2, Circle, ArrowRight, Landmark } from 'lucide-react'
 import ProtectedRoute from '@/components/ProtectedRoute'
-import SegmentedTabs from '@/components/ui/SegmentedTabs'
-import DocPreviewPanel from '@/components/documents/DocPreviewPanel'
-import { EmptyState } from '@/components/ui/EmptyState'
+import { useStudentData } from '@/components/providers/StudentDataProvider'
 
-/* =========================================================================
-   STYLING CONSTANTS (STRICTLY FROM DESIGN.md)
-   ========================================================================= */
-const CARD_STYLE = "bg-card border border-border rounded-[18px] p-[20px] md:p-[24px] shadow-[0_1px_3px_rgba(0,0,0,0.03)] transition-all duration-200"
-const BUTTON_PRIMARY = "bg-primary hover:bg-primary/90 text-white font-medium px-[16px] h-[36px] rounded-[12px] text-[13px] inline-flex items-center gap-[6px] transition-all active:scale-[0.98] shadow-sm cursor-pointer select-none"
-const BUTTON_SECONDARY = "bg-card hover:bg-muted text-foreground border border-border font-medium px-[14px] h-[36px] rounded-[12px] text-[13px] inline-flex items-center gap-[6px] transition-all active:scale-[0.98] cursor-pointer select-none"
-const BUTTON_UTILITY = "bg-card hover:bg-muted text-muted-foreground border border-border font-medium px-[12px] h-[30px] rounded-[12px] text-[12px] inline-flex items-center gap-[4px] transition-colors cursor-pointer"
+const CARD = 'rounded-[26px] border border-[var(--border)] bg-[var(--bg-card)] p-[20px] md:p-[24px] shadow-[var(--shadow-card)]'
 
-const STICKER_TEAL = "bg-[#2a9d99]/10 text-[#1e6b68] border border-[#2a9d99]/20"
-const STICKER_PURPLE = "bg-[#d6b6f6]/20 text-[#391c57] border border-[#d6b6f6]/40"
-const STICKER_ORANGE = "bg-[#dd5b00]/10 text-[#dd5b00] border border-[#dd5b00]/20"
-const STICKER_GREEN = "bg-success/10 text-success border border-success/20"
-const STICKER_SKY = "bg-[#62aef0]/15 text-primary border border-[#62aef0]/30"
+type Item = { name: string; why: string; digilocker: boolean; ready: (p: Record<string, any>) => boolean; field?: string }
 
-/* =========================================================================
-/* =========================================================================
-   TYPES & DATA
-   ========================================================================= */
-type DocStatus = 'verified' | 'pending' | 'rejected' | 'missing'
-
-interface Doc {
-  id: string
-  name: string
-  category: string
-  status: DocStatus
-  date: string
-  size: string
-  aiScore: number
-  apps: number
-  required: boolean
-}
-
-// Maps known docIds to human-readable display names and categories
-const DOC_ID_META: Record<string, { name: string; category: string; required: boolean }> = {
-  '10th_marksheet': { name: '10th Marksheet', category: 'Academic', required: true },
-  '12th_marksheet': { name: '12th Marksheet', category: 'Academic', required: true },
-  'id_proof': { name: 'ID Proof (Aadhaar/PAN)', category: 'Identity', required: true },
-  'passport_photo': { name: 'Passport Photo', category: 'Identity', required: true },
-}
-
-// Maps Firestore doc status to display status
-function mapDocStatus(firestoreStatus: string): DocStatus {
-  if (firestoreStatus === 'verified') return 'verified'
-  if (firestoreStatus === 'rejected') return 'rejected'
-  if (firestoreStatus === 'removed') return 'missing'
-  return 'pending'
-}
-
-// Convert Firestore userDocuments map to Doc[] display format
-function firestoreDocsToDisplay(userDocuments: Record<string, any>): Doc[] {
-  return Object.entries(userDocuments)
-    .filter(([, d]) => d?.fileUrl && d?.status !== 'removed') // only real uploads
-    .map(([docId, d]) => {
-      const meta = DOC_ID_META[docId] || { name: docId, category: 'Other', required: false }
-      const uploadedAt = d.uploadedAt?.toDate
-        ? d.uploadedAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
-        : 'Uploaded'
-      return {
-        id: docId,
-        name: meta.name,
-        category: meta.category,
-        status: mapDocStatus(d.status),
-        date: uploadedAt,
-        size: '—',
-        aiScore: d.aiScore || 0,
-        apps: 0,
-        required: meta.required,
-      } as Doc
-    })
-}
-
-const VERIFICATION_FLOW = [
-  { step: '1. File Uploaded', desc: 'Secure cloud vault storage', status: 'completed' },
-  { step: '2. OCR Data Extraction', desc: 'Parsing marks & candidate info', status: 'completed' },
-  { step: '3. AI Authenticity Scan', desc: 'Blur & forgery detection', status: 'completed' },
-  { step: '4. Counselor Verification', desc: 'Manual review by admissions team', status: 'active' },
-  { step: '5. University Dispatch', desc: 'Shared with partner universities', status: 'pending' },
+const ITEMS: Item[] = [
+  { name: 'Class 10 marksheet', why: 'Date of birth and Class 10 marks', digilocker: true, ready: p => !!p.tenthScore, field: '10th percentage' },
+  { name: 'Class 12 marksheet', why: 'Eligibility for UG programs', digilocker: true, ready: p => !!p.twelfthScore, field: '12th percentage' },
+  { name: 'Entrance exam scorecard', why: 'JEE, NEET, CUET, NATA, CLAT … as the program needs', digilocker: false, ready: p => !!(p.jeeScore || p.neetScore || p.cuetScore || p.bitsatScore || p.nataScore || p.clatScore || p.catPercentile || p.gateScore), field: 'exam scores' },
+  { name: 'Aadhaar', why: 'Identity check at admission', digilocker: true, ready: () => false },
+  { name: 'Category certificate', why: 'Only for EWS / OBC-NCL / SC / ST / PwD seats', digilocker: true, ready: p => !!p.category, field: 'category' },
+  { name: 'Domicile certificate', why: 'Only for state-quota seats', digilocker: true, ready: p => !!p.domicileState, field: 'domicile state' },
+  { name: 'Passport-size photographs', why: 'Carry 4–6 recent copies to the campus', digilocker: false, ready: () => false },
 ]
 
-/* =========================================================================
-   SECTION 1: DOCUMENT HEALTH OVERVIEW CARD
-   ========================================================================= */
-function DocumentHealthOverview({ verified, pending, missing, total, uploadedCount, onUploadClick }: { verified: number; pending: number; missing: number; total: number; uploadedCount: number; onUploadClick: () => void }) {
-  const readiness = total ? Math.round((verified / total) * 100) : 0
-  const missingRequired = 4 - uploadedCount > 0 ? 4 - uploadedCount : 0
-
-  return (
-    <div className={CARD_STYLE}>
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-[20px]">
-        {/* Left Info & Circle Gauge */}
-        <div className="flex items-center gap-[20px]">
-          {/* Circular SVG Gauge */}
-          <div className="relative w-[96px] h-[96px] flex items-center justify-center shrink-0">
-            <svg className="w-full h-full transform -rotate-90">
-              <circle cx="48" cy="48" r="40" stroke="#F3F4F6" strokeWidth="8" fill="transparent" />
-              <circle
-                cx="48" cy="48" r="40" stroke="var(--accent)" strokeWidth="8" fill="transparent"
-                strokeDasharray="251.2"
-                strokeDashoffset={251.2 - (251.2 * readiness) / 100}
-                strokeLinecap="round"
-                className="transition-all duration-1000"
-              />
-            </svg>
-            <div className="absolute flex flex-col items-center">
-              <span className="text-[22px] font-bold text-foreground leading-none">{readiness}%</span>
-              <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider mt-[2px]">Ready</span>
-            </div>
-          </div>
-
-          <div>
-            <div className="flex items-center gap-[8px] mb-[4px]">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-primary">Document Vault Health</span>
-              {verified > 0 && (
-                <span className="text-[10px] font-semibold px-[8px] py-[2px] rounded-full bg-success/10 text-success">
-                  {verified} Document{verified > 1 ? 's' : ''} Verified
-                </span>
-              )}
-            </div>
-            <h1 className="text-[20px] font-bold text-foreground tracking-tight">
-              Your profile is {readiness}% document ready.
-            </h1>
-            <p className="text-[13px] text-muted-foreground mt-[2px] max-w-[480px]">
-              {missingRequired > 0
-                ? `Upload ${missingRequired} more required document${missingRequired > 1 ? 's' : ''} to boost your admission readiness.`
-                : pending > 0
-                  ? `${pending} document${pending > 1 ? 's are' : ' is'} pending verification by our team.`
-                  : 'All required documents verified. You are ready for university applications.'}
-            </p>
-          </div>
-        </div>
-
-        {/* Right Stats Breakdown & Primary CTA */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-[16px] shrink-0 border-t lg:border-t-0 lg:border-l border-border pt-[16px] lg:pt-0 lg:pl-[24px]">
-          <div className="grid grid-cols-3 gap-[16px] text-center">
-            <div className="bg-muted border border-border p-[10px] rounded-[14px] min-w-[80px]">
-              <p className="text-[18px] font-extrabold text-success leading-none">{verified}</p>
-              <p className="text-[10px] font-semibold text-muted-foreground mt-[2px]">Verified</p>
-            </div>
-            <div className="bg-muted border border-border p-[10px] rounded-[14px] min-w-[80px]">
-              <p className="text-[18px] font-extrabold text-[#dd5b00] leading-none">{pending}</p>
-              <p className="text-[10px] font-semibold text-muted-foreground mt-[2px]">Pending</p>
-            </div>
-            <div className="bg-muted border border-border p-[10px] rounded-[14px] min-w-[80px]">
-              <p className="text-[18px] font-extrabold text-destructive leading-none">{missing}</p>
-              <p className="text-[10px] font-semibold text-muted-foreground mt-[2px]">Missing</p>
-            </div>
-          </div>
-
-          <button onClick={onUploadClick} className={BUTTON_PRIMARY + " h-[42px] px-[20px]"}>
-            <Upload size={16} />
-            Upload Required Files
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-/* =========================================================================
-   SECTION 2: DATA-DRIVEN ACTION CENTER
-   ========================================================================= */
-function DocumentActionCenter({ docs, onUploadClick }: { docs: Doc[]; onUploadClick: () => void }) {
-  // Build real actions from actual document states
-  const actions: { title: string; category: string; due: string; priority: string; tagColor: string; icon: typeof AlertTriangle }[] = []
-
-  const missingRequired = ['10th_marksheet', '12th_marksheet', 'id_proof', 'passport_photo'].filter(
-    id => !docs.find(d => d.id === id)
-  )
-  missingRequired.forEach(id => {
-    const meta = DOC_ID_META[id]
-    if (meta) actions.push({
-      title: `Upload ${meta.name}`,
-      category: meta.category,
-      due: 'Required for university applications',
-      priority: 'Urgent',
-      tagColor: STICKER_ORANGE,
-      icon: AlertTriangle,
-    })
-  })
-
-  const rejectedDocs = docs.filter(d => d.status === 'rejected')
-  rejectedDocs.forEach(d => {
-    actions.push({
-      title: `Re-upload ${d.name}`,
-      category: d.category,
-      due: 'Rejected — please re-upload a clear copy',
-      priority: 'High',
-      tagColor: STICKER_PURPLE,
-      icon: RefreshCw,
-    })
-  })
-
-  if (actions.length === 0) {
-    return (
-      <div className={CARD_STYLE}>
-        <div className="flex items-center gap-[10px] pb-[14px] mb-[14px] border-b border-border">
-          <CheckCircle2 size={18} className="text-success" />
-          <h2 className="text-[16px] font-bold text-foreground tracking-tight">No Actions Required</h2>
-        </div>
-        <p className="text-[13px] text-muted-foreground">All required documents are uploaded. No actions pending.</p>
-      </div>
-    )
-  }
-
-  return (
-    <div className={CARD_STYLE}>
-      <div className="flex items-center justify-between pb-[14px] mb-[14px] border-b border-border">
-        <div className="flex items-center gap-[8px]">
-          <AlertCircle size={18} className="text-[#dd5b00]" />
-          <h2 className="text-[16px] font-bold text-foreground tracking-tight">Required Actions</h2>
-        </div>
-        <span className="text-[11px] font-bold px-[8px] py-[2px] rounded-full bg-[#dd5b00]/10 text-[#dd5b00]">
-          {actions.length} Action{actions.length > 1 ? 's' : ''} Pending
-        </span>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-[12px]">
-        {actions.slice(0, 3).map((act, i) => {
-          const IconComp = act.icon
-          return (
-            <div key={i} className="p-[14px] bg-card border border-border rounded-[14px] flex flex-col justify-between gap-[12px] hover:border-primary/30 transition-all">
-              <div>
-                <div className="flex items-center justify-between mb-[6px]">
-                  <span className={`text-[10px] font-bold px-[8px] py-[2px] rounded-full ${act.tagColor}`}>
-                    {act.priority}
-                  </span>
-                  <span className="text-[11px] font-semibold text-muted-foreground">{act.category}</span>
-                </div>
-                <h3 className="text-[13.5px] font-bold text-foreground leading-snug">{act.title}</h3>
-                <p className="text-[11px] text-muted-foreground mt-[2px]">{act.due}</p>
-              </div>
-
-              <button onClick={onUploadClick} className={BUTTON_UTILITY + " w-full justify-center text-[12px] h-[32px]"}>
-                <IconComp size={13} />
-                Fix Now
-              </button>
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
-/* =========================================================================
-   SECTION 3: PREMIUM UPLOAD EXPERIENCE WORKSPACE
-   ========================================================================= */
-// app/student/documents/page.tsx
-// REPLACE the entire PremiumUploadWorkspace function
-
-function PremiumUploadWorkspace({ onFileSelect }: { onFileSelect: (files: FileList) => void }) {
-  const uploadInputRef = useRef<HTMLInputElement>(null)
-  const [dragActive, setDragActive] = useState(false)
-  const [uploading, setUploading] = useState(false)
-  const [progress, setProgress] = useState(0)
-
-  const handleUpload = useCallback(async (files: FileList) => {
-    setUploading(true)
-    setProgress(20)
-    // Simulate progress bar while real upload runs
-    const interval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 85) { clearInterval(interval); return prev }
-        return prev + 15
-      })
-    }, 300)
-    try {
-      await onFileSelect(files)
-    } finally {
-      clearInterval(interval)
-      setProgress(100)
-      setTimeout(() => { setUploading(false); setProgress(0) }, 600)
-    }
-  }, [onFileSelect])
-
-  const handleDrag = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    if (e.type === 'dragenter' || e.type === 'dragover') setDragActive(true)
-    else if (e.type === 'dragleave') setDragActive(false)
-  }, [])
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragActive(false)
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleUpload(e.dataTransfer.files)
-    }
-  }, [handleUpload])
-
-  return (
-    <div className={CARD_STYLE}>
-      <div className="flex items-center justify-between pb-[14px] mb-[16px] border-b border-border">
-        <div>
-          <h2 className="text-[16px] font-bold text-foreground tracking-tight">Upload Document Workspace</h2>
-          <p className="text-[12px] text-muted-foreground">AI-driven OCR scanning & authenticity verification</p>
-        </div>
-        <div className="flex items-center gap-[6px]">
-          <span className="text-[11px] font-bold bg-[#2a9d99]/10 text-[#1e6b68] px-[8px] py-[2px] rounded-full">
-            AI Protection Active
-          </span>
-        </div>
-      </div>
-
-      <input
-        ref={uploadInputRef}
-        type="file"
-        multiple
-        accept=".pdf,.jpg,.jpeg,.png,.docx"
-        className="hidden"
-        onChange={e => e.target.files && handleUpload(e.target.files)}
-      />
-
-      <div
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') uploadInputRef.current?.click() }}
-        onDragEnter={handleDrag}
-        onDragLeave={handleDrag}
-        onDragOver={handleDrag}
-        onDrop={handleDrop}
-        onClick={() => uploadInputRef.current?.click()}
-        className={`border-2 border-dashed rounded-[18px] p-[28px] flex flex-col items-center justify-center text-center cursor-pointer transition-all ${dragActive
-          ? 'border-primary bg-[#62aef0]/10 scale-[0.99]'
-          : 'border-border bg-muted hover:border-primary hover:bg-primary/10/40'
-          }`}
-      >
-        <motion.div
-          whileHover={{ scale: 1.08 }}
-          className="w-[52px] h-[52px] rounded-[20px] bg-primary/10 border border-border flex items-center justify-center text-primary mb-[12px] shadow-xs"
-        >
-          <Upload size={24} strokeWidth={2} />
-        </motion.div>
-
-        <h3 className="text-[15px] font-bold text-foreground">
-          Drag & drop document files here or <span className="text-primary underline">browse</span>
-        </h3>
-        <p className="text-[12px] text-muted-foreground mt-[4px]">
-          Supports PDF, JPG, PNG up to 10 MB.
-        </p>
-
-        <div className="flex flex-wrap items-center justify-center gap-[8px] mt-[16px]">
-          {['OCR Extraction', 'AI Authenticity Check', 'Duplicate Detection', 'Blur Scanner'].map(feat => (
-            <span key={feat} className="text-[10px] font-semibold px-[8px] py-[2px] rounded-full bg-card border border-border text-foreground flex items-center gap-[4px]">
-              <CheckCircle2 size={10} className="text-success" />
-              {feat}
-            </span>
-          ))}
-        </div>
-
-        {uploading && (
-          <div className="w-full max-w-[360px] mt-[16px] p-[10px] bg-card border border-border rounded-[12px]">
-            <div className="flex items-center justify-between text-[11px] font-semibold mb-[4px]">
-              <span className="text-foreground">Uploading document...</span>
-              <span className="text-primary">{progress}%</span>
-            </div>
-            <div className="w-full h-[4px] bg-secondary rounded-full overflow-hidden">
-              <div className="h-full bg-primary transition-all duration-300 rounded-full" style={{ width: `${progress}%` }} />
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-/* =========================================================================
-   SECTION 4: RECENT DOCUMENTS & FILE VAULT
-   ========================================================================= */
-function RecentDocumentsVault({ docs, onSelectDoc }: { docs: Doc[]; onSelectDoc: (d: Doc) => void }) {
-  const [activeTab, setActiveTab] = useState('All')
-  const [search, setSearch] = useState('')
-
-  const TABS = ['All', 'Academic', 'Identity', 'Entrance Exams', 'Certificates']
-
-  const filteredDocs = docs.filter(d => {
-    const matchTab = activeTab === 'All' || d.category === activeTab
-    const matchSearch = !search || d.name.toLowerCase().includes(search.toLowerCase())
-    return matchTab && matchSearch
-  })
-
-  return (
-    <div className={CARD_STYLE}>
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-[12px] pb-[16px] border-b border-border">
-        <div>
-          <h2 className="text-[16px] font-bold text-foreground tracking-tight">Recent Documents & Vault</h2>
-          <p className="text-[12px] text-muted-foreground">Manage, preview and replace your uploaded academic files</p>
-        </div>
-
-        <div className="flex items-center gap-[10px]">
-          <div className="relative w-full sm:w-[220px]">
-            <Search size={14} className="absolute left-[10px] top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search files..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="w-full h-[32px] pl-[30px] pr-[10px] bg-muted border border-border rounded-[12px] text-[12.5px] focus:outline-none focus:border-primary"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="py-[12px]">
-        <SegmentedTabs tabs={TABS} active={activeTab} onChange={setActiveTab} />
-      </div>
-
-      {/* File Table */}
-      <div className="overflow-x-auto border border-border rounded-[14px]">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="bg-muted border-b border-border">
-              {['Document Name', 'Category', 'Status', 'AI Score', 'Applications', 'Action'].map(h => (
-                <th key={h} className="px-[16px] py-[10px] text-[10px] font-bold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filteredDocs.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="p-[32px]">
-                  <EmptyState
-                    icon={FolderOpen}
-                    title={search ? `No documents matching "${search}"` : "No documents found"}
-                    description="Upload your academic certificates and identity proofs to power AI admission matching."
-                    primaryCtaLabel="Upload Document"
-                  />
-                </td>
-              </tr>
-            ) : (
-              filteredDocs.map(doc => (
-                <tr
-                  key={doc.id}
-                  onClick={() => onSelectDoc(doc)}
-                  className="border-b border-border hover:bg-muted cursor-pointer transition-colors group"
-                >
-                  <td className="px-[16px] py-[12px]">
-                    <div className="flex items-center gap-[10px]">
-                      <div className="w-[30px] h-[30px] rounded-[10px] bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                        <FileText size={14} />
-                      </div>
-                      <div>
-                        <p className="text-[13px] font-semibold text-foreground truncate max-w-[180px]">{doc.name}</p>
-                        <p className="text-[10px] text-muted-foreground">{doc.size} • {doc.date}</p>
-                      </div>
-                    </div>
-                  </td>
-
-                  <td className="px-[16px] py-[12px]">
-                    <span className="text-[12px] font-medium text-foreground">{doc.category}</span>
-                  </td>
-
-                  <td className="px-[16px] py-[12px]">
-                    <span className={`text-[10px] font-bold px-[8px] py-[2px] rounded-full ${doc.status === 'verified' ? STICKER_GREEN : doc.status === 'pending' ? STICKER_ORANGE : doc.status === 'rejected' ? 'bg-destructive/10 text-destructive' : 'bg-[#f3f4f6] text-muted-foreground'
-                      }`}>
-                      {doc.status.toUpperCase()}
-                    </span>
-                  </td>
-
-                  <td className="px-[16px] py-[12px]">
-                    {doc.aiScore > 0 ? (
-                      <div className="flex items-center gap-[6px]">
-                        <div className="w-[40px] h-[4px] bg-secondary rounded-full overflow-hidden">
-                          <div className="h-full bg-success rounded-full" style={{ width: `${doc.aiScore}%` }} />
-                        </div>
-                        <span className="text-[11px] font-bold text-success">{doc.aiScore}%</span>
-                      </div>
-                    ) : (
-                      <span className="text-[11px] text-muted-foreground">—</span>
-                    )}
-                  </td>
-
-                  <td className="px-[16px] py-[12px]">
-                    <span className="text-[12px] text-muted-foreground">{doc.apps > 0 ? `${doc.apps} Linked` : '—'}</span>
-                  </td>
-
-                  <td className="px-[16px] py-[12px]" onClick={e => e.stopPropagation()}>
-                    <button onClick={() => onSelectDoc(doc)} className={BUTTON_UTILITY}>
-                      <Eye size={12} />
-                      Preview
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  )
-}
-
-/* =========================================================================
-   SECTION 5: DOCUMENT CATEGORY FOLDERS (data-driven)
-   ========================================================================= */
-function DocumentCategoryFolders({ docs }: { docs: Doc[] }) {
-  const FOLDERS = [
-    { name: 'Academic', icon: '📚', tagColor: STICKER_PURPLE },
-    { name: 'Identity', icon: '🪪', tagColor: STICKER_SKY },
-    { name: 'Entrance Exams', icon: '📝', tagColor: STICKER_TEAL },
-    { name: 'Certificates', icon: '🏆', tagColor: STICKER_GREEN },
-    { name: 'Other', icon: '🗂️', tagColor: STICKER_ORANGE },
-  ]
-
-  const folderStats = FOLDERS.map(folder => {
-    const folderDocs = docs.filter(d => d.category === folder.name)
-    const verified = folderDocs.filter(d => d.status === 'verified').length
-    return { ...folder, count: folderDocs.length, verified }
-  })
-
-  return (
-    <div className={CARD_STYLE}>
-      <div className="flex items-center justify-between pb-[14px] mb-[16px] border-b border-border">
-        <div>
-          <h2 className="text-[16px] font-bold text-foreground tracking-tight">Document Library Categories</h2>
-          <p className="text-[12px] text-muted-foreground">Organized category folders for instant verification checks</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-[12px]">
-        {folderStats.map((folder, i) => {
-          const completion = folder.count > 0 ? Math.round((folder.verified / folder.count) * 100) : 0
-          return (
-            <div key={i} className="p-[14px] bg-card border border-border rounded-[14px] flex flex-col justify-between gap-[10px] hover:border-primary/30 hover:shadow-xs transition-all cursor-pointer">
-              <div className="flex items-center justify-between">
-                <span className="text-[24px]">{folder.icon}</span>
-                <span className={`text-[10px] font-bold px-[6px] py-[1px] rounded-full ${folder.tagColor}`}>
-                  {folder.count} Files
-                </span>
-              </div>
-
-              <div>
-                <h3 className="text-[13px] font-bold text-foreground leading-snug">{folder.name}</h3>
-                <p className="text-[10px] text-muted-foreground mt-[2px]">{folder.verified} Verified</p>
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-[2px]">
-                  <span>Progress</span>
-                  <span className="font-semibold text-foreground">{completion}%</span>
-                </div>
-                <div className="w-full h-[4px] bg-secondary rounded-full overflow-hidden">
-                  <div className="h-full bg-primary rounded-full" style={{ width: `${completion}%` }} />
-                </div>
-              </div>
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
-/* =========================================================================
-   SECTION 6: VERIFICATION TIMELINE & STATUS FLOW
-   ========================================================================= */
-function VerificationTimeline() {
-  return (
-    <div className={CARD_STYLE}>
-      <div className="flex items-center justify-between pb-[14px] mb-[16px] border-b border-border">
-        <div>
-          <h2 className="text-[16px] font-bold text-foreground tracking-tight">Verification Status Pipeline</h2>
-          <p className="text-[12px] text-muted-foreground">Real-time tracking of document authenticity verification</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-5 gap-[12px] relative">
-        {VERIFICATION_FLOW.map((flow, i) => (
-          <div
-            key={i}
-            className={`p-[12px] rounded-[14px] border flex flex-col justify-between gap-[6px] ${flow.status === 'completed'
-              ? 'bg-[color-mix(in_srgb,_var(--green)_9%,_transparent)] border-success/30 text-success'
-              : flow.status === 'active'
-                ? 'bg-primary/10 border-primary/30 text-primary'
-                : 'bg-muted border-border text-muted-foreground'
-              }`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider">Step 0{i + 1}</span>
-              {flow.status === 'completed' && <CheckCircle2 size={14} />}
-              {flow.status === 'active' && <Clock size={14} className="animate-spin" />}
-            </div>
-            <p className="text-[12px] font-bold text-foreground">{flow.step}</p>
-            <p className="text-[10px] text-muted-foreground">{flow.desc}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-/* =========================================================================
-   SECTION 7: AI DOCUMENT ASSISTANT & INSIGHTS CARD
-   ========================================================================= */
-function AIDocumentAssistantCard({ onUploadClick }: { onUploadClick: () => void }) {
-  return (
-    <div className="bg-gradient-to-r from-[#EEF2FF] via-[var(--accent-bg)] to-[#FFF7ED] border border-border rounded-[18px] p-[20px] flex flex-col md:flex-row items-start md:items-center justify-between gap-[16px]">
-      <div className="flex items-start gap-[14px]">
-        <div className="w-[38px] h-[38px] rounded-[14px] bg-card border border-border flex items-center justify-center shrink-0 text-primary">
-          <Sparkles size={20} strokeWidth={2} />
-        </div>
-        <div>
-          <div className="flex items-center gap-[8px] mb-[2px]">
-            <span className="text-[11px] font-bold text-primary uppercase tracking-wide">EDUING AI Document Assistant</span>
-            <span className="text-[10px] font-semibold bg-success/15 text-success px-[6px] py-[1px] rounded-full">+24% Admission Boost</span>
-          </div>
-          <p className="text-[13.5px] font-semibold text-foreground leading-snug">
-            Uploading your LOR and Passport Copy will boost your profile score to 100% and enable instant dispatch to 17 top-ranked universities.
-          </p>
-        </div>
-      </div>
-
-      <button onClick={onUploadClick} className={BUTTON_PRIMARY + " shrink-0"}>
-        Scan & Upload with AI
-        <ArrowRight size={14} />
-      </button>
-    </div>
-  )
-}
-
-/* =========================================================================
-   MAIN DOCUMENTS PAGE COMPONENT
-   ========================================================================= */
 export default function DocumentsPage() {
-  const { userDocuments } = useStudentData()
-  const [optimisticDocs, setOptimisticDocs] = useState<Doc[]>([])
-  const [selectedDoc, setSelectedDoc] = useState<Doc | null>(null)
-  const uploadTriggerRef = useRef<HTMLInputElement>(null)
-
-  // Derive display docs from real Firestore data + optimistic local additions
-  const firestoreDocs = firestoreDocsToDisplay(userDocuments)
-  // Merge: prefer Firestore data for known ids, append local optimistic ones not yet in Firestore
-  const firestoreIds = new Set(firestoreDocs.map(d => d.id))
-  const localDocs: Doc[] = [
-    ...firestoreDocs,
-    ...optimisticDocs.filter(d => !firestoreIds.has(d.id)),
-  ]
-
-  // Map filename to a known docId
-  const inferDocId = (filename: string): '10th_marksheet' | '12th_marksheet' | 'id_proof' | 'passport_photo' => {
-    const lower = filename.toLowerCase()
-    if (lower.includes('10th') || lower.includes('tenth')) return '10th_marksheet'
-    if (lower.includes('12th') || lower.includes('twelve')) return '12th_marksheet'
-    if (lower.includes('passport') || lower.includes('photo')) return 'passport_photo'
-    return 'id_proof'
-  }
-
-  const handleFileSelect = async (files: FileList) => {
-    const uid = auth.currentUser?.uid
-    if (!uid || !files[0]) return
-    const file = files[0]
-    const docId = inferDocId(file.name)
-    // Optimistic UI: show immediately while Firestore listener catches up
-    const optimisticDoc: Doc = {
-      id: docId,
-      name: DOC_ID_META[docId]?.name || file.name,
-      category: DOC_ID_META[docId]?.category || 'Other',
-      status: 'pending',
-      date: 'Just Now',
-      size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
-      aiScore: 0,
-      apps: 0,
-      required: DOC_ID_META[docId]?.required || false,
-    }
-    setOptimisticDocs(prev => {
-      const filtered = prev.filter(d => d.id !== docId)
-      return [optimisticDoc, ...filtered]
-    })
-    try {
-      await uploadUserDocument(uid, file, docId)
-      // Firestore listener in StudentDataProvider will update userDocuments, which updates firestoreDocs
-    } catch (err: unknown) {
-      if (process.env.NODE_ENV === 'development') console.error('[DocumentsPage] upload failed', err)
-      // Remove optimistic doc on failure
-      setOptimisticDocs(prev => prev.filter(d => d.id !== docId))
-    }
-  }
-
-  const verified = localDocs.filter(d => d.status === 'verified').length
-  const pending = localDocs.filter(d => d.status === 'pending').length
-  const uploadedCount = localDocs.length
-  // missing = required docs not in localDocs
-  const requiredIds = ['10th_marksheet', '12th_marksheet', 'id_proof', 'passport_photo']
-  const missing = requiredIds.filter(id => !localDocs.find(d => d.id === id)).length
-  const total = Math.max(localDocs.length, requiredIds.length)
+  const { profile } = useStudentData()
+  const p = (profile ?? {}) as Record<string, any>
+  const detailItems = ITEMS.filter(i => i.field)
+  const done = detailItems.filter(i => i.ready(p)).length
 
   return (
     <ProtectedRoute allowedRoles={['student']}>
-      <div className="flex flex-col gap-[24px] pb-[40px]">
-        <input
-          ref={uploadTriggerRef}
-          type="file"
-          className="hidden"
-          multiple
-          onChange={e => e.target.files && handleFileSelect(e.target.files)}
-        />
+      <div className="page-in mx-auto flex w-full max-w-[960px] flex-col gap-[20px] pb-[48px]">
+        <motion.section
+          initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="relative overflow-hidden rounded-[28px] bg-[var(--night)] p-[24px] text-white md:p-[32px]"
+        >
+          <div aria-hidden className="pointer-events-none absolute -right-[80px] -top-[80px] h-[260px] w-[260px] rounded-full bg-[#4B2FC9] opacity-60 blur-[90px]" />
+          <div className="relative max-w-[560px]">
+            <span className="inline-flex items-center gap-[6px] rounded-full bg-[#F5B829] px-[12px] py-[5px] text-[12px] font-bold text-[#17142B]">
+              <Landmark size={13} /> Coming soon
+            </span>
+            <h1 className="mt-[14px] font-display text-[28px] font-bold leading-tight md:text-[34px]">Verify your documents with DigiLocker</h1>
+            <p className="mt-[10px] text-[14px] leading-relaxed text-white/70">
+              You won&apos;t need to scan or upload anything. Connect DigiLocker once, and your marksheets, Aadhaar and certificates come
+              straight from the board or government — already verified for every university you apply to.
+            </p>
+            <p className="mt-[10px] text-[13px] text-white/50">Until then, enter your marks in your profile. Universities see them on your application.</p>
+            <Link href="/student/profile" className="mt-[18px] inline-flex h-[42px] items-center gap-[8px] rounded-full bg-white px-[20px] text-[13.5px] font-semibold text-[#17142B] transition hover:-translate-y-0.5">
+              Fill in my details <ArrowRight size={15} />
+            </Link>
+          </div>
+        </motion.section>
 
-        <DocumentHealthOverview
-          verified={verified}
-          pending={pending}
-          missing={missing}
-          total={total}
-          uploadedCount={uploadedCount}
-          onUploadClick={() => uploadTriggerRef.current?.click()}
-        />
+        <section className={CARD} aria-labelledby="share-heading">
+          <div className="mb-[14px] flex flex-wrap items-end justify-between gap-[8px]">
+            <div>
+              <h2 id="share-heading" className="font-display text-[18px] font-bold">What universities see now</h2>
+              <p className="text-[13px] text-[var(--text-muted)]">Details from your profile, shared with each application.</p>
+            </div>
+            <span className="rounded-full bg-[var(--accent-bg)] px-[12px] py-[5px] text-[12.5px] font-semibold text-[var(--accent)]">{done} of {detailItems.length} filled</span>
+          </div>
+          <ul className="grid gap-[8px] sm:grid-cols-2">
+            {detailItems.map(i => {
+              const ok = i.ready(p)
+              return (
+                <li key={i.name} className="flex items-center gap-[10px] rounded-[16px] bg-[var(--bg-subtle)] p-[12px]">
+                  {ok ? <CheckCircle2 size={18} className="shrink-0 text-[var(--green)]" /> : <Circle size={18} className="shrink-0 text-[var(--text-faint)]" />}
+                  <span className="min-w-0 flex-1 text-[13.5px]">
+                    <span className="block font-semibold capitalize">{i.field}</span>
+                    <span className="block text-[12px] text-[var(--text-muted)]">{ok ? 'Added' : 'Not added yet'}</span>
+                  </span>
+                  {!ok && <Link href="/student/profile" className="text-[12.5px] font-semibold text-[var(--accent)]">Add</Link>}
+                </li>
+              )
+            })}
+          </ul>
+        </section>
 
-        <DocumentActionCenter docs={localDocs} onUploadClick={() => uploadTriggerRef.current?.click()} />
-
-        <PremiumUploadWorkspace onFileSelect={handleFileSelect} />
-
-        <RecentDocumentsVault docs={localDocs} onSelectDoc={setSelectedDoc} />
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-[24px]">
-          <DocumentCategoryFolders docs={localDocs} />
-          <VerificationTimeline />
-        </div>
-
-        <AIDocumentAssistantCard onUploadClick={() => uploadTriggerRef.current?.click()} />
-
-        <AnimatePresence>
-          {selectedDoc && (
-            <>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/20 z-40"
-                onClick={() => setSelectedDoc(null)}
-              />
-              <DocPreviewPanel doc={selectedDoc} onClose={() => setSelectedDoc(null)} />
-            </>
-          )}
-        </AnimatePresence>
+        <section className={CARD} aria-labelledby="ready-heading">
+          <h2 id="ready-heading" className="font-display text-[18px] font-bold">Keep these ready for admission day</h2>
+          <p className="mb-[14px] text-[13px] text-[var(--text-muted)]">Universities check originals when you report to the campus.</p>
+          <ul className="flex flex-col divide-y divide-[var(--border)]">
+            {ITEMS.map(i => (
+              <li key={i.name} className="flex items-center gap-[12px] py-[12px]">
+                <span className="flex h-[36px] w-[36px] shrink-0 items-center justify-center rounded-[12px] bg-[var(--bg-subtle)] text-[var(--text-secondary)]"><ShieldCheck size={16} /></span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[14px] font-semibold">{i.name}</span>
+                  <span className="block text-[12.5px] text-[var(--text-muted)]">{i.why}</span>
+                </span>
+                {i.digilocker && <span className="shrink-0 rounded-full border border-[var(--accent-border)] px-[10px] py-[3px] text-[11px] font-semibold text-[var(--accent)]">In DigiLocker</span>}
+              </li>
+            ))}
+          </ul>
+        </section>
       </div>
     </ProtectedRoute>
   )

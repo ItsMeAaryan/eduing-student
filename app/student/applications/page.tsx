@@ -149,93 +149,37 @@ function DetailDrawer({ app, onClose }: { app: any; onClose: () => void }) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             {[
               { label: 'Status', value: cfg.label },
-              { label: 'Progress', value: `${app.progress || 40}%` },
-              { label: 'Deadline', value: app.deadline ? new Date(app.deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Not set' },
-              { label: 'Match', value: '85%' },
+              { label: 'Applied on', value: (app.createdAt?.toDate?.() ?? (app.createdAt ? new Date(app.createdAt) : null))?.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) ?? '—' },
             ].map(({ label, value }) => (
               <div key={label} style={{
                 background: 'var(--bg)', border: '1px solid var(--border)',
                 borderRadius: 12, padding: '12px 14px',
               }}>
-                <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)', margin: '0 0 4px' }}>{label}</p>
+                <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', margin: '0 0 4px' }}>{label}</p>
                 <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>{value}</p>
               </div>
             ))}
           </div>
 
-          {/* AI Analysis */}
+          {/* Real activity from the university */}
           <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-              <Sparkles size={14} style={{ color: 'var(--accent)' }} strokeWidth={1.8} />
-              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>AI Analysis</span>
-            </div>
-            {[
-              { icon: AlertCircle, color: 'var(--gold)', text: 'Missing: Letter of Recommendation' },
-              { icon: Zap, color: 'var(--accent)', text: 'Next: Draft SOP using AI Builder' },
-            ].map(({ icon: Icon, color, text }, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: i === 0 ? '0 0 10px' : '10px 0 0', borderTop: i > 0 ? '1px solid var(--border)' : 'none' }}>
-                <Icon size={13} style={{ color, flexShrink: 0 }} strokeWidth={1.8} />
-                <span style={{ fontSize: 13, color: 'var(--text-primary)' }}>{text}</span>
+            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 14px' }}>Activity</p>
+            {(Array.isArray(app.statusHistory) && app.statusHistory.length > 0) ? (
+              <div style={{ position: 'relative', paddingLeft: 18, borderLeft: '1px solid var(--border)', marginLeft: 5, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {[...app.statusHistory].reverse().slice(0, 6).map((h: any, i: number) => (
+                  <div key={i} style={{ position: 'relative' }}>
+                    <div style={{
+                      position: 'absolute', left: -23, top: 3, width: 10, height: 10, borderRadius: '50%',
+                      border: `2px solid ${i === 0 ? 'var(--accent)' : 'var(--border)'}`, background: 'var(--bg-elevated)',
+                    }} />
+                    <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', margin: 0, textTransform: 'capitalize' }}>{String(h.status || '').replace(/_/g, ' ')}</p>
+                    {h.note && <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '2px 0 0' }}>{h.note}</p>}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-
-          {/* Timeline */}
-          <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px' }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 14px' }}>Timeline</p>
-            <div style={{ position: 'relative', paddingLeft: 18, borderLeft: '1px solid var(--border)', marginLeft: 5, display: 'flex', flexDirection: 'column', gap: 18 }}>
-              {[
-                { title: 'Application Started', date: 'Oct 12, 2025', done: true },
-                { title: 'Documents Uploaded', date: 'Oct 15, 2025', done: true },
-                { title: 'Application Submitted', date: 'Oct 20, 2025', done: false, active: true },
-                { title: 'Under Review', date: 'Pending', done: false },
-                { title: 'Decision', date: 'Pending', done: false },
-              ].map(({ title, date, done, active }, i) => (
-                <div key={i} style={{ position: 'relative' }}>
-                  <div style={{
-                    position: 'absolute', left: -23, top: 3,
-                    width: 10, height: 10, borderRadius: '50%',
-                    border: `2px solid ${done ? 'var(--green)' : active ? 'var(--accent)' : 'var(--border)'}`,
-                    background: 'var(--bg-elevated)',
-                  }} />
-                  <p style={{ fontSize: 13, fontWeight: done || active ? 600 : 400, color: done || active ? 'var(--text-primary)' : 'var(--text-muted)', margin: 0 }}>{title}</p>
-                  <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '2px 0 0' }}>{date}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Documents */}
-          <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px' }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 12px' }}>Required Documents</p>
-            {['Transcripts', 'Statement of Purpose', 'Passport Copy'].map((docName, i) => (
-              <div key={docName} style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '10px 0',
-                borderBottom: i < 2 ? '1px solid var(--border)' : 'none',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <FileText size={13} style={{ color: 'var(--text-muted)' }} strokeWidth={1.8} />
-                  <span style={{ fontSize: 13, color: 'var(--text-primary)' }}>{docName}</span>
-                </div>
-                {i === 0 ? (
-                  <span style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 4,
-                    fontSize: 11, fontWeight: 600,
-                    padding: '2px 8px', borderRadius: 999,
-                    background: 'rgba(26,174,57,0.08)', color: 'var(--green)',
-                  }}>
-                    <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--green)' }} />
-                    Uploaded
-                  </span>
-                ) : (
-                  <button style={{
-                    fontSize: 12, fontWeight: 500, color: 'var(--accent)',
-                    background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: 2,
-                  }}>Upload</button>
-                )}
-              </div>
-            ))}
+            ) : (
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: 0 }}>Updates from the university will appear here.</p>
+            )}
           </div>
         </div>
 

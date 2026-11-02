@@ -6,7 +6,7 @@ import { canonicalFromOnboarding } from '@/lib/utils/profileFields'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import {
-  User, GraduationCap, ClipboardList, FileUp, CheckCircle2,
+  User, GraduationCap, ClipboardList, CheckCircle2,
   ArrowRight, ArrowLeft, AlertCircle
 } from 'lucide-react'
 import ProtectedRoute from '@/components/ProtectedRoute'
@@ -18,7 +18,6 @@ const STEPS = [
   { id: 'personal', title: 'Personal', icon: User },
   { id: 'academic', title: 'Academic', icon: GraduationCap },
   { id: 'exams', title: 'Exams', icon: ClipboardList },
-  { id: 'documents', title: 'Documents', icon: FileUp },
   { id: 'review', title: 'Review', icon: CheckCircle2 },
 ]
 
@@ -312,36 +311,14 @@ export default function OnboardingPage() {
               </div>
             )}
 
-            {/* Step 4 — Documents */}
+            {/* Step 4 — Review */}
             {step === 3 && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                {(['photo', 'marksheet10', 'marksheet12', 'idProof'] as const).map(key => (
-                  <div key={key} style={{
-                    padding: '20px 16px', borderRadius: 14,
-                    border: '2px dashed rgba(26,174,57,0.3)',
-                    background: 'rgba(26,174,57,0.06)',
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, textAlign: 'center',
-                  }}>
-                    <CheckCircle2 size={20} style={{ color: '#1AAE39' }} strokeWidth={2} />
-                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
-                      {key === 'photo' ? 'Passport Photo' : key === 'marksheet10' ? '10th Marksheet' : key === 'marksheet12' ? '12th Marksheet' : 'ID Proof'}
-                    </span>
-                    <span style={{ fontSize: 11, color: '#1AAE39', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                      Uploaded
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Step 5 — Review */}
-            {step === 4 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {[
                   { label: 'Personal', value: `${form.personal.fullName || '—'} · ${form.personal.city || '—'}, ${form.personal.state || '—'}` },
                   { label: 'Academic', value: `10th: ${form.academic.marks10 || '—'}% · 12th: ${form.academic.marks12 || '—'}% (${form.academic.stream || '—'})` },
                   { label: 'Board', value: `10th: ${form.academic.board10 || '—'} · 12th: ${form.academic.board12 || '—'}` },
-                  { label: 'Documents', value: '4 files ready for upload' },
+                  { label: 'Documents', value: 'Nothing to upload — DigiLocker verification is coming soon' },
                 ].map(row => (
                   <div key={row.label} style={{
                     padding: '12px 16px',

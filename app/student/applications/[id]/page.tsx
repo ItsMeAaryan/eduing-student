@@ -16,9 +16,9 @@ import {
 import { listenApplication } from '@/lib/firebase/applications'
 import {
   normalizeStatus, OFFER_STATUSES, WITHDRAWABLE, CLOSED, type AdmissionStatus,
-  listenGeneratedDocuments, listenSharedDocuments, listenExamSchedules,
-  acceptSeat, declineOffer, withdrawApplication, submitFeePayment, shareDocumentsWithApplication,
-  type GeneratedDoc, type SharedDoc, type ExamSchedule,
+  listenGeneratedDocuments, listenExamSchedules,
+  acceptSeat, declineOffer, withdrawApplication, submitFeePayment, shareDetailsWithApplication,
+  type GeneratedDoc, type ExamSchedule,
 } from '@/lib/firebase/admission'
 
 /* ── vocabulary ─────────────────────────────────────────────────────────── */
@@ -76,6 +76,9 @@ function toDate(v: any): Date | null {
   const d = new Date(v)
   return isNaN(d.getTime()) ? null : d
 }
+/** Issued documents open as a printable page; very old ones may still have a file link. */
+const letterHref = (appId: string, d: GeneratedDoc) => (d.data || !d.url ? `/letter/${appId}/${d.id}` : d.url)
+
 const fmt = (d: Date | null, withTime = false) =>
   d ? d.toLocaleString('en-IN', withTime ? { dateStyle: 'medium', timeStyle: 'short' } : { dateStyle: 'medium' }) : '—'
 
@@ -86,15 +89,13 @@ export default function ApplicationDetailsPage() {
   const [app, setApp] = useState<Record<string, any> | null>(null)
   const [loading, setLoading] = useState(true)
   const [generated, setGenerated] = useState<GeneratedDoc[]>([])
-  const [shared, setShared] = useState<SharedDoc[]>([])
   const [exams, setExams] = useState<ExamSchedule[]>([])
 
   useEffect(() => {
     if (!id) return
     const u1 = listenApplication(id, (a) => { setApp(a as any); setLoading(false) }, () => setLoading(false))
     const u2 = listenGeneratedDocuments(id, setGenerated)
-    const u3 = listenSharedDocuments(id, setShared)
-    return () => { u1(); u2(); u3() }
+    return () => { u1(); u2() }
   }, [id])
 
   useEffect(() => {
@@ -160,8 +161,8 @@ export default function ApplicationDetailsPage() {
         <div className="mt-[24px] grid gap-[20px] lg:grid-cols-[minmax(0,1fr)_320px]">
           <div className="flex min-w-0 flex-col gap-[20px]">
             <NextStep app={app} status={status} latest={latest} />
-            {(latest.admit_card || exams.length > 0) && <ExamCard exams={exams} admitCard={latest.admit_card} />}
-            <DocumentsCard appId={id} shared={shared} closed={CLOSED.includes(status) || status === 'enrolled'} />
+            {(latest.admit_card || exams.length > 0) && <ExamCard appId={id} exams={exams} admitCard={latest.admit_card} />}
+            <DetailsCard appId={id} snapshot={app.studentProfile} closed={CLOSED.includes(status) || status === 'enrolled'} />
           </div>
 
           <aside className="flex flex-col gap-[20px]">
@@ -171,7 +172,7 @@ export default function ApplicationDetailsPage() {
                 <ul className="flex flex-col gap-[8px]">
                   {Object.values(latest).map(d => (
                     <li key={d.id}>
-                      <a href={d.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-[12px] rounded-[16px] border border-[var(--border)] p-[12px] transition hover:border-[var(--accent-border)] hover:bg-[var(--accent-bg)]">
+                      <a href={letterHref(id, d)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-[12px] rounded-[16px] border border-[var(--border)] p-[12px] transition hover:border-[var(--accent-border)] hover:bg-[var(--accent-bg)]">
                         <span className="flex h-[36px] w-[36px] items-center justify-center rounded-[12px] bg-[var(--accent-bg)] text-[var(--accent)]"><FileText size={16} /></span>
                         <span className="min-w-0 flex-1">
                           <span className="block text-[13.5px] font-semibold">{DOC_TYPE_LABEL[d.type] ?? d.type}</span>
@@ -297,7 +298,7 @@ function NextStep({ app, status, latest }: { app: Record<string, any>; status: A
               </motion.div>
             ) : mode === 'accept' ? (
               <motion.div key="accept" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-[20px]">
-                <p className="text-[14px] text-white/80">Accepting confirms you&apos;ll take this seat. Next, you&apos;ll pay the admission fee and upload the receipt.</p>
+                <p className="text-[14px] text-white/80">Accepting confirms you&apos;ll take this seat. Next, you&apos;ll pay the admission fee and enter the payment reference.</p>
                 <div className="mt-[14px] flex flex-wrap gap-[10px]">
                   <button disabled={busy} onClick={() => run(() => acceptSeat(app.id))} className={`${BTN} bg-[#F5B829] text-[#17142B]`}>{busy ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />} Yes, accept the seat</button>
                   <button disabled={busy} onClick={() => setMode('idle')} className={`${BTN} border border-white/20 text-white`}>Not yet</button>
@@ -306,7 +307,7 @@ function NextStep({ app, status, latest }: { app: Record<string, any>; status: A
             ) : (
               <motion.div key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="mt-[20px] flex flex-wrap gap-[10px]">
                 {latest.offer_letter && (
-                  <a href={latest.offer_letter.url} target="_blank" rel="noopener noreferrer" className={`${BTN} bg-white text-[#17142B]`}><Download size={15} /> Offer letter</a>
+                  <a href={letterHref(app.id, latest.offer_letter)} target="_blank" rel="noopener noreferrer" className={`${BTN} bg-white text-[#17142B]`}><Download size={15} /> Offer letter</a>
                 )}
                 <button onClick={() => setMode('accept')} className={`${BTN} bg-[#F5B829] text-[#17142B]`}>Accept seat</button>
                 <button onClick={() => setMode('decline')} className={`${BTN} border border-white/20 text-white/85 hover:bg-white/10`}>Decline</button>
@@ -337,7 +338,6 @@ function NextStep({ app, status, latest }: { app: Record<string, any>; status: A
               <div><dt className="text-[var(--text-muted)]">Reference</dt><dd className="truncate font-mono font-semibold">{p.transactionRef || '—'}</dd></div>
               <div><dt className="text-[var(--text-muted)]">Submitted</dt><dd className="font-semibold">{fmt(toDate(p.submittedAt))}</dd></div>
             </dl>
-            {p.receiptUrl && <a href={p.receiptUrl} target="_blank" rel="noopener noreferrer" className="mt-[14px] inline-flex items-center gap-[6px] text-[13px] font-semibold text-[var(--accent)]"><FileText size={14} /> View your receipt</a>}
           </div>
         </div>
       </section>
@@ -355,7 +355,7 @@ function NextStep({ app, status, latest }: { app: Record<string, any>; status: A
           <p className="mt-[8px] max-w-[520px] text-[14px] text-white/65">
             {status === 'enrolled' ? 'Keep your enrollment certificate handy for hostel allotment and the first day of classes.' : 'The university has verified your payment and will confirm your enrollment shortly.'}
           </p>
-          {cert && <a href={cert.url} target="_blank" rel="noopener noreferrer" className={`${BTN} mt-[20px] bg-white text-[#17142B]`}><Download size={15} /> Enrollment certificate</a>}
+          {cert && <a href={letterHref(app.id, cert)} target="_blank" rel="noopener noreferrer" className={`${BTN} mt-[20px] bg-white text-[#17142B]`}><Download size={15} /> Enrollment certificate</a>}
         </div>
       </section>
     )
@@ -422,17 +422,16 @@ function FeeForm({ app }: { app: Record<string, any> }) {
   const [ref, setRef] = useState('')
   const [paidOn, setPaidOn] = useState(() => new Date().toISOString().slice(0, 10))
   const [mode, setMode] = useState('UPI')
-  const [file, setFile] = useState<File | null>(null)
+  const [payer, setPayer] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!file) { setError('Attach the payment receipt or a screenshot of the transaction.'); return }
     setBusy(true); setError('')
     try {
-      await submitFeePayment(app.id, { amount: Number(amount), transactionRef: ref, paidOn, mode, receipt: file })
-    } catch (err: any) { setError(err?.message || 'Upload failed. Check your connection and try again.') } finally { setBusy(false) }
+      await submitFeePayment(app.id, { amount: Number(amount), transactionRef: ref, paidOn, mode, payerName: payer })
+    } catch (err: any) { setError(err?.message || 'Couldn\u2019t submit. Check your connection and try again.') } finally { setBusy(false) }
   }
 
   return (
@@ -441,13 +440,13 @@ function FeeForm({ app }: { app: Record<string, any> }) {
         <span className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-[14px] bg-[var(--gold-bg)] text-[var(--gold)]"><Wallet size={20} /></span>
         <div>
           <h2 className="font-display text-[20px] font-bold">Pay the admission fee</h2>
-          <p className="mt-[4px] text-[14px] text-[var(--text-secondary)]">Pay using the bank or UPI details in your offer letter, then enter the reference number and upload the receipt here.</p>
+          <p className="mt-[4px] text-[14px] text-[var(--text-secondary)]">Pay using the bank or UPI details in your offer letter, then enter the transaction reference here. The admissions office matches it with their bank statement.</p>
         </div>
       </div>
       {rejected && (
         <div className="mt-[16px] flex gap-[10px] rounded-[16px] border border-[color-mix(in_srgb,var(--red)_25%,transparent)] bg-[color-mix(in_srgb,var(--red)_7%,transparent)] p-[14px] text-[13px]">
           <AlertTriangle size={16} className="mt-[1px] shrink-0 text-[var(--red)]" />
-          <p><span className="font-semibold text-[var(--red)]">Your last payment couldn&apos;t be verified.</span> {app.paymentDetails?.rejectionReason || 'Check the reference number and receipt, then submit again.'}</p>
+          <p><span className="font-semibold text-[var(--red)]">Your last payment couldn&apos;t be verified.</span> {app.paymentDetails?.rejectionReason || 'Check the reference number and amount, then submit again.'}</p>
         </div>
       )}
       <form onSubmit={submit} className="mt-[18px] grid gap-[14px] sm:grid-cols-2">
@@ -465,10 +464,8 @@ function FeeForm({ app }: { app: Record<string, any> }) {
         <label className="text-[13px] font-semibold">Transaction / UTR reference
           <input required value={ref} onChange={e => setRef(e.target.value)} className={`${INPUT} mt-[6px] font-mono font-normal`} placeholder="e.g. 412345678901" />
         </label>
-        <label className="sm:col-span-2 flex cursor-pointer items-center gap-[12px] rounded-[16px] border-2 border-dashed border-[var(--border)] p-[16px] text-[13px] transition hover:border-[var(--accent)]">
-          <Upload size={18} className="text-[var(--accent)]" />
-          <span className="min-w-0 flex-1 truncate">{file ? file.name : <><span className="font-semibold">Upload receipt</span> <span className="text-[var(--text-muted)]">— PDF or image, up to 10 MB</span></>}</span>
-          <input type="file" accept="application/pdf,image/*" className="sr-only" onChange={e => setFile(e.target.files?.[0] ?? null)} />
+        <label className="sm:col-span-2 text-[13px] font-semibold">Paid by (name on the bank account / UPI) <span className="font-normal text-[var(--text-muted)]">— optional</span>
+          <input value={payer} onChange={e => setPayer(e.target.value)} className={`${INPUT} mt-[6px] font-normal`} placeholder="e.g. Rakesh Sharma" />
         </label>
         {error && <p role="alert" className="sm:col-span-2 text-[13px] font-medium text-[var(--red)]">{error}</p>}
         <div className="sm:col-span-2">
@@ -482,12 +479,12 @@ function FeeForm({ app }: { app: Record<string, any> }) {
 }
 
 /* ── exam / admit card ──────────────────────────────────────────────────── */
-function ExamCard({ exams, admitCard }: { exams: ExamSchedule[]; admitCard?: GeneratedDoc }) {
+function ExamCard({ appId, exams, admitCard }: { appId: string; exams: ExamSchedule[]; admitCard?: GeneratedDoc }) {
   return (
     <section className={CARD}>
       <div className="mb-[14px] flex flex-wrap items-center justify-between gap-[10px]">
         <h2 className="font-display text-[18px] font-bold">Entrance test / interview</h2>
-        {admitCard && <a href={admitCard.url} target="_blank" rel="noopener noreferrer" className={`${BTN} h-[36px] bg-[var(--accent)] px-[16px] text-white`}><Download size={14} /> Admit card</a>}
+        {admitCard && <a href={letterHref(appId, admitCard)} target="_blank" rel="noopener noreferrer" className={`${BTN} h-[36px] bg-[var(--accent)] px-[16px] text-white`}><Download size={14} /> Admit card</a>}
       </div>
       {exams.length === 0 ? (
         <p className="text-[13.5px] text-[var(--text-secondary)]">Your admit card is ready. The schedule will appear here when the university publishes it.</p>
@@ -511,26 +508,34 @@ function ExamCard({ exams, admitCard }: { exams: ExamSchedule[]; admitCard?: Gen
   )
 }
 
-/* ── documents the university sees ──────────────────────────────────────── */
-function DocumentsCard({ appId, shared, closed }: { appId: string; shared: SharedDoc[]; closed: boolean }) {
+/* ── details the university sees ─────────────────────────────────────────── */
+const DETAIL_LABELS: [string, string][] = [
+  ['tenthScore', '10th %'], ['twelfthScore', '12th %'], ['twelfthBoard', '12th board'], ['stream', 'Stream'],
+  ['jeeScore', 'JEE Main'], ['neetScore', 'NEET'], ['cuetScore', 'CUET'], ['bitsatScore', 'BITSAT'], ['nataScore', 'NATA'],
+  ['clatScore', 'CLAT'], ['catPercentile', 'CAT'], ['gateScore', 'GATE'], ['category', 'Category'], ['domicileState', 'Domicile'],
+]
+
+function DetailsCard({ appId, snapshot, closed }: { appId: string; snapshot?: Record<string, string>; closed: boolean }) {
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState('')
-  const needsAction = shared.filter(d => d.status === 'rejected' || d.status === 'requires_resubmission')
+  const shown = DETAIL_LABELS.filter(([k]) => snapshot?.[k])
 
   const share = async () => {
     setBusy(true); setNote('')
     try {
-      const n = await shareDocumentsWithApplication(appId)
-      setNote(n > 0 ? `Sent ${n} updated document${n > 1 ? 's' : ''} to the university.` : 'The university already has your latest documents.')
-    } catch { setNote('Couldn’t send documents. Try again in a moment.') } finally { setBusy(false) }
+      await shareDetailsWithApplication(appId)
+      setNote('The university now has your latest details.')
+    } catch { setNote('Couldn\u2019t send your details. Try again in a moment.') } finally { setBusy(false) }
   }
 
   return (
     <section className={CARD}>
       <div className="mb-[14px] flex flex-wrap items-center justify-between gap-[10px]">
         <div>
-          <h2 className="font-display text-[18px] font-bold">Documents with the university</h2>
-          <p className="text-[13px] text-[var(--text-muted)]">What the admissions office can see and verify.</p>
+          <h2 className="font-display text-[18px] font-bold">Details the university sees</h2>
+          <p className="text-[13px] text-[var(--text-muted)]">
+            From your profile{snapshot?.sharedAt ? `, last sent ${new Date(snapshot.sharedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}` : ''}. Original documents are checked at admission.
+          </p>
         </div>
         {!closed && (
           <button onClick={share} disabled={busy} className={`${BTN} h-[36px] border border-[var(--border)] px-[14px]`}>
@@ -538,42 +543,24 @@ function DocumentsCard({ appId, shared, closed }: { appId: string; shared: Share
           </button>
         )}
       </div>
-
-      {needsAction.length > 0 && (
-        <div className="mb-[14px] rounded-[16px] border border-[color-mix(in_srgb,var(--red)_25%,transparent)] bg-[color-mix(in_srgb,var(--red)_7%,transparent)] p-[14px] text-[13px]">
-          <p className="font-semibold text-[var(--red)]">{needsAction.length} document{needsAction.length > 1 ? 's need' : ' needs'} a new upload</p>
-          <p className="mt-[2px] text-[var(--text-secondary)]">Upload a clearer copy on the <Link href="/student/documents" className="font-semibold text-[var(--accent)] underline-offset-2 hover:underline">Documents</Link> page — it&apos;s sent here automatically.</p>
-        </div>
-      )}
-
-      {shared.length === 0 ? (
+      {shown.length === 0 ? (
         <div className="rounded-[18px] border-2 border-dashed border-[var(--border)] p-[20px] text-center text-[13.5px]">
-          <p className="font-semibold">The university hasn&apos;t received any documents yet.</p>
-          <p className="mt-[4px] text-[var(--text-muted)]">Upload your marksheets and ID on the Documents page, then press <span className="font-semibold">Send latest</span>.</p>
-          <Link href="/student/documents" className={`${BTN} mt-[14px] bg-[var(--accent)] text-white`}><Upload size={15} /> Upload documents</Link>
+          <p className="font-semibold">The university can&apos;t see your marks yet.</p>
+          <p className="mt-[4px] text-[var(--text-muted)]">Add your Class 10/12 marks and exam scores to your profile, then press <span className="font-semibold">Send latest</span>.</p>
+          <Link href="/student/profile" className={`${BTN} mt-[14px] bg-[var(--accent)] text-white`}>Fill in my details</Link>
         </div>
       ) : (
-        <ul className="grid gap-[10px] sm:grid-cols-2">
-          {shared.map(d => {
-            const st = DOC_STATUS[d.status || 'pending'] ?? DOC_STATUS.pending
-            const reason = d.rejectionReason || [...(d.history ?? [])].reverse().find(h => h.reason)?.reason
-            return (
-              <li key={d.id} className="rounded-[18px] border border-[var(--border)] p-[12px]">
-                <div className="flex items-center gap-[10px]">
-                  <span className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[12px] bg-[var(--bg-subtle)] text-[var(--text-secondary)]"><FileText size={15} /></span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-[13.5px] font-semibold capitalize">{d.name}</p>
-                    <span className={`mt-[2px] inline-block rounded-full border px-[8px] py-[1px] text-[11px] font-semibold ${TONE[st.tone]}`}>{st.label}</span>
-                  </div>
-                  {d.url && <a href={d.url} target="_blank" rel="noopener noreferrer" aria-label={`Open ${d.name}`} className="flex h-[30px] w-[30px] items-center justify-center rounded-full text-[var(--text-muted)] hover:bg-[var(--bg-subtle)]"><Download size={14} /></a>}
-                </div>
-                {reason && (d.status === 'rejected' || d.status === 'requires_resubmission') && <p className="mt-[8px] text-[12.5px] text-[var(--red)]">{reason}</p>}
-              </li>
-            )
-          })}
-        </ul>
+        <dl className="grid grid-cols-2 gap-[8px] sm:grid-cols-3">
+          {shown.map(([k, label]) => (
+            <div key={k} className="rounded-[14px] bg-[var(--bg-subtle)] p-[10px]">
+              <dt className="text-[11.5px] text-[var(--text-muted)]">{label}</dt>
+              <dd className="truncate text-[14px] font-semibold">{snapshot![k]}</dd>
+            </div>
+          ))}
+        </dl>
       )}
-      {note && <p className="mt-[12px] text-[13px] text-[var(--text-secondary)]" role="status">{note}</p>}
+      <p className="mt-[12px] text-[12px] text-[var(--text-muted)]">DigiLocker verification is coming soon — you won&apos;t need to upload marksheets.</p>
+      {note && <p className="mt-[8px] text-[13px] text-[var(--text-secondary)]" role="status">{note}</p>}
     </section>
   )
 }

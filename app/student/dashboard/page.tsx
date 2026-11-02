@@ -105,7 +105,7 @@ function Ring({ pct, label, sub, next, color, href, delay }: { pct: number; labe
 export default function StudentDashboard() {
   const {
     loading, error, profile, uniqueApps, profileScore, profileStrength, universities,
-    userDocuments, docUploaded, deadlines, documents, savedPrograms,
+    deadlines, documents, savedPrograms,
   } = useStudentData()
 
   const [stream, setStream] = useState<StreamKey | null>(null)
@@ -191,8 +191,15 @@ export default function StudentDashboard() {
 
   /* derived numbers */
   const first = (profile?.fullName || 'there').split(' ')[0]
-  const docsPct = Math.round(Math.min(4, docUploaded ?? 0) / 4 * 100)
-  const missingDocs = ['10th_marksheet', '12th_marksheet', 'id_proof', 'passport_photo'].filter(k => !(userDocuments as any)?.[k]?.fileUrl)
+  // What universities see on an application (no uploads — DigiLocker verification comes later)
+  const pr = (profile ?? {}) as Record<string, any>
+  const details: [string, boolean][] = [
+    ['10th marks', !!pr.tenthScore], ['12th marks', !!pr.twelfthScore],
+    ['exam score', !!(pr.jeeScore || pr.neetScore || pr.cuetScore || pr.bitsatScore || pr.nataScore || pr.clatScore || pr.catPercentile || pr.gateScore)],
+    ['category', !!pr.category], ['domicile state', !!pr.domicileState],
+  ]
+  const missingDetails = details.filter(([, ok]) => !ok).map(([k]) => k)
+  const docsPct = Math.round(((details.length - missingDetails.length) / details.length) * 100)
   const furthest = active.reduce((m, a) => Math.max(m, STAGE[a.s] ?? 0), 0)
   const appsPct = Math.round((furthest / 7) * 100)
   const featured = [...apps].sort((a, b) => urgency(a.s) - urgency(b.s) || (toDate(b.updatedAt ?? b.createdAt)?.getTime() ?? 0) - (toDate(a.updatedAt ?? a.createdAt)?.getTime() ?? 0)).slice(0, 2)
@@ -277,7 +284,7 @@ export default function StudentDashboard() {
         <div className="flex min-w-0 flex-col gap-[20px]">
           <div className="grid gap-[12px] sm:grid-cols-3">
             <Ring pct={profileScore ?? 0} sub="Step 1" label="Profile" next={nextMissing ? `Next: ${nextMissing}` : 'All details added'} color="var(--accent)" href="/student/profile" delay={0.1} />
-            <Ring pct={docsPct} sub="Step 2" label="Documents" next={missingDocs.length ? `${missingDocs.length} still to upload` : 'All four uploaded'} color="var(--gold-bright)" href="/student/documents" delay={0.2} />
+            <Ring pct={docsPct} sub="Step 2" label="Academic details" next={missingDetails.length ? `Add ${missingDetails[0]}` : 'Ready for universities'} color="var(--gold-bright)" href="/student/documents" delay={0.2} />
             <Ring pct={appsPct} sub="Step 3" label="Applications" next={active.length ? `Furthest: ${STAGE_LABEL[(Object.keys(STAGE) as AdmissionStatus[]).find(k => STAGE[k] === furthest) ?? 'submitted']}` : 'None yet'} color="var(--green)" href="/student/applications" delay={0.3} />
           </div>
 
