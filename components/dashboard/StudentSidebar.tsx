@@ -7,11 +7,12 @@ import { motion } from 'framer-motion'
 import {
     LayoutDashboard, FileText, Building2, BookOpen,
     Settings, Bookmark, Bot, Bell,
-    ChevronLeft, ChevronRight, CalendarDays, Sparkles, PenLine, Mic,
+    ChevronLeft, ChevronRight, CalendarDays, Sparkles, PenLine, Mic, FolderOpen,
 } from 'lucide-react'
 import Logo from '@/components/Logo'
 import { useStudentData } from '@/components/providers/StudentDataProvider'
 import { useAuth } from '@/hooks/useAuth'
+import { normalizeStatus } from '@/lib/firebase/admission'
 
 interface NavItem {
     label: string
@@ -24,6 +25,7 @@ const primaryNav: NavItem[] = [
     { label: 'Dashboard',     href: '/student/dashboard',    icon: LayoutDashboard },
     { label: 'Universities',  href: '/student/universities',  icon: Building2 },
     { label: 'Applications',  href: '/student/applications',  icon: FileText },
+    { label: 'Documents',     href: '/student/documents',     icon: FolderOpen },
     { label: 'Scholarships',  href: '/student/scholarships',  icon: BookOpen },
     { label: 'Saved',         href: '/student/saved',         icon: Bookmark },
     { label: 'Calendar',      href: '/student/calendar',      icon: CalendarDays },
@@ -58,13 +60,13 @@ function NavLink({ item, isCollapsed, count }: { item: NavItem; isCollapsed: boo
             title={isCollapsed ? item.label : undefined}
             aria-current={isActive ? 'page' : undefined}
             className={`group relative flex items-center gap-3 rounded-full py-2.5 text-[13.5px] font-semibold transition-colors duration-200 ${isCollapsed ? 'justify-center px-0' : 'px-3.5'}`}
-            style={{ color: isActive ? '#fff' : 'var(--text-secondary)' }}
+            style={{ color: isActive ? 'var(--accent)' : 'var(--text-secondary)' }}
         >
             {isActive && (
                 <motion.span
                     layoutId="sidebar-active"
                     className="absolute inset-0 rounded-full"
-                    style={{ background: 'var(--accent)', boxShadow: 'var(--shadow-glow)' }}
+                    style={{ background: 'var(--accent-bg)', boxShadow: 'inset 0 0 0 1px var(--accent-border)' }}
                     transition={{ type: 'spring', stiffness: 420, damping: 34 }}
                 />
             )}
@@ -155,6 +157,9 @@ export default function StudentSidebar({ isCollapsed, setIsCollapsed }: SidebarP
     const data = useStudentData() as Partial<ReturnType<typeof useStudentData>>
     const notifs = Array.isArray(data?.notifications) ? data!.notifications! : []
     const unread = notifs.filter((n: any) => !n.isRead).length
+    // Applications that are waiting on the student (offer to answer, fee to pay)
+    const apps = Array.isArray(data?.uniqueApps) ? data!.uniqueApps! : []
+    const waiting = apps.filter((a: any) => ['selected', 'allotted', 'seat_accepted'].includes(normalizeStatus(a.status))).length
     const pathname = usePathname() ?? ''
 
     return (
@@ -180,7 +185,7 @@ export default function StudentSidebar({ isCollapsed, setIsCollapsed }: SidebarP
                 <ProfileBlock isCollapsed={isCollapsed} />
 
                 <nav className={`custom-scrollbar flex-1 space-y-4 overflow-y-auto overflow-x-hidden pb-4 ${isCollapsed ? 'px-3' : 'px-3'}`} aria-label="Student navigation">
-                    <NavSection label="Main" items={primaryNav} isCollapsed={isCollapsed} />
+                    <NavSection label="Main" items={primaryNav} isCollapsed={isCollapsed} counts={{ '/student/applications': waiting }} />
                     <NavSection label="AI tools" items={aiNav} isCollapsed={isCollapsed} />
                     <NavSection label="Account" items={bottomNav} isCollapsed={isCollapsed} counts={{ '/student/notifications': unread }} />
                 </nav>

@@ -2,6 +2,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import { canonicalFromOnboarding } from '@/lib/utils/profileFields'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import {
@@ -89,6 +90,8 @@ export default function OnboardingPage() {
         ...form.personal,
         academic: form.academic,
         exams: form.exams,
+        // Same data under the flat keys the profile page and universities read.
+        ...canonicalFromOnboarding(form),
         profileComplete: true,
         updatedAt: serverTimestamp(),
       })

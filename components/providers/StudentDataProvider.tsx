@@ -6,6 +6,7 @@ import { collection, query, where, onSnapshot, doc } from 'firebase/firestore'
 import { auth, db } from '@/lib/firebase/config'
 import { useRouter } from 'next/navigation'
 import { calculateProfileStrength } from '@/lib/utils/profileStrength'
+import { normalizeProfile } from '@/lib/utils/profileFields'
 import type { Application, Notification, Payment, University, Scholarship } from '@/types/firebase'
 
 const log = (...args: unknown[]) => {
@@ -88,7 +89,7 @@ export function StudentDataProvider({ children }: { children: React.ReactNode })
         unsubProfile = onSnapshot(
           doc(db, 'users', user.uid),
           (snap) => {
-            setProfile(snap.exists() ? snap.data() : {})
+            setProfile(normalizeProfile(snap.exists() ? snap.data() : {}))
             loadingProfile = false
             checkLoading()
           },

@@ -40,7 +40,7 @@ const PERSONAL_FIELDS: FieldDef[] = [
   { key: 'address',         label: 'Detailed Address', priority: 'Medium', timeMin: 2, link: '/student/profile' },
   { key: 'state',           label: 'State',            priority: 'Medium', timeMin: 1, link: '/student/profile' },
   { key: 'city',            label: 'City',             priority: 'Medium', timeMin: 1, link: '/student/profile' },
-  { key: 'country',         label: 'Country',          priority: 'Low',    timeMin: 1, link: '/student/profile' },
+  { key: 'category',        label: 'Reservation Category', priority: 'High', timeMin: 1, link: '/student/profile' },
   { key: 'nationality',     label: 'Nationality',      priority: 'Low',    timeMin: 1, link: '/student/profile' },
   { key: 'bio',             label: 'Bio / About',      priority: 'Low',    timeMin: 3, link: '/student/profile' },
   { key: 'profilePhotoURL', label: 'Profile Photo',    priority: 'High',   timeMin: 3, link: '/student/profile' },
@@ -52,19 +52,19 @@ const ACADEMIC_FIELDS: FieldDef[] = [
   { key: 'twelfthPercentage', label: '12th Percentage',       priority: 'High',   timeMin: 2, link: '/student/profile' },
   { key: 'school',            label: 'School Name',           priority: 'Medium', timeMin: 1, link: '/student/profile' },
   { key: 'board',             label: 'Board (CBSE/ICSE/etc)', priority: 'Medium', timeMin: 1, link: '/student/profile' },
-  { key: 'cgpa',              label: 'CGPA / Percentage',     priority: 'Medium', timeMin: 1, link: '/student/profile' },
-  { key: 'graduationDetails', label: 'Graduation Details',    priority: 'Medium', timeMin: 2, link: '/student/profile' },
+  { key: 'stream',            label: '12th Stream',           priority: 'Medium', timeMin: 1, link: '/student/profile' },
+  { key: 'twelfthYear',       label: '12th Passing Year',     priority: 'Medium', timeMin: 1, link: '/student/profile' },
 ];
 
 // ── Test Scores ───────────────────────────────────────────────────────────────
 const TEST_SCORE_FIELDS: FieldDef[] = [
   { key: 'entranceExam',  label: 'Entrance Exam',          priority: 'Medium', timeMin: 2, link: '/student/profile' },
-  { key: 'testScores',    label: 'Test Scores (JEE/NEET)', priority: 'Medium', timeMin: 2, link: '/student/profile' },
+  { key: 'testScores',    label: 'Test Scores (JEE/NEET/CUET)', priority: 'Medium', timeMin: 2, link: '/student/profile' },
 ];
 
 // ── Preferences ───────────────────────────────────────────────────────────────
 const PREFERENCE_FIELDS: FieldDef[] = [
-  { key: 'preferredCountries', label: 'Preferred Countries', priority: 'Medium', timeMin: 2, link: '/student/profile' },
+  { key: 'preferredLocation',  label: 'Preferred State / City', priority: 'Medium', timeMin: 1, link: '/student/profile' },
   { key: 'preferredPrograms',  label: 'Preferred Programs',  priority: 'Medium', timeMin: 2, link: '/student/profile' },
   { key: 'preferredBranch',    label: 'Preferred Branch',    priority: 'Medium', timeMin: 1, link: '/student/profile' },
   { key: 'budget',             label: 'Budget Range',        priority: 'Low',    timeMin: 1, link: '/student/profile' },

@@ -8,6 +8,7 @@ import {
   ref, uploadBytes, getDownloadURL
 } from 'firebase/storage'
 import { db, storage } from './config'
+import { shareDocumentsWithActiveApplications } from './admission'
 import { UserProfile, UserDocument } from '@/types/firebase'
 import { compressImage } from '../utils/compression'
 
@@ -97,6 +98,8 @@ export async function uploadUserDocument(
         uploadedAt: serverTimestamp(),
       }
     )
+    // Keep every in-progress application's copy up to date for the university.
+    await shareDocumentsWithActiveApplications(uid).catch(() => {})
     return url
   } catch (err: unknown) {
     log('[uploadUserDocument]', docId, 'failed for uid:', uid, err)
