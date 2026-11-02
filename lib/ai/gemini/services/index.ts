@@ -3,6 +3,7 @@
 // This keeps the GROQ_API_KEY off the client bundle.
 
 import { MODELS, getOptimalModelForTask } from '../models';
+import { aiAuthHeaders } from '../../authHeaders';
 import { PromptBuilder } from '../prompts';
 import { GeminiResponse, PromptConfig } from '../types';
 import { geminiConfig } from '../config';
@@ -65,16 +66,16 @@ async function generateAIResponse(
     messages.push({ role: 'user', content: prompt });
 
     const response = await withRetry(() =>
-      fetch('/api/ai', {
+      (async () => fetch('/api/ai', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await aiAuthHeaders()) },
         body: JSON.stringify({
           model: config?.model || geminiConfig.defaultModel,
           messages,
           temperature: config?.temperature ?? geminiConfig.temperature,
           max_tokens: config?.maxTokens ?? geminiConfig.maxTokens,
         }),
-      })
+      }))()
     );
 
     if (!response.ok) {
@@ -82,7 +83,7 @@ async function generateAIResponse(
       console.error('[AI Service] /api/ai error:', response.status, err);
       return {
         success: false,
-        error: err.error || 'AI service temporarily unavailable. Please try again.',
+        error: err.message || 'The AI assistant is unavailable right now. Please try again.',
       };
     }
 

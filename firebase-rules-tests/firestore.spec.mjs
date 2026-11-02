@@ -87,6 +87,8 @@ describe('exams + notifications', () => {
   it('student reads published exams', () => assertSucceeds(getDocs(query(collection(as(STU), 'exam_schedules'), where('universityId', '==', UNI), where('isPublished', '==', true)))))
   it('student cannot list unpublished', () => assertFails(getDocs(query(collection(as(STU), 'exam_schedules'), where('universityId', '==', UNI)))))
   it('uni lists all its exams', () => assertSucceeds(getDocs(query(collection(as(UNI), 'exam_schedules'), where('universityId', '==', UNI)))))
+  it('university publishes an exam schedule', () => assertSucceeds(addDoc(collection(as(UNI), 'exam_schedules'), { universityId: UNI, programId: 'p', isPublished: true, date: '2026-12-01' })))
+  it('university notifies a student', () => assertSucceeds(addDoc(collection(as(UNI), 'notifications'), { userId: STU, title: 'Exam scheduled', isRead: false })))
   it('student cannot create exam', () => assertFails(addDoc(collection(as(STU), 'exam_schedules'), { universityId: UNI, isPublished: true })))
   it('student notifies uni', () => assertSucceeds(addDoc(collection(as(STU), 'notifications'), { userId: UNI, title: 't', isRead: false })))
   it('uni reads own notifications', () => assertSucceeds(getDocs(query(collection(as(UNI), 'notifications'), where('userId', '==', UNI)))))

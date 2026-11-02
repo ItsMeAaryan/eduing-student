@@ -166,7 +166,7 @@ function SOPBuilderContent() {
       };
 
       const result = await SOPService.generateSOP(context, tone);
-      if (!result.success) { toast.error('SOP generation failed. Please try again.'); return; }
+      if (!result.success) { toast.error(result.error || 'SOP generation failed. Please try again.'); return; }
 
       const data = result.data as { title?: string; sections?: { heading: string; content: string }[] } | null;
       let text = '';

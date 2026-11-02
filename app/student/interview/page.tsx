@@ -95,14 +95,21 @@ function InterviewCoachContent() {
 
   useEffect(() => { answerEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [history, currentQuestion, isEvaluating]);
 
+  // Shown in the conversation when the AI can't produce a question or score an answer
+  const [aiError, setAiError] = useState<string | null>(null);
+
   const fetchNextQuestion = useCallback(async (prevQ: string[]) => {
-    await generateQuestion(() => InterviewService.generateQuestion({
+    setAiError(null);
+    const res = await generateQuestion(() => InterviewService.generateQuestion({
       studentProfile: profile,
       achievements: profile?.achievements || [],
       extracurriculars: profile?.extracurriculars || [],
       experience: profile?.experience || [],
       projects: profile?.projects || [],
     }, interviewType, prevQ));
+    const q = (res as { data?: { question?: string } })?.data;
+    if (!res?.success) setAiError(res?.error || 'Couldn\u2019t prepare a question. Please try again.');
+    else if (!q?.question) setAiError('The AI sent an answer we couldn\u2019t read. Please try again.');
   }, [profile, interviewType, generateQuestion]);
 
   const handleStartSession = async () => {
@@ -112,6 +119,7 @@ function InterviewCoachContent() {
     setPreviousQuestions([]);
     setCurrentAnswer('');
     setShowSummary(false);
+    setAiError(null);
     await fetchNextQuestion([]);
   };
 
@@ -120,7 +128,12 @@ function InterviewCoachContent() {
     const res = await generateEvaluation(() =>
       InterviewService.evaluateAnswer(currentQuestion.question, currentAnswer, { studentProfile: profile })
     );
+    if (!res.success || !res.data) {
+      setAiError(res.error || 'Couldn\u2019t score your answer. Your answer is still here — try submitting again.');
+      return;
+    }
     if (res.success && res.data) {
+      setAiError(null);
       const newHistory = [...history, { question: currentQuestion, answer: currentAnswer, evaluation: res.data }];
       setHistory(newHistory);
       const newPrevQ = [...previousQuestions, currentQuestion.question];
@@ -387,6 +400,18 @@ function InterviewCoachContent() {
                         <p className="text-[14px] text-foreground leading-relaxed font-medium">{currentQuestion.question}</p>
                       </div>
                     </motion.div>
+                  )}
+
+                  {aiError && !isGenerating && !isEvaluating && (
+                    <div role="alert" className="rounded-[18px] border border-[color-mix(in_srgb,_var(--red)_25%,_transparent)] bg-[color-mix(in_srgb,_var(--red)_6%,_transparent)] p-4 text-[13px]">
+                      <p className="font-semibold text-[var(--red)]">{aiError}</p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {!currentQuestion && (
+                          <button onClick={() => fetchNextQuestion(previousQuestions)} className="h-[34px] rounded-full bg-[var(--accent)] px-4 text-[12.5px] font-semibold text-white">Try again</button>
+                        )}
+                        <button onClick={handleEndSession} className="h-[34px] rounded-full border border-border px-4 text-[12.5px] font-semibold">End session</button>
+                      </div>
+                    </div>
                   )}
 
                   <div ref={answerEndRef} />
